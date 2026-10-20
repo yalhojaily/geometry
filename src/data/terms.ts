@@ -1,7 +1,7 @@
 // The theorem bank: every definition, postulate and theorem gets a stable id.
 // `dependsOn` lists the ids it is built on; later this feeds the knowledge map.
 
-export type TermKind = 'undefined' | 'definition' | 'postulate' | 'theorem';
+export type TermKind = 'undefined' | 'definition' | 'postulate' | 'theorem' | 'formula';
 
 export interface Term {
   id: string;
@@ -130,6 +130,60 @@ export const terms: Term[] = [
     ar: 'التقاطع',
     statement: 'مجموعة النقاط المشتركة بين شكلين أو أكثر.',
     dependsOn: ['undef-point'],
+  },
+  {
+    id: 'post-ruler',
+    kind: 'postulate',
+    lesson: '1.3',
+    en: 'Ruler Postulate',
+    ar: 'مسلّمة المسطرة',
+    statement: 'يمكن مطابقة نقاط أي مستقيم مع الأعداد الحقيقية واحدًا لواحد، والعدد المقابل لكل نقطة يسمى **إحداثيها**. والمسافة بين نقطتين إحداثياهما $x_1$ و $x_2$ هي $|x_2 - x_1|$.',
+    dependsOn: ['undef-point', 'undef-line'],
+  },
+  {
+    id: 'def-length',
+    kind: 'definition',
+    lesson: '1.3',
+    en: 'Distance and length',
+    ar: 'المسافة والطول',
+    statement: 'المسافة بين النقطتين $A$ و $B$ تُكتب $AB$ دون خط فوقها، وهي أيضًا **طول** القطعة $\\overline{AB}$. الطول عدد، والقطعة شكل.',
+    dependsOn: ['def-segment', 'post-ruler'],
+  },
+  {
+    id: 'def-between',
+    kind: 'definition',
+    lesson: '1.3',
+    en: 'Between',
+    ar: 'تقع بين',
+    statement: 'تقع النقطة $B$ **بين** $A$ و $C$ إذا كانت النقاط الثلاث على استقامة واحدة، و $B$ على القطعة $\\overline{AC}$ وليست أحد طرفيها.',
+    dependsOn: ['def-collinear', 'def-segment'],
+  },
+  {
+    id: 'post-segment-addition',
+    kind: 'postulate',
+    lesson: '1.3',
+    en: 'Segment Addition Postulate',
+    ar: 'مسلّمة جمع القطع',
+    statement: 'إذا وقعت $B$ بين $A$ و $C$ فإن $AB + BC = AC$. والعكس صحيح: إذا كانت $A$ و $B$ و $C$ على استقامة واحدة و $AB + BC = AC$ فإن $B$ تقع بين $A$ و $C$.',
+    dependsOn: ['def-between', 'def-length'],
+  },
+  {
+    id: 'formula-distance',
+    kind: 'formula',
+    lesson: '1.3',
+    en: 'Distance Formula',
+    ar: 'صيغة المسافة',
+    statement: 'المسافة بين النقطتين $A(x_1, y_1)$ و $B(x_2, y_2)$ في المستوى الإحداثي هي $AB = \\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$.',
+    dependsOn: ['def-length'],
+  },
+  {
+    id: 'def-congruent-segments',
+    kind: 'definition',
+    lesson: '1.3',
+    en: 'Congruent segments',
+    ar: 'القطع المتطابقة',
+    statement: 'قطعتان لهما الطول نفسه. نكتب $\\overline{AB} \\cong \\overline{CD}$ (القطعتان متطابقتان) وهذا يعني $AB = CD$ (الطولان متساويان). ونرسم على كل منهما العلامة نفسها.',
+    dependsOn: ['def-length'],
   },
 ];
 

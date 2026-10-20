@@ -1,0 +1,256 @@
+---
+// Interactive: three points on a number line. Shows each distance as |x₂ − x₁|
+// and tests the Segment Addition Postulate AB + BC = AC.
+---
+
+<segment-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">مختبر المسطرة</span>
+    <span class="hint-small">اسحب A و B و C على خط الأعداد</span>
+  </div>
+
+  <svg viewBox="0 0 360 150" class="stage" role="img" aria-label="خط أعداد عليه النقاط A و B و C">
+    <g class="bars"></g>
+    <g class="axis"></g>
+    <g class="pts"></g>
+  </svg>
+
+  <div class="calc ltr"></div>
+  <div class="verdict" aria-live="polite"></div>
+</segment-lab>
+
+<script>
+  const NS = 'http://www.w3.org/2000/svg';
+  const MIN = -6;
+  const MAX = 10;
+  const X0 = 20;
+  const X1 = 340;
+  const AXIS_Y = 100;
+  const sx = (v: number) => X0 + ((v - MIN) / (MAX - MIN)) * (X1 - X0);
+  const vx = (x: number) => MIN + ((x - X0) / (X1 - X0)) * (MAX - MIN);
+
+  function el(tag: string, attrs: Record<string, string | number>, cls?: string) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+    if (cls) e.setAttribute('class', cls);
+    return e;
+  }
+
+  type K = 'A' | 'B' | 'C';
+
+  class SegmentLab extends HTMLElement {
+    v: Record<K, number> = { A: -3, B: 2, C: 7 };
+    drag: K | null = null;
+
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      const axis = this.querySelector('.axis')!;
+      axis.appendChild(el('line', { x1: X0 - 8, y1: AXIS_Y, x2: X1 + 8, y2: AXIS_Y }, 'ax'));
+      for (let i = MIN; i <= MAX; i++) {
+        axis.appendChild(el('line', { x1: sx(i), y1: AXIS_Y - 5, x2: sx(i), y2: AXIS_Y + 5 }, i === 0 ? 'tick zero' : 'tick'));
+        const t = el('text', { x: sx(i), y: AXIS_Y + 22 }, 'num');
+        t.textContent = String(i);
+        axis.appendChild(t);
+      }
+
+      svg.addEventListener('pointermove', (e) => {
+        if (!this.drag) return;
+        const m = svg.getScreenCTM();
+        if (!m) return;
+        const q = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        const val = Math.max(MIN, Math.min(MAX, Math.round(vx(q.x))));
+        const other = (['A', 'B', 'C'] as K[]).filter((k) => k !== this.drag);
+        if (other.some((k) => this.v[k] === val)) return; // keep points distinct
+        if (this.v[this.drag] !== val) {
+          this.v[this.drag] = val;
+          this.render();
+        }
+      });
+      const stop = () => (this.drag = null);
+      svg.addEventListener('pointerup', stop);
+      svg.addEventListener('pointercancel', stop);
+      this.render();
+    }
+
+    render() {
+      const { A, B, C } = this.v;
+      const AB = Math.abs(B - A);
+      const BC = Math.abs(C - B);
+      const AC = Math.abs(C - A);
+      const between = (A < B && B < C) || (C < B && B < A);
+
+      // Coloured bars above the axis: AB, BC on one row, AC on the row above.
+      const bars = this.querySelector('.bars')!;
+      bars.replaceChildren();
+      const bar = (a: number, b: number, y: number, cls: string, label: string) => {
+        const x1 = sx(Math.min(a, b));
+        const x2 = sx(Math.max(a, b));
+        bars.appendChild(el('rect', { x: x1, y: y - 7, width: Math.max(2, x2 - x1), height: 14, rx: 4 }, cls));
+        // Short bars can't hold their label: put it just outside, past the right end.
+        const fits = x2 - x1 >= 56;
+        const t = fits
+          ? el('text', { x: (x1 + x2) / 2, y: y + 4 }, `blbl ${cls}-t`)
+          : el('text', { x: x2 + 64 < 360 ? x2 + 32 : x1 - 32, y: y + 4 }, 'blbl');
+        t.textContent = label;
+        bars.appendChild(t);
+      };
+      bar(A, C, 22, 'b-ac', `AC = ${AC}`);
+      bar(A, B, 50, 'b-ab', `AB = ${AB}`);
+      bar(B, C, 72, 'b-bc', `BC = ${BC}`);
+
+      const pts = this.querySelector('.pts')!;
+      pts.replaceChildren();
+      (['A', 'B', 'C'] as K[]).forEach((k) => {
+        const x = sx(this.v[k]);
+        const g = el('g', {}, `pt pt-${k}`);
+        g.appendChild(el('rect', { x: x - 14, y: AXIS_Y - 20, width: 28, height: 40 }, 'hit'));
+        g.appendChild(el('circle', { cx: x, cy: AXIS_Y, r: 7 }, 'dot'));
+        const t = el('text', { x, y: AXIS_Y + 42 }, 'lbl');
+        t.textContent = k;
+        g.appendChild(t);
+        g.addEventListener('pointerdown', (e) => {
+          this.drag = k;
+          this.querySelector<SVGSVGElement>('svg.stage')?.setPointerCapture((e as PointerEvent).pointerId);
+          e.preventDefault();
+        });
+        pts.appendChild(g);
+      });
+
+      const n = (x: number) => (x < 0 ? `(${x})` : `${x}`);
+      this.querySelector('.calc')!.innerHTML =
+        `<div>AB = |${B} − ${n(A)}| = ${AB}</div>` +
+        `<div>BC = |${C} − ${n(B)}| = ${BC}</div>` +
+        `<div>AC = |${C} − ${n(A)}| = ${AC}</div>` +
+        `<div class="sum ${between ? 'ok' : 'no'}">AB + BC = ${AB} + ${BC} = ${AB + BC} ${AB + BC === AC ? '=' : '≠'} AC</div>`;
+
+      const v = this.querySelector<HTMLElement>('.verdict')!;
+      v.textContent = between
+        ? 'B تقع بين A و C، فالقطعتان AB و BC تغطيان AC تمامًا: AB + BC = AC.'
+        : 'B لا تقع بين A و C، فالمجموع AB + BC أكبر من AC. المسلّمة تشترط أن تقع B بين النقطتين.';
+      v.className = `verdict ${between ? 'yes' : 'no'}`;
+    }
+  }
+  customElements.define('segment-lab', SegmentLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 560px;
+    margin: 0.5rem auto 0;
+    touch-action: none;
+  }
+  .stage :global(.ax) {
+    stroke: var(--ink-2);
+    stroke-width: 2;
+  }
+  .stage :global(.tick) {
+    stroke: var(--ink-3);
+    stroke-width: 1.5;
+  }
+  .stage :global(.tick.zero) {
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .stage :global(.num) {
+    font-family: var(--font-head);
+    font-size: 10px;
+    fill: var(--ink-3);
+    text-anchor: middle;
+  }
+  .stage :global(.b-ac) {
+    fill: color-mix(in srgb, var(--ink-3) 35%, transparent);
+  }
+  .stage :global(.b-ab) {
+    fill: color-mix(in srgb, var(--brand) 75%, transparent);
+  }
+  .stage :global(.b-bc) {
+    fill: color-mix(in srgb, var(--accent) 85%, transparent);
+  }
+  .stage :global(.blbl) {
+    font-family: var(--font-head);
+    font-size: 10.5px;
+    font-weight: 600;
+    text-anchor: middle;
+    fill: var(--ink);
+  }
+  .stage :global(.b-ab-t) {
+    fill: var(--card);
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+  .stage :global(.pt-B .dot) {
+    stroke: var(--accent);
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    text-anchor: middle;
+    fill: var(--ink);
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.95rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    margin-top: 0.4rem;
+    line-height: 1.7;
+    text-align: left;
+  }
+  .calc :global(.sum) {
+    font-weight: 700;
+    border-top: 1px dashed var(--line);
+    margin-top: 0.2rem;
+    padding-top: 0.2rem;
+  }
+  .calc :global(.sum.ok) {
+    color: var(--good);
+  }
+  .calc :global(.sum.no) {
+    color: var(--bad);
+  }
+  .verdict {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+  }
+  .verdict.yes {
+    background: var(--thm-bg);
+  }
+  .verdict.no {
+    background: var(--warn-bg);
+  }
+</style>

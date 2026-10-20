@@ -1,0 +1,345 @@
+---
+// Interactive: two segments on a coordinate grid. Shows the right triangle behind
+// the distance formula, and marks the segments congruent when their lengths match.
+---
+
+<distance-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">مختبر المسافة</span>
+    <span class="hint-small">اسحب أطراف القطعتين</span>
+  </div>
+
+  <div class="seg-pick" role="tablist">
+    <span>اعرض المثلث القائم لـ</span>
+    <button type="button" data-s="0" class="on">AB</button>
+    <button type="button" data-s="1">CD</button>
+  </div>
+
+  <svg viewBox="0 0 360 300" class="stage" role="img" aria-label="مستوى إحداثي عليه القطعتان AB و CD">
+    <g class="grid"></g>
+    <g class="tri"></g>
+    <g class="segs"></g>
+    <g class="pts"></g>
+  </svg>
+
+  <div class="calc ltr"></div>
+  <div class="verdict" aria-live="polite"></div>
+</distance-lab>
+
+<script>
+  type P = { x: number; y: number };
+  type K = 'A' | 'B' | 'C' | 'D';
+  const NS = 'http://www.w3.org/2000/svg';
+  const XMIN = -1;
+  const XMAX = 12;
+  const YMIN = -1;
+  const YMAX = 10;
+  const S = 25; // px per unit
+  const OX = 22;
+  const OY = 280;
+  const px = (x: number) => OX + (x - XMIN) * S;
+  const py = (y: number) => OY - (y - YMIN) * S;
+
+  function el(tag: string, attrs: Record<string, string | number>, cls?: string) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+    if (cls) e.setAttribute('class', cls);
+    return e;
+  }
+
+  function lengthText(sq: number): string {
+    const r = Math.round(Math.sqrt(sq));
+    return r * r === sq ? `${r}` : `√${sq} ≈ ${Math.sqrt(sq).toFixed(2)}`;
+  }
+
+  class DistanceLab extends HTMLElement {
+    p: Record<K, P> = { A: { x: 1, y: 1 }, B: { x: 4, y: 5 }, C: { x: 6, y: 2 }, D: { x: 11, y: 2 } };
+    shown = 0;
+    drag: K | null = null;
+
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      const grid = this.querySelector('.grid')!;
+      for (let x = XMIN; x <= XMAX; x++)
+        grid.appendChild(el('line', { x1: px(x), y1: py(YMIN), x2: px(x), y2: py(YMAX) }, x === 0 ? 'axis' : 'gl'));
+      for (let y = YMIN; y <= YMAX; y++)
+        grid.appendChild(el('line', { x1: px(XMIN), y1: py(y), x2: px(XMAX), y2: py(y) }, y === 0 ? 'axis' : 'gl'));
+      for (let x = 2; x <= XMAX; x += 2) {
+        const t = el('text', { x: px(x), y: py(0) + 13 }, 'num');
+        t.textContent = String(x);
+        grid.appendChild(t);
+      }
+      for (let y = 2; y <= YMAX; y += 2) {
+        const t = el('text', { x: px(0) - 9, y: py(y) + 4 }, 'num');
+        t.textContent = String(y);
+        grid.appendChild(t);
+      }
+
+      this.querySelectorAll<HTMLButtonElement>('.seg-pick button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.shown = Number(b.dataset.s);
+          this.querySelectorAll('.seg-pick button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+
+      svg.addEventListener('pointermove', (e) => {
+        if (!this.drag) return;
+        const m = svg.getScreenCTM();
+        if (!m) return;
+        const q = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        const x = Math.max(XMIN, Math.min(XMAX, Math.round(XMIN + (q.x - OX) / S)));
+        const y = Math.max(YMIN, Math.min(YMAX, Math.round(YMIN + (OY - q.y) / S)));
+        const partner: K = ({ A: 'B', B: 'A', C: 'D', D: 'C' } as const)[this.drag];
+        if (this.p[partner].x === x && this.p[partner].y === y) return;
+        const cur = this.p[this.drag];
+        if (cur.x !== x || cur.y !== y) {
+          this.p[this.drag] = { x, y };
+          this.render();
+        }
+      });
+      const stop = () => (this.drag = null);
+      svg.addEventListener('pointerup', stop);
+      svg.addEventListener('pointercancel', stop);
+      this.render();
+    }
+
+    render() {
+      const { A, B, C, D } = this.p;
+      const sq = (u: P, v: P) => (v.x - u.x) ** 2 + (v.y - u.y) ** 2;
+      const ab2 = sq(A, B);
+      const cd2 = sq(C, D);
+      const congruent = ab2 === cd2;
+
+      // Right triangle for the focused segment
+      const [u, v] = this.shown === 0 ? [A, B] : [C, D];
+      const tri = this.querySelector('.tri')!;
+      tri.replaceChildren();
+      const corner = { x: v.x, y: u.y };
+      if (u.x !== v.x && u.y !== v.y) {
+        tri.appendChild(
+          el('polygon', { points: `${px(u.x)},${py(u.y)} ${px(corner.x)},${py(corner.y)} ${px(v.x)},${py(v.y)}` }, 'tri-fill'),
+        );
+        const sx = Math.sign(u.x - v.x) * 9;
+        const sy = Math.sign(v.y - u.y) * 9;
+        tri.appendChild(
+          el('polyline', { points: `${px(corner.x) + sx},${py(corner.y)} ${px(corner.x) + sx},${py(corner.y) - sy} ${px(corner.x)},${py(corner.y) - sy}` }, 'right'),
+        );
+      }
+      tri.appendChild(el('line', { x1: px(u.x), y1: py(u.y), x2: px(corner.x), y2: py(corner.y) }, 'leg'));
+      tri.appendChild(el('line', { x1: px(corner.x), y1: py(corner.y), x2: px(v.x), y2: py(v.y) }, 'leg'));
+      if (u.x !== v.x) {
+        const t = el('text', { x: (px(u.x) + px(corner.x)) / 2, y: py(corner.y) + (v.y >= u.y ? 16 : -7) }, 'leg-t');
+        t.textContent = `Δx = ${Math.abs(v.x - u.x)}`;
+        tri.appendChild(t);
+      }
+      if (u.y !== v.y) {
+        const t = el('text', { x: px(corner.x) + (v.x >= u.x ? 8 : -8), y: (py(u.y) + py(v.y)) / 2 + 4 }, `leg-t ${v.x >= u.x ? '' : 'end'}`);
+        t.textContent = `Δy = ${Math.abs(v.y - u.y)}`;
+        tri.appendChild(t);
+      }
+
+      // Segments, with tick marks when congruent
+      const segs = this.querySelector('.segs')!;
+      segs.replaceChildren();
+      const drawSeg = (a: P, b: P, cls: string) => {
+        segs.appendChild(el('line', { x1: px(a.x), y1: py(a.y), x2: px(b.x), y2: py(b.y) }, `seg ${cls}`));
+        if (congruent) {
+          const mx = (px(a.x) + px(b.x)) / 2;
+          const my = (py(a.y) + py(b.y)) / 2;
+          const dx = px(b.x) - px(a.x);
+          const dy = py(b.y) - py(a.y);
+          const L = Math.hypot(dx, dy);
+          const nx = (-dy / L) * 8;
+          const ny = (dx / L) * 8;
+          segs.appendChild(el('line', { x1: mx - nx, y1: my - ny, x2: mx + nx, y2: my + ny }, 'tickmark'));
+        }
+      };
+      drawSeg(A, B, 'ab');
+      drawSeg(C, D, 'cd');
+
+      const pts = this.querySelector('.pts')!;
+      pts.replaceChildren();
+      (['A', 'B', 'C', 'D'] as K[]).forEach((k) => {
+        const q = this.p[k];
+        const g = el('g', {}, `pt pt-${k}`);
+        g.appendChild(el('circle', { cx: px(q.x), cy: py(q.y), r: 14 }, 'hit'));
+        g.appendChild(el('circle', { cx: px(q.x), cy: py(q.y), r: 5.5 }, 'dot'));
+        const t = el('text', { x: px(q.x) + 8, y: py(q.y) - 8 }, 'lbl');
+        t.textContent = `${k}(${q.x}, ${q.y})`;
+        g.appendChild(t);
+        g.addEventListener('pointerdown', (e) => {
+          this.drag = k;
+          this.querySelector<SVGSVGElement>('svg.stage')?.setPointerCapture((e as PointerEvent).pointerId);
+          e.preventDefault();
+        });
+        pts.appendChild(g);
+      });
+
+      const line = (n1: string, n2: string, a: P, b: P, s2: number) => {
+        const dx = Math.abs(b.x - a.x);
+        const dy = Math.abs(b.y - a.y);
+        return `<div>${n1}${n2} = √(${dx}² + ${dy}²) = √(${dx * dx} + ${dy * dy}) = ${lengthText(s2)}</div>`;
+      };
+      this.querySelector('.calc')!.innerHTML = line('A', 'B', A, B, ab2) + line('C', 'D', C, D, cd2);
+
+      const ver = this.querySelector<HTMLElement>('.verdict')!;
+      ver.textContent = congruent
+        ? `AB = CD، إذن القطعتان متطابقتان: AB ≅ CD. لاحظ العلامة الصغيرة على كل منهما. القطعتان متطابقتان رغم أن اتجاهيهما مختلفان.`
+        : 'الطولان مختلفان، فالقطعتان غير متطابقتين. حاول أن تجعل CD بطول AB نفسه، بأكثر من طريقة.';
+      ver.className = `verdict ${congruent ? 'yes' : ''}`;
+    }
+  }
+  customElements.define('distance-lab', DistanceLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .seg-pick {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+  }
+  .seg-pick button {
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 0.1rem 0.7rem;
+    font-family: var(--font-head);
+    direction: ltr;
+  }
+  .seg-pick button.on {
+    border-color: var(--brand);
+    background: var(--def-bg);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    margin: 0.4rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.gl) {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .stage :global(.axis) {
+    stroke: var(--ink-3);
+    stroke-width: 1.6;
+  }
+  .stage :global(.num) {
+    font-family: var(--font-head);
+    font-size: 9.5px;
+    fill: var(--ink-3);
+    text-anchor: middle;
+  }
+  .stage :global(.tri-fill) {
+    fill: var(--accent);
+    fill-opacity: 0.16;
+  }
+  .stage :global(.right) {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 1.2;
+  }
+  .stage :global(.leg) {
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+  }
+  .stage :global(.leg-t) {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 600;
+    fill: var(--ink-2);
+    text-anchor: middle;
+  }
+  .stage :global(.leg-t:not(.end)) {
+    text-anchor: start;
+  }
+  .stage :global(.leg-t.end) {
+    text-anchor: end;
+  }
+  .stage :global(.seg) {
+    stroke-width: 3.5;
+    stroke-linecap: round;
+  }
+  .stage :global(.seg.ab) {
+    stroke: var(--brand);
+  }
+  .stage :global(.seg.cd) {
+    stroke: var(--thm);
+  }
+  .stage :global(.tickmark) {
+    stroke: var(--warn);
+    stroke-width: 3;
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    fill: var(--ink);
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    line-height: 1.7;
+    text-align: left;
+    overflow-x: auto;
+  }
+  .calc :global(div) {
+    white-space: nowrap;
+  }
+  .verdict {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+  }
+  .verdict.yes {
+    background: var(--thm-bg);
+  }
+</style>

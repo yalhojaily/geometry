@@ -21,7 +21,7 @@ export const chapters: Chapter[] = [
     lessons: [
       { id: '1.1', en: 'Patterns and Inductive Reasoning', ar: 'الأنماط والاستدلال الاستقرائي', ready: true },
       { id: '1.2', en: 'Points, Lines, and Planes', ar: 'النقاط والمستقيمات والمستويات', ready: true },
-      { id: '1.3', en: 'Segments and Their Measures', ar: 'القطع المستقيمة وأطوالها' },
+      { id: '1.3', en: 'Segments and Their Measures', ar: 'القطع المستقيمة وأطوالها', ready: true },
       { id: '1.4', en: 'Angles and Their Measures', ar: 'الزوايا وقياساتها' },
       { id: '1.5', en: 'Segment and Angle Bisectors', ar: 'منصفات القطع والزوايا' },
       { id: '1.6', en: 'Angle Pair Relationships', ar: 'العلاقات بين أزواج الزوايا' },

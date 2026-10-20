@@ -14,6 +14,7 @@ const label: Record<TermKind, string> = {
   definition: 'تعريف',
   postulate: 'مسلّمة',
   theorem: 'نظرية',
+  formula: 'صيغة',
 };
 ---
 
@@ -46,6 +47,10 @@ const label: Record<TermKind, string> = {
   .term.theorem {
     --c: var(--thm);
     --bg: var(--thm-bg);
+  }
+  .term.formula {
+    --c: var(--alg);
+    --bg: var(--alg-bg);
   }
   .term.postulate {
     --c: var(--post);
