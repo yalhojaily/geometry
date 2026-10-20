@@ -1,0 +1,235 @@
+---
+// Interactive: a right triangle placed with its legs on the axes.
+// The midpoint M of the hypotenuse is the same distance from all three
+// vertices. Compare with an awkward placement to see why placement matters.
+---
+
+<coord-proof-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">مختبر البرهان الإحداثي</span>
+    <div class="seg" role="tablist">
+      <button type="button" data-p="good" class="on">وضع مريح</button>
+      <button type="button" data-p="bad">وضع عشوائي</button>
+    </div>
+  </div>
+  <svg viewBox="0 0 360 290" class="stage" role="img" aria-label="مثلث قائم على المستوى الإحداثي ومنتصف وتره"></svg>
+  <div class="sliders">
+    <label><span class="ltr">h = <b class="hv">3</b></span><input type="range" min="1" max="5" value="3" class="h" dir="ltr" aria-label="h" /></label>
+    <label><span class="ltr">k = <b class="kv">2</b></span><input type="range" min="1" max="5" value="2" class="k" dir="ltr" aria-label="k" /></label>
+  </div>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</coord-proof-lab>
+
+<script>
+  import { el, text, type P } from '../scripts/svg';
+
+  const U = 24;
+  const OX = 60;
+  const OY = 255;
+  const px = (x: number) => OX + x * U;
+  const py = (y: number) => OY - y * U;
+  const fmt = (v: number) => (Math.abs(v - Math.round(v)) < 1e-9 ? String(Math.round(v)) : v.toFixed(2));
+
+  class CoordProofLab extends HTMLElement {
+    h = 3;
+    k = 2;
+    place: 'good' | 'bad' = 'good';
+
+    connectedCallback() {
+      const hi = this.querySelector<HTMLInputElement>('.h')!;
+      const ki = this.querySelector<HTMLInputElement>('.k')!;
+      hi.addEventListener('input', () => {
+        this.h = Number(hi.value);
+        this.render();
+      });
+      ki.addEventListener('input', () => {
+        this.k = Number(ki.value);
+        this.render();
+      });
+      this.querySelectorAll<HTMLButtonElement>('.seg button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.place = b.dataset.p as 'good' | 'bad';
+          this.querySelectorAll('.seg button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      this.render();
+    }
+
+    pts(): Record<'O' | 'A' | 'B', P> {
+      const base = { O: { x: 0, y: 0 }, A: { x: 2 * this.h, y: 0 }, B: { x: 0, y: 2 * this.k } };
+      if (this.place === 'good') return base;
+      const t = (25 * Math.PI) / 180;
+      const tr = (p: P) => ({ x: 3 + p.x * Math.cos(t) - p.y * Math.sin(t), y: 0.3 + p.x * Math.sin(t) + p.y * Math.cos(t) });
+      return { O: tr(base.O), A: tr(base.A), B: tr(base.B) };
+    }
+
+    render() {
+      this.querySelector('.hv')!.textContent = String(this.h);
+      this.querySelector('.kv')!.textContent = String(this.k);
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      for (let x = -2; x <= 12; x++) svg.appendChild(el('line', { x1: px(x), y1: py(-1), x2: px(x), y2: py(10) }, x === 0 ? 'axis' : 'gl'));
+      for (let y = -1; y <= 10; y++) svg.appendChild(el('line', { x1: px(-2), y1: py(y), x2: px(12), y2: py(y) }, y === 0 ? 'axis' : 'gl'));
+
+      const { O, A, B } = this.pts();
+      const M = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
+      const r = Math.hypot(M.x - O.x, M.y - O.y);
+      svg.appendChild(el('circle', { cx: px(M.x), cy: py(M.y), r: r * U }, 'cc'));
+      svg.appendChild(el('polygon', { points: [O, A, B].map((p) => `${px(p.x)},${py(p.y)}`).join(' ') }, 'tri'));
+      for (const p of [O, A, B]) svg.appendChild(el('line', { x1: px(M.x), y1: py(M.y), x2: px(p.x), y2: py(p.y) }, 'rad'));
+      const lab = (p: P, n: string, dx: number, dy: number) => {
+        svg.appendChild(el('circle', { cx: px(p.x), cy: py(p.y), r: 5 }, n === 'M' ? 'mid' : 'vx'));
+        svg.appendChild(text(px(p.x) + dx, py(p.y) + dy, `${n}(${fmt(p.x)}, ${fmt(p.y)})`, 'lbl'));
+      };
+      lab(O, 'O', 6, 16);
+      lab(A, 'A', -20, 18);
+      lab(B, 'B', 8, -6);
+      lab(M, 'M', 8, -8);
+
+      const d = (p: P) => Math.hypot(p.x - M.x, p.y - M.y);
+      const calc = this.querySelector('.calc')!;
+      if (this.place === 'good') {
+        const s = this.h * this.h + this.k * this.k;
+        calc.innerHTML =
+          `<div>M = ((2h + 0)/2, (0 + 2k)/2) = (h, k) = (${this.h}, ${this.k})</div>` +
+          `<div>MO = √(h² + k²) = √${s}</div>` +
+          `<div>MA = √((2h − h)² + (0 − k)²) = √(h² + k²) = √${s}</div>` +
+          `<div>MB = √((0 − h)² + (2k − k)²) = √(h² + k²) = √${s}</div>`;
+      } else {
+        calc.innerHTML = `<div>MO = ${d(O).toFixed(3)} , MA = ${d(A).toFixed(3)} , MB = ${d(B).toFixed(3)}</div>`;
+      }
+      const note = this.querySelector('.note')!;
+      const L = (t: string) => `<span class="ltr">${t}</span>`;
+      note.innerHTML =
+        this.place === 'good'
+          ? `بوضع الساقين على المحورين صارت الإحداثيات ${L('(0, 0)')} و ${L('(2h, 0)')} و ${L('(0, 2k)')}، فظهرت النتيجة بالرموز لكل قيم h و k: المسافات الثلاث تساوي ${L('√(h² + k²)')}. هذا برهان عام لا مثال واحد.`
+          : 'النتيجة نفسها صحيحة، لكن الإحداثيات كسور معقدة، ولا يمكن كتابة البرهان بالرموز بسهولة. لهذا نختار وضعًا مريحًا.';
+    }
+  }
+  customElements.define('coord-proof-lab', CoordProofLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .seg button {
+    border: none;
+    background: var(--card);
+    color: var(--ink-2);
+    padding: 0.25rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  .seg button.on {
+    background: var(--brand);
+    color: var(--paper);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 460px;
+    margin: 0.4rem auto;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.gl) {
+    stroke: var(--line);
+  }
+  .stage :global(.axis) {
+    stroke: var(--ink-3);
+    stroke-width: 1.6;
+  }
+  .stage :global(.cc) {
+    fill: none;
+    stroke: var(--thm);
+    stroke-width: 1.6;
+    stroke-dasharray: 6 4;
+  }
+  .stage :global(.tri) {
+    fill: var(--brand);
+    fill-opacity: 0.12;
+    stroke: var(--brand);
+    stroke-width: 3;
+    stroke-linejoin: round;
+  }
+  .stage :global(.rad) {
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .stage :global(.vx) {
+    fill: var(--ink);
+  }
+  .stage :global(.mid) {
+    fill: var(--accent);
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-size: 10.5px;
+    font-weight: 700;
+    fill: var(--ink);
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+  }
+  .sliders {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .sliders label {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .sliders span {
+    flex: none;
+    width: 4rem;
+    font-family: var(--font-head);
+  }
+  .sliders input {
+    flex: 1;
+    accent-color: var(--brand);
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.88rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    margin-top: 0.5rem;
+    line-height: 1.7;
+    text-align: left;
+    overflow-x: auto;
+  }
+  .calc :global(div) {
+    white-space: nowrap;
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

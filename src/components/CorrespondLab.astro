@@ -1,0 +1,243 @@
+---
+// Interactive: two congruent triangles in different positions.
+// Tap a part of △ABC to see its corresponding part in △DEF, or slide
+// △DEF back onto △ABC (rotation + reflection) to see that they coincide.
+---
+
+<correspond-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">الأجزاء المتناظرة</span>
+    <span class="stmt ltr">△ABC ≅ △DEF</span>
+  </div>
+  <svg viewBox="0 0 360 220" class="stage" role="img" aria-label="المثلثان المتطابقان ABC و DEF"></svg>
+  <label class="slider">
+    <span>حرّك <span class="ltr">△DEF</span></span>
+    <input type="range" min="0" max="100" value="100" dir="ltr" aria-label="انقل المثلث DEF فوق ABC" />
+  </label>
+  <p class="msg" aria-live="polite">اضغط على رأس أو ضلع في △ABC.</p>
+</correspond-lab>
+
+<script>
+  import { el, text, type P } from '../scripts/svg';
+
+  const BASE: P[] = [
+    { x: -10, y: -62 },
+    { x: -58, y: 42 },
+    { x: 68, y: 36 },
+  ];
+  const L: P = { x: 92, y: 112 };
+  const R: P = { x: 268, y: 110 };
+  const N1 = ['A', 'B', 'C'];
+  const N2 = ['D', 'E', 'F'];
+  const SIDES: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 0],
+  ];
+
+  function place(s: number): P[] {
+    const th = (150 * s * Math.PI) / 180;
+    const fx = 1 - 2 * s; // 1 → −1 : reflection
+    const c = { x: L.x + (R.x - L.x) * s, y: L.y + (R.y - L.y) * s };
+    return BASE.map((p) => {
+      const x = p.x * fx;
+      const y = p.y;
+      return { x: c.x + x * Math.cos(th) - y * Math.sin(th), y: c.y + x * Math.sin(th) + y * Math.cos(th) };
+    });
+  }
+
+  class CorrespondLab extends HTMLElement {
+    s = 1;
+    sel: { kind: 'v' | 's'; i: number } | null = null;
+
+    connectedCallback() {
+      const range = this.querySelector<HTMLInputElement>('input')!;
+      range.addEventListener('input', () => {
+        this.s = Number(range.value) / 100;
+        this.render();
+      });
+      this.render();
+    }
+
+    drawTri(root: Element, pts: P[], names: string[], cls: string, interactive: boolean) {
+      const svg = el('g', interactive ? {} : { 'pointer-events': 'none' });
+      root.appendChild(svg);
+      svg.appendChild(el('polygon', { points: pts.map((p) => `${p.x},${p.y}`).join(' ') }, `tri ${cls}`));
+      const cx = (pts[0].x + pts[1].x + pts[2].x) / 3;
+      const cy = (pts[0].y + pts[1].y + pts[2].y) / 3;
+
+      // side marks: 1, 2, 3 ticks
+      SIDES.forEach(([a, b], i) => {
+        const p = pts[a];
+        const q = pts[b];
+        const m = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 };
+        const L0 = Math.hypot(q.x - p.x, q.y - p.y);
+        const u = { x: (q.x - p.x) / L0, y: (q.y - p.y) / L0 };
+        const n = { x: -u.y * 6, y: u.x * 6 };
+        const on = this.sel?.kind === 's' && this.sel.i === i;
+        for (let k = 0; k <= i; k++) {
+          const off = (k - i / 2) * 5;
+          const c = { x: m.x + u.x * off, y: m.y + u.y * off };
+          svg.appendChild(el('line', { x1: c.x - n.x, y1: c.y - n.y, x2: c.x + n.x, y2: c.y + n.y }, `tick ${on ? 'on' : ''}`));
+        }
+        if (on) svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, 'hl'));
+        if (interactive) {
+          const h = el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, 'hitl');
+          h.addEventListener('click', () => {
+            this.sel = { kind: 's', i };
+            this.render();
+          });
+          svg.appendChild(h);
+        }
+      });
+
+      // angle marks: 1, 2, 3 arcs
+      pts.forEach((V, i) => {
+        const Pp = pts[(i + 1) % 3];
+        const Q = pts[(i + 2) % 3];
+        const on = this.sel?.kind === 'v' && this.sel.i === i;
+        const a1 = Math.atan2(Pp.y - V.y, Pp.x - V.x);
+        const a2 = Math.atan2(Q.y - V.y, Q.x - V.x);
+        for (let k = 0; k <= i; k++) {
+          const r = 13 + k * 4;
+          const p1 = { x: V.x + r * Math.cos(a1), y: V.y + r * Math.sin(a1) };
+          const p2 = { x: V.x + r * Math.cos(a2), y: V.y + r * Math.sin(a2) };
+          let d = a2 - a1;
+          while (d > Math.PI) d -= 2 * Math.PI;
+          while (d < -Math.PI) d += 2 * Math.PI;
+          svg.appendChild(
+            el('path', { d: `M ${p1.x} ${p1.y} A ${r} ${r} 0 0 ${d > 0 ? 1 : 0} ${p2.x} ${p2.y}` }, `arc ${on ? 'on' : ''}`),
+          );
+        }
+        const dd = Math.hypot(V.x - cx, V.y - cy) || 1;
+        svg.appendChild(text(V.x + ((V.x - cx) / dd) * 16 - 5, V.y + ((V.y - cy) / dd) * 16 + 5, names[i], `lbl ${on ? 'on' : ''}`));
+        if (interactive) {
+          const h = el('circle', { cx: V.x, cy: V.y, r: 18 }, 'hit');
+          h.addEventListener('click', () => {
+            this.sel = { kind: 'v', i };
+            this.render();
+          });
+          svg.appendChild(h);
+        }
+      });
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      this.drawTri(svg, place(0), N1, 't1', true);
+      this.drawTri(svg, place(this.s), N2, 't2', false);
+
+      const msg = this.querySelector('.msg')!;
+      if (this.s < 0.02) {
+        msg.textContent = 'انطبق △DEF على △ABC تمامًا: D فوق A، و E فوق B، و F فوق C. هذا معنى التطابق.';
+      } else if (this.sel) {
+        if (this.sel.kind === 'v') {
+          const i = this.sel.i;
+          msg.innerHTML = `<span class="ltr">∠${N1[i]} ≅ ∠${N2[i]}</span>: الحرف ${i + 1} في <span class="ltr">△ABC</span> يناظر الحرف ${i + 1} في <span class="ltr">△DEF</span>.`;
+        } else {
+          const [a, b] = SIDES[this.sel.i];
+          msg.innerHTML = `<span class="ltr">${N1[a]}${N1[b]} ≅ ${N2[a]}${N2[b]}</span>: الضلع بين الحرفين ${a + 1} و ${b + 1} في كل مثلث.`;
+        }
+      } else msg.textContent = 'اضغط على رأس أو ضلع في △ABC، أو حرّك المؤشر لتنقل △DEF فوقه.';
+    }
+  }
+  customElements.define('correspond-lab', CorrespondLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .stmt {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 460px;
+    margin: 0.4rem auto;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.tri) {
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+  }
+  .stage :global(.tri.t1) {
+    fill: var(--def-bg);
+    stroke: var(--brand);
+  }
+  .stage :global(.tri.t2) {
+    fill: var(--thm-bg);
+    fill-opacity: 0.85;
+    stroke: var(--thm);
+  }
+  .stage :global(.tick) {
+    stroke: var(--ink-2);
+    stroke-width: 2;
+  }
+  .stage :global(.arc) {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 1.6;
+  }
+  .stage :global(.tick.on),
+  .stage :global(.arc.on) {
+    stroke: var(--warn);
+    stroke-width: 3;
+  }
+  .stage :global(.hl) {
+    stroke: var(--warn);
+    stroke-width: 5;
+    stroke-opacity: 0.45;
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    fill: var(--ink);
+  }
+  .stage :global(.lbl.on) {
+    fill: var(--warn);
+  }
+  .stage :global(.hit),
+  .stage :global(.hitl) {
+    fill: transparent;
+    stroke: transparent;
+    cursor: pointer;
+  }
+  .stage :global(.hitl) {
+    stroke-width: 16;
+  }
+  .slider {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 0.92rem;
+  }
+  .slider input {
+    flex: 1;
+    accent-color: var(--thm);
+  }
+  .msg {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

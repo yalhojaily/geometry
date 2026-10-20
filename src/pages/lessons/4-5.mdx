@@ -1,0 +1,100 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '4.5'
+why: 'تطابق المثلثين نادرًا ما يكون الهدف النهائي. هو جسر: نثبت تطابق مثلثين لنحصل على زاوية أو قطعة نريدها. هذا الدرس يعلّمك عبور هذا الجسر، ويبرهن لماذا نجح إنشاء منصف الزاوية في الدرس 1.5.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import FigTri from '../../components/FigTri.astro';
+import { proofs } from '../../data/proofs';
+
+## الخطوة التي تلي التطابق
+
+<Term id="def-cpctc" />
+
+الخطة المعتادة من خطوتين:
+
+1. أثبت أن المثلثين اللذين يحتويان الجزأين المطلوبين متطابقان (SSS أو SAS أو ASA أو AAS).
+2. استنتج تطابق الجزأين لأنهما متناظران.
+
+<ProofTable {...proofs.cpctcKite} mode="fill">
+  <FigTri kind="kite">المطلوب: ∠A ≅ ∠C.</FigTri>
+</ProofTable>
+
+<Callout type="warning" title="لا تستخدم CPCTC قبل أن يثبت التطابق">
+
+خطأ شائع: كتابة «الأجزاء المتناظرة متطابقة» قبل أن يظهر في البرهان سطر «$\triangle ABD \cong \triangle CBD$». هذا السبب يحتاج سطر التطابق قبله دائمًا، وإلا صار البرهان دائريًا.
+
+</Callout>
+
+## لماذا ينجح إنشاء منصف الزاوية؟
+
+في الدرس 1.5 أنشأنا منصف الزاوية بالفرجار: قوس من الرأس، ثم قوسان متساويان من نقطتي التقاطع. الشكل الناتج هو بالضبط الشكل الرباعي أعلاه: $BA = BC$ (القوس الأول) و $DA = DC$ (القوسان المتساويان). أكمل البرهان على أن $\overline{BD}$ ينصف الزاوية فعلًا:
+
+<ProofTable {...proofs.cpctcBisector} mode="fill" />
+
+## خطط قبل أن تكتب
+
+<Example title="مثال 1: التخطيط للبرهان">
+
+معطى: $\overline{AB} \parallel \overline{DE}$ و $C$ منتصف $\overline{BD}$، حيث $\overline{AE}$ و $\overline{BD}$ يتقاطعان في $C$. المطلوب: $\overline{AB} \cong \overline{ED}$.
+
+1. **أي مثلثين يحتويان $\overline{AB}$ و $\overline{ED}$؟** $\triangle ABC$ و $\triangle EDC$.
+2. **ماذا نعرف عنهما؟** $\overline{BC} \cong \overline{DC}$ (المنتصف)، و $\angle ACB \cong \angle ECD$ (متقابلتان بالرأس).
+3. **نحتاج جزءًا ثالثًا:** $\overline{AB} \parallel \overline{DE}$ و $\overline{BD}$ قاطع، فالمتبادلتان داخليًا $\angle ABC \cong \angle EDC$.
+4. **أي معيار؟** زاويتان والضلع المحصور بينهما ($\overline{BC}$ بين $\angle ABC$ و $\angle ACB$): ASA.
+5. **ثم:** $\overline{AB} \cong \overline{ED}$ لأنهما متناظران.
+
+</Example>
+
+<Example title="مثال 2: قياس عرض نهر">
+
+يريد مهندس قياس المسافة $AB$ عبر نهر، حيث $A$ على ضفته و $B$ على الضفة الأخرى.
+
+1. يمشي من $A$ عموديًا على $\overline{AB}$ إلى $C$، ثم يكمل المسافة نفسها إلى $D$، فتكون $C$ منتصف $\overline{AD}$.
+2. من $D$ يمشي عموديًا على $\overline{AD}$ مبتعدًا عن النهر، حتى يرى $C$ و $B$ على استقامة واحدة. يسمي هذه النقطة $E$.
+3. $\angle A \cong \angle D$ (قائمتان)، و $\overline{AC} \cong \overline{DC}$، و $\angle ACB \cong \angle DCE$ (متقابلتان بالرأس): ASA.
+4. إذن $\triangle ACB \cong \triangle DCE$، و $AB = DE$ بالتناظر. يقيس $DE$ على أرضه دون أن يعبر النهر.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={2} options={['تعريف التطابق', 'مسلّمة SAS', 'الأجزاء المتناظرة في مثلثين متطابقين', 'خاصية الانعكاس']}>
+
+السطر السابق: $\triangle PQR \cong \triangle STU$. السطر الحالي: $\overline{QR} \cong \overline{TU}$. ما السبب؟
+
+<div slot="explain">بعد إثبات التطابق، كل جزأين متناظرين متطابقان.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={1} options={['∠S', '∠T', '∠U', 'لا يمكن معرفته']}>
+
+إذا كان $\triangle PQR \cong \triangle STU$، فأي زاوية تطابق $\angle Q$؟
+
+<div slot="explain">الحرف الثاني يناظر الحرف الثاني: $T$.</div>
+</Quiz>
+
+<Quiz n={3} type="choice" answer={0} options={['أثبت تطابق مثلثين يحتويانهما', 'قِس الزاويتين بالمنقلة', 'استخدم CPCTC مباشرة', 'استخدم نظرية المتقابلتين بالرأس']}>
+
+المطلوب إثبات $\angle 1 \cong \angle 2$، والزاويتان ليستا متقابلتين بالرأس ولا متناظرتين عند قاطع. ما الخطوة الأولى المعتادة؟
+
+<div slot="explain">ابحث عن مثلثين يحتوي كل منهما إحدى الزاويتين، وأثبت تطابقهما، ثم استنتج بالتناظر.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={45} hint="AB يناظر DE.">
+
+في مثال قياس النهر، قاس المهندس $DE = 45\ \text{m}$. ما عرض النهر $AB$ بالأمتار؟
+
+<div slot="explain">$\triangle ACB \cong \triangle DCE$، فالضلعان المتناظران متساويان: $AB = DE = 45\ \text{m}$.</div>
+</Quiz>
+
+## الخلاصة
+
+- بعد إثبات تطابق مثلثين، **كل أجزائهما المتناظرة متطابقة**.
+- الخطة: اختر مثلثين يحتويان المطلوب ← أثبت تطابقهما ← استنتج الجزء.
+- لا تكتب سبب الأجزاء المتناظرة قبل سطر تطابق المثلثين.
+- التطابق يبرر الإنشاءات الهندسية (منصف الزاوية) والقياسات غير المباشرة (عرض النهر).

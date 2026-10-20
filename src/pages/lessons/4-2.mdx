@@ -1,0 +1,104 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '4.2'
+why: 'شكلان متطابقان يمكن تحريك أحدهما ليقع فوق الآخر تمامًا. هذا الدرس يعلّمك كيف تقرأ عبارة التطابق، ولماذا ترتيب الحروف فيها ليس تفصيلًا.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import CorrespondLab from '../../components/CorrespondLab.astro';
+import { proofs } from '../../data/proofs';
+
+## الأجزاء المتناظرة
+
+<Term id="def-congruent-figures" />
+
+المثلثان التاليان متطابقان، لكن $\triangle DEF$ مدار ومقلوب. اضغط على أي رأس أو ضلع في $\triangle ABC$ لترى ما يناظره، ثم حرّك المؤشر لتنقل $\triangle DEF$ فوقه.
+
+<CorrespondLab />
+
+<Callout type="warning" title="الترتيب هو المعنى">
+
+$\triangle ABC \cong \triangle DEF$ و $\triangle ABC \cong \triangle EFD$ عبارتان مختلفتان. الأولى تقول إن $A$ يناظر $D$، والثانية تقول إن $A$ يناظر $E$. اكتب الحروف بترتيب التناظر دائمًا، فالعبارة الصحيحة تحمل في داخلها ست معلومات: ثلاثة أضلاع وثلاث زوايا.
+
+</Callout>
+
+<Example title="مثال 1: من العبارة إلى الأجزاء">
+
+إذا كان $\triangle PQR \cong \triangle XYZ$، فاكتب كل الأجزاء المتطابقة.
+
+1. الرؤوس بالترتيب: $P \leftrightarrow X$ و $Q \leftrightarrow Y$ و $R \leftrightarrow Z$.
+2. الزوايا: $\angle P \cong \angle X$ و $\angle Q \cong \angle Y$ و $\angle R \cong \angle Z$.
+3. الأضلاع: خذ كل زوج من الحروف بالترتيب نفسه: $\overline{PQ} \cong \overline{XY}$ و $\overline{QR} \cong \overline{YZ}$ و $\overline{PR} \cong \overline{XZ}$.
+
+</Example>
+
+<Example title="مثال 2: التطابق مع الجبر">
+
+$\triangle ABC \cong \triangle DEF$، و $AB = 2x + 3$ و $DE = 15$، و $m\angle C = (4y - 10)^\circ$ و $m\angle F = 70^\circ$. أوجد $x$ و $y$.
+
+1. $\overline{AB}$ يناظر $\overline{DE}$: $2x + 3 = 15$، إذن $x = 6$.
+2. $\angle C$ تناظر $\angle F$: $4y - 10 = 70$، إذن $y = 20$.
+
+</Example>
+
+## نظرية الزاوية الثالثة
+
+<Term id="thm-third-angles" />
+
+<ProofTable {...proofs.thirdAngles} />
+
+<Callout type="tip" title="زاويتان متطابقتان لا تكفيان للتطابق">
+
+نظرية الزاوية الثالثة تجعل الزوايا الثلاث متطابقة، لكن هذا لا يعني أن المثلثين متطابقان. مثلث صغير ومثلث كبير قد يكون لهما الزوايا نفسها. ستعرف في الدرسين القادمين ما الذي يكفي فعلًا.
+
+</Callout>
+
+<Term id="thm-triangle-congruence" />
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={2} options={['∠B', '∠E', '∠F', '∠D']}>
+
+إذا كان $\triangle ABC \cong \triangle DEF$، فأي زاوية تطابق $\angle C$؟
+
+<div slot="explain">$C$ الحرف الثالث في الأول، فيناظره الحرف الثالث في الثاني: $F$.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={1} options={['RS', 'LN', 'MN', 'LM']}>
+
+إذا كان $\triangle LMN \cong \triangle RST$، فأي قطعة تطابق $\overline{RT}$؟
+
+<div slot="explain">$R$ و $T$ الحرفان الأول والثالث، فيناظرهما $L$ و $N$: $\overline{LN}$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={7} hint="أوجد الضلع المناظر لـ GH.">
+
+$\triangle GHJ \cong \triangle KLM$، و $GH = 3x - 1$ و $KL = 20$. ما قيمة $x$؟
+
+<div slot="explain">$\overline{GH}$ يناظر $\overline{KL}$: $3x - 1 = 20$، إذن $x = 7$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={48}>
+
+في $\triangle ABC$ و $\triangle DEF$: $\angle A \cong \angle D$ و $\angle B \cong \angle E$، و $m\angle A = 60^\circ$ و $m\angle B = 72^\circ$. ما $m\angle F$؟
+
+<div slot="explain">$m\angle C = 180 - 60 - 72 = 48^\circ$، وبنظرية الزاوية الثالثة $m\angle F = 48^\circ$.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={0} options={['خاصية الانعكاس لتطابق المثلثات', 'خاصية التماثل', 'نظرية الزاوية الثالثة', 'لا تحتاج سببًا']}>
+
+ما سبب العبارة $\triangle PQR \cong \triangle PQR$؟
+
+<div slot="explain">كل شكل متطابق مع نفسه: خاصية الانعكاس.</div>
+</Quiz>
+
+## الخلاصة
+
+- **الشكلان المتطابقان** تتطابق كل أجزائهما المتناظرة.
+- في $\triangle ABC \cong \triangle DEF$ يحدد ترتيب الحروف التناظر: الحرف الأول مع الأول، والثاني مع الثاني، والثالث مع الثالث.
+- **نظرية الزاوية الثالثة:** زاويتان متطابقتان مع زاويتين، تعني أن الثالثتين متطابقتان.
+- تطابق المثلثات انعكاسي ومتماثل ومتعدٍّ.

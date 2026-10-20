@@ -1,0 +1,110 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '4.3'
+why: 'لإثبات أن مثلثين متطابقان، هل نحتاج فعلًا إلى مقارنة ستة أجزاء؟ لا. ثلاثة أجزاء مختارة جيدًا تكفي. هذا الدرس يقدم أول اختصارين: SSS و SAS.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import CriteriaLab from '../../components/CriteriaLab.astro';
+import FigTri from '../../components/FigTri.astro';
+import { proofs } from '../../data/proofs';
+
+## ثلاثة أضلاع
+
+<Term id="post-sss" />
+
+لماذا تكفي الأضلاع وحدها؟ ثبّت الضلع $\overline{AB}$، ثم ارسم كل المواضع الممكنة للرأس $C$: دائرة حول $A$ بنصف قطر $AC$، ودائرة حول $B$ بنصف قطر $BC$. لا يلتقيان إلا في نقطة واحدة فوق القاعدة.
+
+<CriteriaLab modes={['SSS', 'SAS']} />
+
+<Callout type="tip" title="لهذا المثلث صلب">
+
+ثلاث عصي بأطوال ثابتة لا تصنع إلا مثلثًا واحدًا، فلا يمكن ثنيه دون كسر عصا. أما أربع عصي فيمكن أن تصنع أشكالًا رباعية كثيرة. لهذا تُبنى الجسور والرافعات من مثلثات.
+
+</Callout>
+
+<ProofTable {...proofs.sssKite} mode="fill">
+  <FigTri kind="kite">العلامات: AB = CB (علامة واحدة)، AD = CD (علامتان).</FigTri>
+</ProofTable>
+
+## ضلعان والزاوية المحصورة
+
+<Term id="post-sas" />
+
+<Callout type="warning" title="المحصورة تعني: بين الضلعين">
+
+في $\triangle ABC$، الزاوية المحصورة بين $\overline{AB}$ و $\overline{AC}$ هي $\angle A$، لأن الضلعين يلتقيان عند $A$. إذا كانت الزاوية المعطاة ليست بين الضلعين فهذا ليس SAS، وقد لا يكفي للتطابق أبدًا (الدرس 4.4).
+
+</Callout>
+
+<ProofTable {...proofs.sasBowtie} mode="fill">
+  <FigTri kind="bowtie">AE و BD تتقاطعان في C، منتصف كل منهما.</FigTri>
+</ProofTable>
+
+<Example title="مثال 1: SSS في المستوى الإحداثي">
+
+هل $\triangle ABC \cong \triangle DEF$ حيث $A(0, 0)$ و $B(4, 0)$ و $C(0, 3)$، و $D(5, 1)$ و $E(5, 5)$ و $F(8, 1)$؟
+
+1. $AB = 4$ و $BC = \sqrt{16 + 9} = 5$ و $AC = 3$.
+2. $DE = 4$ و $EF = \sqrt{9 + 16} = 5$ و $DF = 3$.
+3. الأضلاع الثلاثة متطابقة بالترتيب: $AB = DE$ و $BC = EF$ و $AC = DF$.
+4. بمسلّمة SSS: $\triangle ABC \cong \triangle DEF$.
+
+</Example>
+
+<Example title="مثال 2: أي مسلّمة؟">
+
+1. معطى ثلاثة أضلاع متطابقة: **SSS**.
+2. معطى $\overline{AB} \cong \overline{DE}$ و $\overline{AC} \cong \overline{DF}$ و $\angle A \cong \angle D$: الزاوية بين الضلعين، فهي **SAS**.
+3. معطى $\overline{AB} \cong \overline{DE}$ و $\overline{BC} \cong \overline{EF}$ و $\angle A \cong \angle D$: $\angle A$ ليست بين $\overline{AB}$ و $\overline{BC}$ (المحصورة بينهما هي $\angle B$). **لا تكفي**.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={1} options={['SSS', 'SAS', 'لا يكفي']}>
+
+معطى: $\overline{PQ} \cong \overline{XY}$ و $\overline{QR} \cong \overline{YZ}$ و $\angle Q \cong \angle Y$. ما المسلّمة التي تثبت $\triangle PQR \cong \triangle XYZ$؟
+
+<div slot="explain">$\angle Q$ محصورة بين $\overline{PQ}$ و $\overline{QR}$، فهي SAS.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={2} options={['SSS', 'SAS', 'لا يكفي']}>
+
+معطى: $\overline{PQ} \cong \overline{XY}$ و $\overline{QR} \cong \overline{YZ}$ و $\angle R \cong \angle Z$. هل يكفي؟
+
+<div slot="explain">$\angle R$ ليست محصورة بين الضلعين المعطيين. هذا SSA، وهو لا يكفي.</div>
+</Quiz>
+
+<Quiz n={3} type="choice" answer={0} options={['خاصية الانعكاس لتطابق القطع', 'تعريف نقطة المنتصف', 'مسلّمة SSS', 'المعطى']}>
+
+مثلثان يشتركان في الضلع $\overline{BD}$. ما السبب الذي نكتبه للعبارة $\overline{BD} \cong \overline{BD}$؟
+
+<div slot="explain">كل قطعة متطابقة مع نفسها. هذا الضلع المشترك هو الضلع الثالث الذي يحتاجه كثير من البراهين.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={1} options={['نعم بـ SSS', 'لا، الأضلاع غير متطابقة', 'نعم بـ SAS']} hint="احسب الأضلاع الثلاثة لكل مثلث.">
+
+هل $\triangle ABC \cong \triangle DEF$ حيث $A(0, 0)$، $B(3, 0)$، $C(0, 4)$، و $D(1, 1)$، $E(4, 1)$، $F(1, 6)$؟
+
+<div slot="explain">$AC = 4$ لكن $DF = 5$، والأضلاع الأخرى: $BC = 5$ و $EF = \sqrt{9 + 25} = \sqrt{34}$. الأضلاع غير متطابقة.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={2} options={['∠B', '∠C', '∠A', 'لا توجد زاوية محصورة']}>
+
+في $\triangle ABC$، ما الزاوية المحصورة بين $\overline{AB}$ و $\overline{CA}$؟
+
+<div slot="explain">الضلعان يشتركان في الرأس $A$، فالمحصورة $\angle A$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **SSS:** ثلاثة أضلاع متطابقة تكفي للتطابق.
+- **SAS:** ضلعان والزاوية **المحصورة** بينهما.
+- الزاوية المحصورة هي التي رأسها النقطة المشتركة بين الضلعين.
+- الضلع المشترك بين مثلثين متطابق مع نفسه (الانعكاس)، وكثيرًا ما يكون الضلع الثالث المطلوب.
+- في المستوى الإحداثي: احسب الأضلاع بصيغة المسافة ثم طبّق SSS.

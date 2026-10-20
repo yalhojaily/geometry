@@ -1,0 +1,218 @@
+---
+// Interactive: drag the apex A over base BC. When A lands on the
+// perpendicular bisector of BC, AB = AC and the base angles match.
+---
+
+<isosceles-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">زاويتا القاعدة</span>
+    <span class="hint-small">اسحب الرأس A</span>
+  </div>
+  <svg viewBox="0 0 360 250" class="stage" role="img" aria-label="مثلث ABC قاعدته BC ورأسه A قابل للسحب"></svg>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</isosceles-lab>
+
+<script>
+  import { el, text, arcPath, polar, screenAngle, makeDraggable, type P } from '../scripts/svg';
+
+  const B: P = { x: 90, y: 215 };
+  const C: P = { x: 270, y: 215 };
+  const MID = (B.x + C.x) / 2;
+  const EQ_H = (C.x - B.x) * (Math.sqrt(3) / 2);
+
+  class IsoscelesLab extends HTMLElement {
+    A: P = { x: 150, y: 70 };
+    drag!: { start: (k: 'A', e: PointerEvent) => void };
+
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<'A'>(svg, (_, p) => {
+        let x = Math.max(20, Math.min(340, p.x));
+        let y = Math.max(15, Math.min(195, p.y));
+        if (Math.abs(x - MID) < 7) x = MID; // snap to the perpendicular bisector
+        if (x === MID && Math.abs(B.y - y - EQ_H) < 7) y = B.y - EQ_H; // snap to equilateral
+        this.A = { x, y };
+        this.render();
+      });
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const A = this.A;
+      const len = (p: P, q: P) => Math.hypot(p.x - q.x, p.y - q.y);
+      const ab = len(A, B);
+      const ac = len(A, C);
+      const bc = len(B, C);
+      const iso = Math.abs(ab - ac) < 0.01;
+      const equi = iso && Math.abs(ab - bc) < 0.5;
+
+      svg.appendChild(el('line', { x1: MID, y1: 10, x2: MID, y2: 240 }, 'pb'));
+
+      const angle = (V: P, Pp: P, Q: P) => {
+        const a1 = screenAngle(V, Pp);
+        const a2 = screenAngle(V, Q);
+        let d = Math.abs(a1 - a2);
+        if (d > 180) d = 360 - d;
+        return d;
+      };
+      const mB = angle(B, A, C);
+      const mC = angle(C, A, B);
+      const wedge = (V: P, Pp: P, Q: P, m: number, cls: string) => {
+        const a1 = screenAngle(V, Pp);
+        const a2 = screenAngle(V, Q);
+        const sw = (((a2 - a1) % 360) + 360) % 360;
+        const [s1, s2] = sw <= 180 ? [a1, a2] : [a2, a1];
+        svg.appendChild(el('path', { d: arcPath(V, 26, s1, s2, true) }, `w ${cls}`));
+        const mid = polar(V, 44, s1 + ((((s2 - s1) % 360) + 360) % 360) / 2);
+        svg.appendChild(text(mid.x, mid.y + 4, `${Math.round(m)}°`, 'wl'));
+      };
+      wedge(B, C, A, mB, iso ? 'eq' : 'b');
+      wedge(C, A, B, mC, iso ? 'eq' : 'c');
+      if (equi) wedge(A, B, C, 180 - mB - mC, 'eq');
+
+      svg.appendChild(el('polygon', { points: `${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}` }, 'tri'));
+      if (iso) {
+        for (const [p, q] of [
+          [A, B],
+          [A, C],
+          ...(equi ? [[B, C]] : []),
+        ] as [P, P][]) {
+          const m = { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 };
+          const L = len(p, q);
+          const n = { x: (-(q.y - p.y) / L) * 7, y: ((q.x - p.x) / L) * 7 };
+          svg.appendChild(el('line', { x1: m.x - n.x, y1: m.y - n.y, x2: m.x + n.x, y2: m.y + n.y }, 'tick'));
+        }
+      }
+      svg.appendChild(text(B.x - 18, B.y + 6, 'B', 'lbl'));
+      svg.appendChild(text(C.x + 8, C.y + 6, 'C', 'lbl'));
+      svg.appendChild(text(A.x + 10, A.y - 8, 'A', 'lbl'));
+      const g = el('g', {}, 'pt');
+      g.appendChild(el('circle', { cx: A.x, cy: A.y, r: 16 }, 'hit'));
+      g.appendChild(el('circle', { cx: A.x, cy: A.y, r: 6.5 }, 'dot'));
+      g.addEventListener('pointerdown', (e) => this.drag.start('A', e as PointerEvent));
+      svg.appendChild(g);
+
+      const k = bc / 6; // scale so BC = 6
+      const f = (v: number) => (v / k).toFixed(2);
+      this.querySelector('.calc')!.innerHTML =
+        `<div>AB = ${f(ab)} , AC = ${f(ac)} , BC = 6.00</div>` +
+        `<div class="${iso ? 'ok' : ''}">m∠B = ${Math.round(mB)}° , m∠C = ${Math.round(mC)}°</div>`;
+      const note = this.querySelector('.note')!;
+      note.textContent = equi
+        ? 'الأضلاع الثلاثة متطابقة، والزوايا الثلاث متطابقة: كل منها 60°.'
+        : iso
+          ? 'A على العمود المنصف للقاعدة، فـ AB = AC، وزاويتا القاعدة B و C متطابقتان. حرّك A للأعلى والأسفل على الخط: يبقى التطابق.'
+          : 'الضلعان AB و AC مختلفان، وكذلك الزاويتان المقابلتان لهما. لاحظ أن الزاوية الأكبر تقابل الضلع الأطول. قرّب A من الخط المتقطع.';
+    }
+  }
+  customElements.define('isosceles-lab', IsoscelesLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 440px;
+    margin: 0.4rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.pb) {
+    stroke: var(--ink-3);
+    stroke-width: 1.4;
+    stroke-dasharray: 5 5;
+  }
+  .stage :global(.tri) {
+    fill: var(--brand);
+    fill-opacity: 0.08;
+    stroke: var(--brand);
+    stroke-width: 3;
+    stroke-linejoin: round;
+  }
+  .stage :global(.w) {
+    stroke: none;
+  }
+  .stage :global(.w.b) {
+    fill: var(--accent);
+    fill-opacity: 0.5;
+  }
+  .stage :global(.w.c) {
+    fill: var(--def);
+    fill-opacity: 0.45;
+  }
+  .stage :global(.w.eq) {
+    fill: var(--thm);
+    fill-opacity: 0.5;
+  }
+  .stage :global(.wl) {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    text-anchor: middle;
+    fill: var(--ink);
+  }
+  .stage :global(.tick) {
+    stroke: var(--warn);
+    stroke-width: 2.5;
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    fill: var(--ink);
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.92rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    line-height: 1.7;
+    text-align: left;
+  }
+  .calc :global(.ok) {
+    color: var(--good);
+    font-weight: 700;
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

@@ -1,0 +1,111 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '4.4'
+why: 'نضيف اختصارين آخرين يعتمدان على الزوايا: ASA و AAS. ونرى لماذا لا يصلح SSA ولا AAA، فتكتمل عندك قائمة ما يكفي للتطابق وما لا يكفي.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import CriteriaLab from '../../components/CriteriaLab.astro';
+import FigTri from '../../components/FigTri.astro';
+import { proofs } from '../../data/proofs';
+
+## زاويتان والضلع المحصور
+
+<Term id="post-asa" />
+
+## زاويتان وضلع غير محصور
+
+<Term id="thm-aas" />
+
+لماذا AAS نظرية لا مسلّمة؟ لأننا نبرهنها من ASA: إذا تطابقت زاويتان، فالثالثتان متطابقتان بنظرية الزاوية الثالثة (الدرس 4.2). عندها يصبح الضلع المعطى محصورًا بين زاويتين متطابقتين، ونطبق ASA.
+
+## ما يكفي وما لا يكفي
+
+جرّب المعايير الأربعة. لاحظ أن ASA و AAS يعطيان مثلثًا واحدًا دائمًا، بينما SSA قد يعطي مثلثين مختلفين، و AAA يعطي عددًا لا نهائيًا من الأحجام.
+
+<CriteriaLab modes={['ASA', 'AAS', 'SSA', 'AAA']} />
+
+| المعيار | يكفي للتطابق؟ | السبب |
+|---|---|---|
+| SSS | نعم | مسلّمة |
+| SAS | نعم | مسلّمة، والزاوية محصورة |
+| ASA | نعم | مسلّمة، والضلع محصور |
+| AAS | نعم | نظرية (من ASA والزاوية الثالثة) |
+| SSA | لا | قد يوجد مثلثان مختلفان |
+| AAA | لا | الشكل نفسه بأحجام مختلفة |
+
+<Callout type="tip" title="كيف تتذكر أن SSA لا يصلح؟">
+
+تذكّر صورة المختبر: الدائرة التي تمثل الضلع المقابل قد تقطع شعاع الزاوية في نقطتين، فيتكون مثلثان. ولا تخلط بينه وبين HL في المثلث القائم (الدرس 4.6): هناك الزاوية المعطاة قائمة، وهذه الحالة الخاصة الوحيدة التي يكفي فيها ضلعان وزاوية غير محصورة.
+
+</Callout>
+
+## براهين
+
+أكمل برهان ASA. المنصف يعطيك زاويتين، والضلع المشترك بينهما محصور.
+
+<ProofTable {...proofs.asaKite} mode="fill">
+  <FigTri kind="kite" marks={false}>BD قطر مشترك بين المثلثين ABD و CBD.</FigTri>
+</ProofTable>
+
+والآن برهان بـ AAS على الشكل نفسه، لكن بمعطى مختلف:
+
+<ProofTable {...proofs.aasKite} />
+
+<Example title="مثال 1: محصور أم غير محصور؟">
+
+في $\triangle ABD$ من الشكل أعلاه:
+
+1. الضلع $\overline{BD}$ يصل بين الرأسين $B$ و $D$.
+2. فهو محصور بين $\angle ABD$ و $\angle ADB$. لهذا استخدمنا ASA في البرهان الأول.
+3. في البرهان الثاني الزاويتان $\angle A$ و $\angle ABD$، و $\overline{BD}$ ليس بين $A$ و $B$، فهو غير محصور: AAS.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={0} options={['ASA', 'AAS', 'SAS', 'لا يكفي']}>
+
+معطى: $\angle A \cong \angle D$ و $\overline{AB} \cong \overline{DE}$ و $\angle B \cong \angle E$. ما المعيار؟
+
+<div slot="explain">$\overline{AB}$ يصل بين رأسي الزاويتين $A$ و $B$، فهو محصور: ASA.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={1} options={['ASA', 'AAS', 'SSA', 'لا يكفي']}>
+
+معطى: $\angle A \cong \angle D$ و $\angle B \cong \angle E$ و $\overline{BC} \cong \overline{EF}$. ما المعيار؟
+
+<div slot="explain">$\overline{BC}$ لا يقع بين $A$ و $B$، فهو غير محصور: AAS.</div>
+</Quiz>
+
+<Quiz n={3} type="choice" answer={3} options={['AAA', 'ASA', 'AAS', 'لا يكفي للتطابق']}>
+
+معطى: الزوايا الثلاث في $\triangle ABC$ متطابقة مع الزوايا الثلاث في $\triangle DEF$. هل المثلثان متطابقان بالضرورة؟
+
+<div slot="explain">الزوايا وحدها تحدد الشكل لا الحجم، فقد يكون أحدهما أكبر. AAA ليس معيار تطابق.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={2} options={['SAS', 'ASA', 'SSA: لا يكفي', 'SSS']}>
+
+معطى: $\overline{AB} \cong \overline{DE}$ و $\overline{AC} \cong \overline{DF}$ و $\angle B \cong \angle E$. ما الحكم؟
+
+<div slot="explain">$\angle B$ ليست بين $\overline{AB}$ و $\overline{AC}$ (المحصورة بينهما $\angle A$). هذا SSA، ولا يكفي.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={0} options={['نظرية الزاوية الثالثة ثم ASA', 'SSS', 'تعريف التطابق', 'مسلّمة جديدة لا تحتاج برهانًا']}>
+
+كيف نبرهن نظرية AAS؟
+
+<div slot="explain">الزاويتان المتطابقتان تجعلان الثالثتين متطابقتين، فيصبح الضلع المعطى محصورًا بين زاويتين متطابقتين، وتنطبق ASA.</div>
+</Quiz>
+
+## الخلاصة
+
+- **ASA:** زاويتان والضلع **المحصور** بينهما.
+- **AAS:** زاويتان وضلع **غير محصور**، وهي نظرية مبرهنة من ASA ونظرية الزاوية الثالثة.
+- المعايير الصحيحة: SSS و SAS و ASA و AAS (و HL للقائم).
+- **SSA** و **AAA** لا يكفيان للتطابق.

@@ -1,0 +1,177 @@
+---
+// Static triangle figures used in chapter 4 proofs.
+//  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso'
+interface Props {
+  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso';
+  marks?: boolean;
+}
+const { kind, marks = true } = Astro.props;
+
+type P = { x: number; y: number };
+const unit = (a: P, b: P) => {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const L = Math.hypot(dx, dy);
+  return { x: dx / L, y: dy / L };
+};
+/** Point inside angle PVQ at distance r from V (for angle labels). */
+const inside = (V: P, Pp: P, Q: P, r: number) => {
+  const u = unit(V, Pp);
+  const v = unit(V, Q);
+  const w = { x: u.x + v.x, y: u.y + v.y };
+  const L = Math.hypot(w.x, w.y) || 1;
+  return { x: V.x + (w.x / L) * r, y: V.y + (w.y / L) * r };
+};
+/** Small tick mark(s) across segment ab. */
+const ticks = (a: P, b: P, n = 1) => {
+  const m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  const u = unit(a, b);
+  const nrm = { x: -u.y * 7, y: u.x * 7 };
+  return Array.from({ length: n }, (_, i) => {
+    const off = (i - (n - 1) / 2) * 5;
+    const c = { x: m.x + u.x * off, y: m.y + u.y * off };
+    return { x1: c.x - nrm.x, y1: c.y - nrm.y, x2: c.x + nrm.x, y2: c.y + nrm.y };
+  });
+};
+/** Arc path for angle at V between rays to Pp and Q (minor arc). */
+const arc = (V: P, Pp: P, Q: P, r: number) => {
+  const u = unit(V, Pp);
+  const v = unit(V, Q);
+  const a = { x: V.x + u.x * r, y: V.y + u.y * r };
+  const b = { x: V.x + v.x * r, y: V.y + v.y * r };
+  const sweep = u.x * v.y - u.y * v.x > 0 ? 1 : 0;
+  return `M ${a.x} ${a.y} A ${r} ${r} 0 0 ${sweep} ${b.x} ${b.y}`;
+};
+
+let segs: [P, P, string?][] = [];
+let labels: { p: P; t: string; cls?: string }[] = [];
+let tickList: { x1: number; y1: number; x2: number; y2: number }[] = [];
+let arcs: { d: string; cls: string }[] = [];
+let aria = '';
+let vb = '0 0 320 200';
+
+if (kind === 'kite') {
+  const A = { x: 50, y: 110 }, B = { x: 160, y: 20 }, C = { x: 270, y: 110 }, D = { x: 160, y: 185 };
+  segs = [[A, B], [B, C], [C, D], [D, A], [B, D, 'diag']];
+  labels = [
+    { p: { x: A.x - 18, y: A.y + 5 }, t: 'A' }, { p: { x: B.x - 5, y: B.y - 6 }, t: 'B' },
+    { p: { x: C.x + 8, y: C.y + 5 }, t: 'C' }, { p: { x: D.x - 5, y: D.y + 14 }, t: 'D' },
+  ];
+  if (marks) tickList = [...ticks(A, B), ...ticks(C, B), ...ticks(A, D, 2), ...ticks(C, D, 2)];
+  aria = 'شكل رباعي ABCD قطره BD يقسمه إلى مثلثين ABD و CBD';
+  vb = '0 0 320 205';
+} else if (kind === 'bowtie') {
+  const A = { x: 40, y: 30 }, E = { x: 280, y: 170 }, B = { x: 40, y: 170 }, D = { x: 280, y: 30 };
+  const C = { x: 160, y: 100 };
+  segs = [[A, E], [B, D], [A, B], [D, E]];
+  labels = [
+    { p: { x: A.x - 16, y: A.y }, t: 'A' }, { p: { x: B.x - 16, y: B.y + 6 }, t: 'B' },
+    { p: { x: C.x - 5, y: C.y - 12 }, t: 'C' }, { p: { x: D.x + 8, y: D.y }, t: 'D' }, { p: { x: E.x + 8, y: E.y + 6 }, t: 'E' },
+  ];
+  if (marks) tickList = [...ticks(A, C), ...ticks(C, E), ...ticks(B, C, 2), ...ticks(C, D, 2)];
+  aria = 'القطعتان AE و BD تتقاطعان في منتصفهما C';
+} else if (kind === 'sum') {
+  const A = { x: 40, y: 170 }, B = { x: 190, y: 50 }, C = { x: 280, y: 170 };
+  const L1 = { x: 40, y: 50 }, L2 = { x: 310, y: 50 };
+  segs = [[A, B], [B, C], [C, A], [L1, L2, 'aux']];
+  labels = [
+    { p: { x: A.x - 16, y: A.y + 6 }, t: 'A' }, { p: { x: B.x - 5, y: B.y - 10 }, t: 'B' }, { p: { x: C.x + 8, y: C.y + 6 }, t: 'C' },
+    { p: { x: 300, y: 42 }, t: 'ℓ', cls: 'it' },
+    { p: inside(A, B, C, 28), t: '1', cls: 'n' }, { p: inside(B, A, C, 26), t: '2', cls: 'n' }, { p: inside(C, A, B, 28), t: '3', cls: 'n' },
+    { p: inside(B, L1, A, 26), t: '4', cls: 'n' }, { p: inside(B, L2, C, 26), t: '5', cls: 'n' },
+  ];
+  arcs = [
+    { d: arc(A, C, B, 18), cls: 'a1' }, { d: arc(B, A, L1, 16), cls: 'a1' },
+    { d: arc(C, B, A, 18), cls: 'a2' }, { d: arc(B, L2, C, 16), cls: 'a2' },
+  ];
+  aria = 'المثلث ABC والمستقيم ℓ المار بـ B موازيًا لـ AC';
+} else if (kind === 'exterior') {
+  const A = { x: 60, y: 40 }, B = { x: 30, y: 170 }, C = { x: 200, y: 170 }, X = { x: 300, y: 170 };
+  segs = [[A, B], [B, C], [C, A], [C, X, 'aux']];
+  labels = [
+    { p: { x: A.x - 5, y: A.y - 10 }, t: 'A' }, { p: { x: B.x - 16, y: B.y + 6 }, t: 'B' }, { p: { x: C.x - 5, y: C.y + 18 }, t: 'C' },
+    { p: inside(C, A, X, 32), t: '1', cls: 'n' },
+  ];
+  arcs = [{ d: arc(C, X, A, 20), cls: 'a2' }, { d: arc(A, B, C, 18), cls: 'a1' }, { d: arc(B, C, A, 18), cls: 'a1' }];
+  aria = 'المثلث ABC ممدودًا ضلعه BC بعد C، والزاوية الخارجية 1 عند C';
+} else {
+  const A = { x: 160, y: 25 }, B = { x: 70, y: 175 }, C = { x: 250, y: 175 }, M = { x: 160, y: 175 };
+  segs = [[A, B], [A, C], [B, C], [A, M, 'aux']];
+  labels = [
+    { p: { x: A.x - 5, y: A.y - 8 }, t: 'A' }, { p: { x: B.x - 16, y: B.y + 6 }, t: 'B' },
+    { p: { x: C.x + 8, y: C.y + 6 }, t: 'C' }, { p: { x: M.x - 5, y: M.y + 18 }, t: 'M' },
+  ];
+  if (marks) tickList = [...ticks(A, B), ...ticks(A, C), ...ticks(B, M, 2), ...ticks(M, C, 2)];
+  arcs = [{ d: arc(B, C, A, 20), cls: 'a1' }, { d: arc(C, A, B, 20), cls: 'a1' }];
+  aria = 'مثلث متطابق الضلعين AB = AC و M منتصف القاعدة BC';
+  vb = '0 0 320 200';
+}
+---
+
+<figure class="fig">
+  <svg viewBox={vb} role="img" aria-label={aria}>
+    {arcs.map((a) => <path d={a.d} class={a.cls} />)}
+    {segs.map(([a, b, c]) => <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} class={c ?? 'side'} />)}
+    {tickList.map((t) => <line {...t} class="tick" />)}
+    {labels.map((l) => <text x={l.p.x} y={l.p.y} class={l.cls ?? ''}>{l.t}</text>)}
+  </svg>
+  <figcaption><slot /></figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 0.8rem 0;
+    text-align: center;
+  }
+  svg {
+    width: 100%;
+    max-width: 330px;
+    display: block;
+    margin: 0 auto;
+  }
+  .side {
+    stroke: var(--brand);
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+  }
+  .diag,
+  .aux {
+    stroke: var(--ink-2);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+  .tick {
+    stroke: var(--warn);
+    stroke-width: 2.2;
+  }
+  path {
+    fill: none;
+    stroke-width: 2.2;
+  }
+  .a1 {
+    stroke: var(--accent);
+  }
+  .a2 {
+    stroke: var(--thm);
+  }
+  text {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    fill: var(--ink);
+  }
+  text.n {
+    font-size: 12px;
+    fill: var(--accent);
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  text.it {
+    font-style: italic;
+    fill: var(--ink-2);
+  }
+  figcaption {
+    font-size: 0.88rem;
+    color: var(--ink-3);
+  }
+</style>

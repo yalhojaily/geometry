@@ -17,6 +17,7 @@ const label: Record<TermKind, string> = {
   formula: 'صيغة',
   law: 'قانون منطقي',
   property: 'خاصية',
+  corollary: 'نتيجة',
 };
 ---
 
@@ -49,6 +50,10 @@ const label: Record<TermKind, string> = {
   .term.theorem {
     --c: var(--thm);
     --bg: var(--thm-bg);
+  }
+  .term.corollary {
+    --c: var(--thm);
+    --bg: var(--card);
   }
   .term.law {
     --c: var(--brand);

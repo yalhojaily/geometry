@@ -1,0 +1,124 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '4.6'
+why: 'المثلث المتطابق الضلعين في كل مكان: الأسقف، والجسور المعلقة، وأشرعة القوارب. هذا الدرس يربط أضلاعه بزواياه، ويضيف معيار تطابق خاصًا بالمثلثات القائمة.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import IsoscelesLab from '../../components/IsoscelesLab.astro';
+import CriteriaLab from '../../components/CriteriaLab.astro';
+import FigTri from '../../components/FigTri.astro';
+import { proofs } from '../../data/proofs';
+
+## زاويتا القاعدة
+
+في المثلث المتطابق الضلعين، الضلعان المتطابقان هما **الساقان**، والزاوية بينهما **زاوية الرأس**، والزاويتان الأخريان **زاويتا القاعدة**.
+
+<IsoscelesLab />
+
+<Term id="thm-base-angles" />
+
+<ProofTable {...proofs.baseAngles}>
+  <FigTri kind="iso">نرسم القطعة من A إلى منتصف القاعدة M، فينقسم المثلث إلى مثلثين.</FigTri>
+</ProofTable>
+
+<Term id="thm-base-angles-converse" />
+
+<Callout type="tip" title="الضلع يقابل الزاوية">
+
+«المقابلة» هنا تعني: الضلع الذي لا يمس الزاوية. في $\triangle ABC$ يقابل $\overline{BC}$ الزاوية $\angle A$. إذا تطابق $\overline{AB}$ و $\overline{AC}$ فالمتطابقتان هما $\angle C$ و $\angle B$ على الترتيب، لا $\angle A$.
+
+</Callout>
+
+<Term id="cor-equilateral" />
+
+<Prereq id="alg-linear-eq" />
+
+<Example title="مثال 1: زاويتا القاعدة مع الجبر">
+
+في $\triangle ABC$: $\overline{AB} \cong \overline{AC}$، و $m\angle B = (3x + 8)^\circ$ و $m\angle C = (5x - 12)^\circ$. أوجد $m\angle A$.
+
+1. بنظرية زاويتي القاعدة: $\angle B \cong \angle C$، أي $3x + 8 = 5x - 12$.
+2. $20 = 2x$، إذن $x = 10$ وكل من زاويتي القاعدة $38^\circ$.
+3. بمجموع الزوايا: $m\angle A = 180 - 38 - 38 = 104^\circ$.
+
+</Example>
+
+<Example title="مثال 2: من الزوايا إلى الأضلاع">
+
+في $\triangle PQR$: $m\angle P = 70^\circ$ و $m\angle Q = 40^\circ$، و $PQ = 3y - 2$ و $QR = 2y + 5$. أوجد $y$.
+
+1. $m\angle R = 180 - 70 - 40 = 70^\circ$، فـ $\angle P \cong \angle R$.
+2. بعكس نظرية زاويتي القاعدة، الضلعان المقابلان لهاتين الزاويتين متطابقان: $\overline{QR}$ يقابل $\angle P$، و $\overline{PQ}$ يقابل $\angle R$.
+3. إذن $3y - 2 = 2y + 5$، و $y = 7$، و $PQ = QR = 19$.
+4. انتبه: $\overline{PR}$ يقابل $\angle Q$ المختلفة، فلا يدخل في المعادلة.
+
+</Example>
+
+## المثلث القائم: وتر وساق
+
+<Term id="thm-hl" />
+
+في المثلث القائم، ضلعان وزاوية غير محصورة يكفيان إذا كانت الزاوية هي القائمة. جرّب: الساق $AC$ ثابتة، والوتر يحدده المؤشر. الدائرة تقطع الخط في نقطتين، لكن المثلثين الناتجين صورتان مرآتيتان، أي متطابقان.
+
+<CriteriaLab modes={['HL', 'SSA']} />
+
+<Example title="مثال 3: HL">
+
+$\overline{AD} \perp \overline{BC}$ في $\triangle ABC$، و $\overline{AB} \cong \overline{AC}$. لماذا $\triangle ADB \cong \triangle ADC$؟
+
+1. $\angle ADB$ و $\angle ADC$ قائمتان، فالمثلثان قائمان.
+2. الوتران: $\overline{AB} \cong \overline{AC}$ (معطى).
+3. الساق المشتركة: $\overline{AD} \cong \overline{AD}$ (الانعكاس).
+4. بنظرية HL: $\triangle ADB \cong \triangle ADC$. ومنها $\overline{BD} \cong \overline{CD}$: الارتفاع من الرأس في المثلث المتطابق الضلعين ينصف القاعدة.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={52}>
+
+في مثلث متطابق الضلعين، زاوية الرأس $76^\circ$. ما قياس كل من زاويتي القاعدة؟
+
+<div slot="explain">$(180 - 76) \div 2 = 52^\circ$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={100}>
+
+في مثلث متطابق الضلعين، إحدى زاويتي القاعدة $40^\circ$. ما قياس زاوية الرأس؟
+
+<div slot="explain">زاوية القاعدة الأخرى $40^\circ$ أيضًا، فالرأس $180 - 80 = 100^\circ$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={11} hint="الزاويتان المتطابقتان تعنيان أن الضلعين المقابلين متطابقان.">
+
+في $\triangle XYZ$: $\angle X \cong \angle Z$، و $XY = 2a + 3$ و $YZ = 4a - 19$. ما قيمة $a$؟
+
+<div slot="explain">$\overline{YZ}$ يقابل $\angle X$، و $\overline{XY}$ يقابل $\angle Z$، فهما متطابقان: $2a + 3 = 4a - 19$، إذن $a = 11$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={60}>
+
+ما قياس كل زاوية في مثلث متطابق الأضلاع؟
+
+<div slot="explain">زواياه متطابقة: $180 \div 3 = 60^\circ$.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={2} options={['SSS', 'SAS', 'HL', 'لا يكفي']}>
+
+مثلثان قائمان، الوتر في الأول يطابق الوتر في الثاني، وساق تطابق ساقًا. ما المعيار؟
+
+<div slot="explain">وتر وساق في مثلثين قائمين: HL.</div>
+</Quiz>
+
+## الخلاصة
+
+- **زاويتا القاعدة:** ضلعان متطابقان تقابلهما زاويتان متطابقتان، والعكس صحيح.
+- **المتطابق الأضلاع** متطابق الزوايا، وكل زاوية $60^\circ$، والعكس صحيح.
+- **HL:** وتر وساق متطابقان في مثلثين قائمين يكفيان للتطابق.
+- حدد الضلع المقابل لكل زاوية بدقة قبل كتابة المعادلة.

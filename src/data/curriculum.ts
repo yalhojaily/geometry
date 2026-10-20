@@ -54,13 +54,13 @@ export const chapters: Chapter[] = [
   {
     n: 4, en: 'Congruent Triangles', ar: 'المثلثات المتطابقة',
     lessons: [
-      { id: '4.1', en: 'Triangles and Angles', ar: 'المثلثات والزوايا' },
-      { id: '4.2', en: 'Congruence and Triangles', ar: 'التطابق والمثلثات' },
-      { id: '4.3', en: 'Proving Triangles are Congruent: SSS and SAS', ar: 'إثبات تطابق المثلثات: SSS و SAS' },
-      { id: '4.4', en: 'Proving Triangles are Congruent: ASA and AAS', ar: 'إثبات تطابق المثلثات: ASA و AAS' },
-      { id: '4.5', en: 'Using Congruent Triangles', ar: 'استخدام المثلثات المتطابقة' },
-      { id: '4.6', en: 'Isosceles, Equilateral, and Right Triangles', ar: 'المثلثات المتطابقة الضلعين والمتطابقة الأضلاع والقائمة' },
-      { id: '4.7', en: 'Triangles and Coordinate Proof', ar: 'المثلثات والبرهان الإحداثي' },
+      { id: '4.1', en: 'Triangles and Angles', ar: 'المثلثات والزوايا', ready: true },
+      { id: '4.2', en: 'Congruence and Triangles', ar: 'التطابق والمثلثات', ready: true },
+      { id: '4.3', en: 'Proving Triangles are Congruent: SSS and SAS', ar: 'إثبات تطابق المثلثات: SSS و SAS', ready: true },
+      { id: '4.4', en: 'Proving Triangles are Congruent: ASA and AAS', ar: 'إثبات تطابق المثلثات: ASA و AAS', ready: true },
+      { id: '4.5', en: 'Using Congruent Triangles', ar: 'استخدام المثلثات المتطابقة', ready: true },
+      { id: '4.6', en: 'Isosceles, Equilateral, and Right Triangles', ar: 'المثلثات المتطابقة الضلعين والمتطابقة الأضلاع والقائمة', ready: true },
+      { id: '4.7', en: 'Triangles and Coordinate Proof', ar: 'المثلثات والبرهان الإحداثي', ready: true },
     ],
   },
   {
