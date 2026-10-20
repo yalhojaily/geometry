@@ -59,7 +59,7 @@
     }
 
     render() {
-      const svg = this.querySelector('svg')!;
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
       svg.replaceChildren();
       const gap = 24;
       const r = 8;

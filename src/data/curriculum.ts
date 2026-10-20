@@ -20,7 +20,7 @@ export const chapters: Chapter[] = [
     n: 1, en: 'Basics of Geometry', ar: 'أساسيات الهندسة',
     lessons: [
       { id: '1.1', en: 'Patterns and Inductive Reasoning', ar: 'الأنماط والاستدلال الاستقرائي', ready: true },
-      { id: '1.2', en: 'Points, Lines, and Planes', ar: 'النقاط والمستقيمات والمستويات' },
+      { id: '1.2', en: 'Points, Lines, and Planes', ar: 'النقاط والمستقيمات والمستويات', ready: true },
       { id: '1.3', en: 'Segments and Their Measures', ar: 'القطع المستقيمة وأطوالها' },
       { id: '1.4', en: 'Angles and Their Measures', ar: 'الزوايا وقياساتها' },
       { id: '1.5', en: 'Segment and Angle Bisectors', ar: 'منصفات القطع والزوايا' },

@@ -1,0 +1,384 @@
+---
+// Interactive: the same two points name a line, a segment, or two different rays.
+// Drag A, B and C; C snaps onto the line when it gets close.
+import { renderMath } from '../data/math';
+
+const modes = [
+  { id: 'line', tex: '$\\overleftrightarrow{AB}$', ar: 'مستقيم' },
+  { id: 'seg', tex: '$\\overline{AB}$', ar: 'قطعة' },
+  { id: 'rayAB', tex: '$\\overrightarrow{AB}$', ar: 'شعاع من A' },
+  { id: 'rayBA', tex: '$\\overrightarrow{BA}$', ar: 'شعاع من B' },
+  { id: 'opp', tex: '$\\overrightarrow{CA},\\ \\overrightarrow{CB}$', ar: 'متعاكسان' },
+];
+---
+
+<notation-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">مختبر الرموز</span>
+    <span class="hint-small">اسحب النقاط A و B و C</span>
+  </div>
+
+  <div class="modes" role="tablist">
+    {
+      modes.map((m, i) => (
+        <button type="button" data-mode={m.id} class:list={{ on: i === 0 }} role="tab">
+          <span class="tex" set:html={renderMath(m.tex)} />
+          <small>{m.ar}</small>
+        </button>
+      ))
+    }
+  </div>
+
+  <svg viewBox="0 0 360 230" class="stage" role="img" aria-label="مستقيم يمر بالنقطتين A و B، والنقطة C">
+    <line class="carrier" />
+    <g class="fig"></g>
+    <g class="pts"></g>
+  </svg>
+
+  <div class="status" aria-live="polite">
+    <div class="s1"></div>
+    <div class="s2"></div>
+  </div>
+</notation-lab>
+
+<script>
+  type P = { x: number; y: number };
+  type Mode = 'line' | 'seg' | 'rayAB' | 'rayBA' | 'opp';
+  const NS = 'http://www.w3.org/2000/svg';
+  const W = 360;
+  const H = 230;
+  const SNAP = 12;
+
+  const sub = (a: P, b: P): P => ({ x: a.x - b.x, y: a.y - b.y });
+  const add = (a: P, b: P): P => ({ x: a.x + b.x, y: a.y + b.y });
+  const mul = (a: P, k: number): P => ({ x: a.x * k, y: a.y * k });
+  const dot = (a: P, b: P) => a.x * b.x + a.y * b.y;
+  const len = (a: P) => Math.hypot(a.x, a.y);
+
+  /** Parameter range [t0, t1] for which p + t·d stays inside the drawing box (Liang–Barsky). */
+  function clip(p: P, d: P): [number, number] {
+    let t0 = -Infinity;
+    let t1 = Infinity;
+    const m = 6;
+    const checks: [number, number][] = [
+      [-d.x, p.x - m],
+      [d.x, W - m - p.x],
+      [-d.y, p.y - m],
+      [d.y, H - m - p.y],
+    ];
+    for (const [q, r] of checks) {
+      if (Math.abs(q) < 1e-12) continue;
+      const t = r / q;
+      if (q < 0) t0 = Math.max(t0, t);
+      else t1 = Math.min(t1, t);
+    }
+    return [t0, t1];
+  }
+
+  function el<K extends string>(tag: K, attrs: Record<string, string | number>, cls?: string) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+    if (cls) e.setAttribute('class', cls);
+    return e;
+  }
+
+  class NotationLab extends HTMLElement {
+    pts: Record<'A' | 'B' | 'C', P> = { A: { x: 90, y: 150 }, B: { x: 230, y: 95 }, C: { x: 300, y: 175 } };
+    mode: Mode = 'line';
+    drag: 'A' | 'B' | 'C' | null = null;
+
+    connectedCallback() {
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.mode = b.dataset.mode as Mode;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      svg.addEventListener('pointermove', (e) => {
+        if (!this.drag) return;
+        const m = svg.getScreenCTM();
+        if (!m) return;
+        const q = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        let p = { x: Math.min(W - 12, Math.max(12, q.x)), y: Math.min(H - 12, Math.max(12, q.y)) };
+        if (this.drag === 'C') {
+          this.pts.C = this.snap(p);
+        } else {
+          if (len(sub(p, this.pts[this.drag === 'A' ? 'B' : 'A'])) < 30) return; // keep A ≠ B
+          // If C sits on the line, keep it there as A or B move.
+          const { t, dist } = this.project(this.pts.C);
+          this.pts[this.drag] = p;
+          if (dist < 0.5) {
+            const c = add(this.pts.A, mul(sub(this.pts.B, this.pts.A), t));
+            if (c.x > 8 && c.x < W - 8 && c.y > 8 && c.y < H - 8) this.pts.C = c;
+          }
+        }
+        this.render();
+      });
+      const stop = () => (this.drag = null);
+      svg.addEventListener('pointerup', stop);
+      svg.addEventListener('pointercancel', stop);
+      this.render();
+    }
+
+    /** Projection of C onto line AB, and the parameter t with A + t(B − A). */
+    project(c: P) {
+      const { A, B } = this.pts;
+      const d = sub(B, A);
+      const t = dot(sub(c, A), d) / dot(d, d);
+      const foot = add(A, mul(d, t));
+      return { t, foot, dist: len(sub(c, foot)) };
+    }
+
+    snap(c: P): P {
+      const { foot, dist } = this.project(c);
+      return dist < SNAP ? foot : c;
+    }
+
+    render() {
+      const { A, B, C } = this.pts;
+      const d = sub(B, A);
+      const [t0, t1] = clip(A, d);
+      const at = (t: number) => add(A, mul(d, t));
+
+      const carrier = this.querySelector('.carrier')!;
+      const e0 = at(t0);
+      const e1 = at(t1);
+      carrier.setAttribute('x1', String(e0.x));
+      carrier.setAttribute('y1', String(e0.y));
+      carrier.setAttribute('x2', String(e1.x));
+      carrier.setAttribute('y2', String(e1.y));
+
+      const fig = this.querySelector('.fig')!;
+      fig.replaceChildren();
+      const seg = (ta: number, tb: number, cls: string, arrowA: boolean, arrowB: boolean) => {
+        const p = at(ta);
+        const q = at(tb);
+        fig.appendChild(el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, cls));
+        const u = mul(d, 1 / len(d));
+        if (arrowA) this.arrow(fig, p, mul(u, -1), cls);
+        if (arrowB) this.arrow(fig, q, u, cls);
+      };
+
+      const { t: tc, dist } = this.project(C);
+      const onLine = dist < 0.5;
+      const between = onLine && tc > 0.02 && tc < 0.98;
+
+      switch (this.mode) {
+        case 'line':
+          seg(t0, t1, 'main', true, true);
+          break;
+        case 'seg':
+          seg(0, 1, 'main', false, false);
+          break;
+        case 'rayAB':
+          seg(0, t1, 'main', false, true);
+          break;
+        case 'rayBA':
+          seg(t0, 1, 'main', true, false);
+          break;
+        case 'opp':
+          if (between) {
+            seg(t0, tc, 'main', true, false);
+            seg(tc, t1, 'alt', false, true);
+          }
+          break;
+      }
+
+      const pts = this.querySelector('.pts')!;
+      pts.replaceChildren();
+      (['A', 'B', 'C'] as const).forEach((k) => {
+        const p = this.pts[k];
+        const g = el('g', {}, `pt pt-${k}`);
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 14 }, 'hit'));
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 6 }, 'dot'));
+        const label = el('text', { x: p.x + 10, y: p.y - 12 }, 'lbl');
+        label.textContent = k;
+        g.appendChild(label);
+        g.addEventListener('pointerdown', (e) => {
+          this.drag = k;
+          this.querySelector('svg.stage')?.setPointerCapture((e as PointerEvent).pointerId);
+          e.preventDefault();
+        });
+        pts.appendChild(g);
+      });
+
+      this.status(onLine, tc, between);
+    }
+
+    arrow(g: Element, tip: P, u: P, cls: string) {
+      const n = { x: -u.y, y: u.x };
+      const back = add(tip, mul(u, -12));
+      const a = add(back, mul(n, 6));
+      const b = add(back, mul(n, -6));
+      g.appendChild(el('polygon', { points: `${tip.x},${tip.y} ${a.x},${a.y} ${b.x},${b.y}` }, `${cls} head`));
+    }
+
+    status(onLine: boolean, t: number, between: boolean) {
+      const s1 = this.querySelector('.s1')!;
+      const s2 = this.querySelector<HTMLElement>('.s2')!;
+      s1.textContent = onLine
+        ? 'النقاط A و B و C على استقامة واحدة.'
+        : 'النقطة C ليست على المستقيم AB، فالنقاط الثلاث ليست على استقامة واحدة. اسحب C قريبًا من المستقيم لتلتصق به.';
+
+      let inFig: boolean | null = null;
+      let text = '';
+      if (onLine) {
+        switch (this.mode) {
+          case 'line':
+            inFig = true;
+            text = 'C على المستقيم، والمستقيم يحتوي كل نقاط الخط المتقطع.';
+            break;
+          case 'seg':
+            inFig = t >= -0.001 && t <= 1.001;
+            text = inFig ? 'C تقع بين A و B، فهي على القطعة.' : 'C على المستقيم لكنها خارج القطعة: القطعة تتوقف عند طرفيها A و B.';
+            break;
+          case 'rayAB':
+            inFig = t >= -0.001;
+            text = inFig ? 'C في جهة B من نقطة البداية A، فهي على الشعاع.' : 'C خلف نقطة البداية A، والشعاع يمتد في اتجاه B فقط.';
+            break;
+          case 'rayBA':
+            inFig = t <= 1.001;
+            text = inFig ? 'C في جهة A من نقطة البداية B، فهي على الشعاع.' : 'C خلف نقطة البداية B. لاحظ: هذا الشعاع غير الشعاع AB رغم أنهما يستخدمان الحرفين نفسيهما.';
+            break;
+          case 'opp':
+            text = between
+              ? 'C بين A و B، لذلك الشعاعان CA و CB متعاكسان: يبدآن من C ويتجهان في اتجاهين متضادين.'
+              : 'ليكون الشعاعان CA و CB متعاكسين يجب أن تقع C بين A و B على المستقيم. اسحبها إلى هناك.';
+            inFig = between;
+        }
+      } else if (this.mode === 'opp') {
+        text = 'ليكون الشعاعان CA و CB متعاكسين يجب أن تقع C بين A و B على المستقيم.';
+        inFig = false;
+      }
+      s2.textContent = text;
+      s2.className = `s2 ${inFig === null ? '' : inFig ? 'yes' : 'no'}`;
+    }
+  }
+  customElements.define('notation-lab', NotationLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .modes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: 0.4rem;
+    margin: 0.7rem 0 0.3rem;
+  }
+  .modes button {
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 0.35rem 0.3rem 0.25rem;
+    line-height: 1.3;
+  }
+  .modes button.on {
+    border-color: var(--brand);
+    background: var(--def-bg);
+  }
+  .modes .tex {
+    display: block;
+    font-size: 1.15rem;
+  }
+  .modes small {
+    color: var(--ink-3);
+    font-size: 0.75rem;
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 520px;
+    margin: 0.3rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .carrier {
+    stroke: var(--ink-3);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 6;
+  }
+  .stage :global(line.main),
+  .stage :global(line.alt) {
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+  .stage :global(.main) {
+    stroke: var(--brand);
+  }
+  .stage :global(.alt) {
+    stroke: var(--accent);
+  }
+  .stage :global(polygon.main) {
+    fill: var(--brand);
+    stroke: none;
+  }
+  .stage :global(polygon.alt) {
+    fill: var(--accent);
+    stroke: none;
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .stage :global(.pt-C .dot) {
+    stroke: var(--thm);
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 16px;
+    fill: var(--ink);
+  }
+  .status {
+    margin-top: 0.5rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .s1,
+  .s2 {
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.97rem;
+  }
+  .s2:empty {
+    display: none;
+  }
+  .s2.yes {
+    background: var(--thm-bg);
+  }
+  .s2.no {
+    background: var(--warn-bg);
+  }
+</style>

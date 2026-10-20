@@ -1,5 +1,6 @@
 ---
 import { termById, type TermKind } from '../data/terms';
+import { renderMath } from '../data/math';
 
 interface Props {
   id: string;
@@ -9,6 +10,7 @@ const t = termById[Astro.props.id];
 if (!t) throw new Error(`Unknown term id: ${Astro.props.id}`);
 
 const label: Record<TermKind, string> = {
+  undefined: 'مصطلح غير معرَّف',
   definition: 'تعريف',
   postulate: 'مسلّمة',
   theorem: 'نظرية',
@@ -21,7 +23,7 @@ const label: Record<TermKind, string> = {
     <span class="name">{t.ar}</span>
     <span class="en">{t.en}</span>
   </div>
-  <p>{t.statement}</p>
+  <p set:html={renderMath(t.statement)} />
   <slot />
 </div>
 
@@ -36,6 +38,10 @@ const label: Record<TermKind, string> = {
     padding: 0.9rem 1.1rem;
     margin: 1.2rem 0;
     scroll-margin-top: 80px;
+  }
+  .term.undefined {
+    --c: var(--ink-2);
+    --bg: var(--paper-2);
   }
   .term.theorem {
     --c: var(--thm);

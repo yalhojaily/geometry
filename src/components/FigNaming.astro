@@ -1,0 +1,72 @@
+---
+// Static figure for lesson 1.2 examples: plane M, line ℓ through P, Q, R, point S in M, point T off M.
+---
+
+<figure class="fig">
+  <svg viewBox="0 0 400 230" role="img" aria-label="مستوى M فيه المستقيم ℓ المار بالنقاط P و Q و R، والنقطة S في المستوى، والنقطة T خارجه">
+    <polygon class="plane" points="30,200 290,200 370,100 110,100"></polygon>
+    <text class="pl" x="300" y="192">M</text>
+    <line class="ln" x1="55" y1="182" x2="340" y2="118"></line>
+    <polygon class="ln-h" points="55,182 68,173 70,185"></polygon>
+    <polygon class="ln-h" points="340,118 327,115 330,127"></polygon>
+    <text class="pl" x="345" y="140">ℓ</text>
+    <g class="pt"><circle cx="110" cy="170" r="5"></circle><text x="104" y="194">P</text></g>
+    <g class="pt"><circle cx="200" cy="150" r="5"></circle><text x="194" y="174">Q</text></g>
+    <g class="pt"><circle cx="290" cy="130" r="5"></circle><text x="284" y="154">R</text></g>
+    <g class="pt"><circle cx="175" cy="118" r="5"></circle><text x="182" y="114">S</text></g>
+    <line class="drop" x1="250" y1="30" x2="250" y2="112"></line>
+    <g class="pt off"><circle cx="250" cy="30" r="5"></circle><text x="258" y="34">T</text></g>
+  </svg>
+  <figcaption><slot /></figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  svg {
+    width: 100%;
+    max-width: 420px;
+    display: block;
+    margin: 0 auto;
+  }
+  .plane {
+    fill: var(--def-bg);
+    stroke: var(--def);
+    stroke-width: 1.5;
+  }
+  .pl {
+    font-family: var(--font-head);
+    font-style: italic;
+    font-size: 18px;
+    fill: var(--def);
+  }
+  .ln {
+    stroke: var(--brand);
+    stroke-width: 2.5;
+  }
+  .ln-h {
+    fill: var(--brand);
+  }
+  .drop {
+    stroke: var(--ink-3);
+    stroke-dasharray: 4 5;
+  }
+  .pt circle {
+    fill: var(--ink);
+  }
+  .pt.off circle {
+    fill: var(--warn);
+  }
+  .pt text {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 16px;
+    fill: var(--ink);
+  }
+  figcaption {
+    font-size: 0.9rem;
+    color: var(--ink-3);
+  }
+</style>

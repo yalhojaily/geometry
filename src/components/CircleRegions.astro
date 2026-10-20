@@ -96,7 +96,7 @@
       this.querySelector('.plus')?.addEventListener('click', () => this.setN(this.n + 1));
       this.querySelector('.minus')?.addEventListener('click', () => this.setN(this.n - 1));
 
-      const svg = this.querySelector('svg')!;
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
       svg.addEventListener('pointermove', (e) => {
         if (this.dragging < 0) return;
         const m = svg.getScreenCTM();
@@ -154,7 +154,7 @@
         c.addEventListener('pointerdown', (e) => {
           this.dragging = i;
           // Capture on the <svg>, not the dot: the dots are redrawn on every move.
-          this.querySelector('svg')?.setPointerCapture(e.pointerId);
+          this.querySelector('svg.stage')?.setPointerCapture(e.pointerId);
           e.preventDefault();
         });
         gP.appendChild(c);

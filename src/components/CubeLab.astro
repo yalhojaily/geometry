@@ -1,0 +1,312 @@
+---
+// Interactive: a rotatable cube. Pick 2–4 corners to see whether they are
+// collinear or coplanar, and which plane they determine.
+---
+
+<cube-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">مختبر المستويات</span>
+    <span class="hint-small">اسحب لتدوير المكعب، واضغط على الرؤوس لاختيارها</span>
+  </div>
+
+  <svg viewBox="-180 -165 360 330" class="stage" role="img" aria-label="مكعب رؤوسه A إلى H">
+    <g class="plane"></g>
+    <g class="edges"></g>
+    <g class="verts"></g>
+  </svg>
+
+  <div class="bar">
+    <div class="picked">المختار: <b class="ltr names">—</b></div>
+    <button type="button" class="btn clear">مسح الاختيار</button>
+  </div>
+  <p class="msg" aria-live="polite"></p>
+</cube-lab>
+
+<script>
+  type V3 = [number, number, number];
+  const NS = 'http://www.w3.org/2000/svg';
+  const NAMES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  // Bottom face ABCD, top face EFGH (E above A, F above B, ...). y points up.
+  const V: V3[] = [
+    [-1, -1, 1], [1, -1, 1], [1, -1, -1], [-1, -1, -1],
+    [-1, 1, 1], [1, 1, 1], [1, 1, -1], [-1, 1, -1],
+  ];
+  const EDGES: [number, number][] = [
+    [0, 1], [1, 2], [2, 3], [3, 0],
+    [4, 5], [5, 6], [6, 7], [7, 4],
+    [0, 4], [1, 5], [2, 6], [3, 7],
+  ];
+  // Faces with outward vertex order (counter-clockwise seen from outside).
+  const FACES: number[][] = [
+    [0, 1, 5, 4], // front  z=+1
+    [1, 2, 6, 5], // right  x=+1
+    [2, 3, 7, 6], // back   z=-1
+    [3, 0, 4, 7], // left   x=-1
+    [4, 5, 6, 7], // top    y=+1
+    [3, 2, 1, 0], // bottom y=-1
+  ];
+
+  const subv = (a: V3, b: V3): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const cross = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const dotv = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+
+  function el(tag: string, attrs: Record<string, string | number>, cls?: string) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+    if (cls) e.setAttribute('class', cls);
+    return e;
+  }
+
+  class CubeLab extends HTMLElement {
+    yaw = -0.6;
+    pitch = 0.45;
+    sel: number[] = [];
+    dragFrom: { x: number; y: number; yaw: number; pitch: number } | null = null;
+    moved = false;
+
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      svg.addEventListener('pointerdown', (e) => {
+        this.dragFrom = { x: e.clientX, y: e.clientY, yaw: this.yaw, pitch: this.pitch };
+        this.moved = false;
+      });
+      svg.addEventListener('pointermove', (e) => {
+        if (!this.dragFrom) return;
+        const dx = e.clientX - this.dragFrom.x;
+        const dy = e.clientY - this.dragFrom.y;
+        if (!this.moved && Math.hypot(dx, dy) < 4) return;
+        if (!this.moved) svg.setPointerCapture(e.pointerId);
+        this.moved = true;
+        this.yaw = this.dragFrom.yaw + dx * 0.012;
+        this.pitch = Math.max(-1.3, Math.min(1.3, this.dragFrom.pitch + dy * 0.012));
+        this.render();
+      });
+      const end = () => (this.dragFrom = null);
+      svg.addEventListener('pointerup', end);
+      svg.addEventListener('pointercancel', end);
+
+      this.querySelector('.clear')?.addEventListener('click', () => {
+        this.sel = [];
+        this.render();
+      });
+      this.render();
+    }
+
+    toggle(i: number) {
+      if (this.moved) return;
+      const k = this.sel.indexOf(i);
+      if (k >= 0) this.sel.splice(k, 1);
+      else {
+        this.sel.push(i);
+        if (this.sel.length > 4) this.sel.shift();
+      }
+      this.render();
+    }
+
+    /** Rotate a model point into camera space. */
+    rot([x, y, z]: V3): V3 {
+      const cy = Math.cos(this.yaw);
+      const sy = Math.sin(this.yaw);
+      const x1 = x * cy + z * sy;
+      const z1 = -x * sy + z * cy;
+      const cp = Math.cos(this.pitch);
+      const sp = Math.sin(this.pitch);
+      return [x1, y * cp - z1 * sp, y * sp + z1 * cp];
+    }
+
+    /** Perspective projection to SVG coordinates (camera looks along −z from z = +6). */
+    proj(p: V3): { x: number; y: number } {
+      const f = 470 / (6 - p[2]);
+      return { x: p[0] * f, y: -p[1] * f };
+    }
+
+    render() {
+      const R = V.map((v) => this.rot(v));
+      const P = R.map((r) => this.proj(r));
+
+      // A face is visible when its normal points toward the camera.
+      const visible = FACES.map((f) => {
+        const n = cross(subv(R[f[1]], R[f[0]]), subv(R[f[3]], R[f[0]]));
+        const toCam = subv([0, 0, 6], R[f[0]]);
+        return dotv(n, toCam) > 0;
+      });
+      const edgeHidden = (a: number, b: number) =>
+        FACES.every((f, i) => !(f.includes(a) && f.includes(b)) || !visible[i]);
+
+      // --- analysis of the selection ---
+      const plane = this.querySelector('.plane')!;
+      plane.replaceChildren();
+      const msg = this.querySelector('.msg')!;
+      const s = this.sel;
+      let offPlane = -1;
+
+      if (s.length === 0) {
+        msg.textContent = 'اختر رأسين أو أكثر من رؤوس المكعب.';
+      } else if (s.length === 1) {
+        msg.textContent = `نقطة واحدة ${NAMES[s[0]]} تمر بها مستقيمات ومستويات كثيرة جدًا. اختر نقطة أخرى.`;
+      } else if (s.length === 2) {
+        const [a, b] = s.map((i) => P[i]);
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        plane.appendChild(el('line', { x1: a.x - dx * 3, y1: a.y - dy * 3, x2: b.x + dx * 3, y2: b.y + dy * 3 }, 'thru'));
+        msg.textContent = `أي نقطتين على استقامة واحدة دائمًا: يمر بالنقطتين ${NAMES[s[0]]} و ${NAMES[s[1]]} مستقيم واحد فقط.`;
+      } else {
+        const [i, j, k] = s;
+        const n = cross(subv(V[j], V[i]), subv(V[k], V[i]));
+        const onPlane = V.map((_, idx) => idx).filter((idx) => Math.abs(dotv(n, subv(V[idx], V[i]))) < 1e-9);
+        this.shade(plane, onPlane, n, P);
+        const others = onPlane.filter((x) => !s.slice(0, 3).includes(x)).map((x) => NAMES[x]);
+        const name3 = s.slice(0, 3).map((x) => NAMES[x]).join('');
+        const isFace = onPlane.length === 4 && FACES.some((f) => onPlane.every((x) => f.includes(x)));
+        const kind = isFace ? 'وهو أحد أوجه المكعب' : 'وهو مستوى قطري يقطع المكعب';
+
+        if (s.length === 3) {
+          msg.textContent =
+            `النقاط ${name3} ليست على استقامة واحدة، فيمر بها مستوى واحد فقط (المظلل)، ${kind}.` +
+            (others.length ? ` لاحظ أن ${others.join(' و ')} تقع فيه أيضًا.` : '');
+        } else {
+          const fourth = s[3];
+          if (onPlane.includes(fourth)) {
+            msg.textContent = `النقاط الأربع ${s.map((x) => NAMES[x]).join('')} مستوية: كلها في المستوى المظلل، ${kind}.`;
+          } else {
+            offPlane = fourth;
+            msg.textContent = `النقاط الأربع ليست مستوية: ${NAMES[fourth]} خارج المستوى ${name3} المظلل. ثلاث نقاط تكون دائمًا في مستوى واحد، أما الرابعة فقد لا تكون.`;
+          }
+        }
+      }
+
+      // --- edges ---
+      const edges = this.querySelector('.edges')!;
+      edges.replaceChildren();
+      for (const [a, b] of EDGES)
+        edges.appendChild(
+          el('line', { x1: P[a].x, y1: P[a].y, x2: P[b].x, y2: P[b].y }, edgeHidden(a, b) ? 'edge hidden' : 'edge'),
+        );
+
+      // --- vertices ---
+      const verts = this.querySelector('.verts')!;
+      verts.replaceChildren();
+      const order = P.map((_, i) => i).sort((a, b) => R[a][2] - R[b][2]);
+      for (const i of order) {
+        const p = P[i];
+        const picked = s.includes(i);
+        const g = el('g', {}, `v${picked ? ' on' : ''}${i === offPlane ? ' off' : ''}`);
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 16 }, 'hit'));
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: picked ? 9 : 6 }, 'dot'));
+        const out = Math.hypot(p.x, p.y) || 1;
+        const t = el('text', { x: p.x + (p.x / out) * 18, y: p.y + (p.y / out) * 18 + 5 }, 'lbl');
+        t.textContent = NAMES[i];
+        g.appendChild(t);
+        g.addEventListener('click', () => this.toggle(i));
+        verts.appendChild(g);
+      }
+
+      this.querySelector('.names')!.textContent = s.length ? s.map((x) => NAMES[x]).join(' , ') : '—';
+    }
+
+    /** Fill the polygon formed by the cube corners lying in one plane. */
+    shade(g: Element, idx: number[], n: V3, P: { x: number; y: number }[]) {
+      const c: V3 = [0, 1, 2].map((d) => idx.reduce((s, i) => s + V[i][d], 0) / idx.length) as V3;
+      const u = subv(V[idx[0]], c);
+      const w = cross(n, u);
+      const sorted = [...idx].sort((a, b) => {
+        const da = subv(V[a], c);
+        const db = subv(V[b], c);
+        return Math.atan2(dotv(da, w), dotv(da, u)) - Math.atan2(dotv(db, w), dotv(db, u));
+      });
+      g.appendChild(el('polygon', { points: sorted.map((i) => `${P[i].x},${P[i].y}`).join(' ') }, 'fill'));
+    }
+  }
+  customElements.define('cube-lab', CubeLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 380px;
+    margin: 0.3rem auto;
+    touch-action: none;
+    cursor: grab;
+  }
+  .stage :global(.fill) {
+    fill: var(--accent);
+    fill-opacity: 0.28;
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .stage :global(.thru) {
+    stroke: var(--accent);
+    stroke-width: 3;
+  }
+  .stage :global(.edge) {
+    stroke: var(--brand);
+    stroke-width: 2.2;
+  }
+  .stage :global(.edge.hidden) {
+    stroke-dasharray: 5 5;
+    stroke-width: 1.5;
+    opacity: 0.6;
+  }
+  .stage :global(.v) {
+    cursor: pointer;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--brand);
+    stroke-width: 2.5;
+  }
+  .stage :global(.v.on .dot) {
+    fill: var(--accent);
+    stroke: var(--ink);
+  }
+  .stage :global(.v.off .dot) {
+    fill: var(--bad);
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 16px;
+    fill: var(--ink);
+    text-anchor: middle;
+  }
+  .bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .names {
+    font-family: var(--font-head);
+  }
+  .msg {
+    margin: 0.6rem 0 0;
+    padding: 0.55rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+  }
+</style>

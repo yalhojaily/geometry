@@ -238,3 +238,8 @@ button {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* SVG labels are positioned from their left edge; keep that in an RTL page. */
+svg text {
+  direction: ltr;
+}
