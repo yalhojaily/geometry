@@ -1,0 +1,93 @@
+---
+// Worked example. Inside it, write the problem as a paragraph and the
+// solution as a Markdown ordered list: the steps are revealed one at a time.
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<step-reveal class="example">
+  <div class="label">{title}</div>
+  <div class="content"><slot /></div>
+  <div class="controls">
+    <button type="button" class="btn btn-primary next">اكشف الخطوة التالية</button>
+    <button type="button" class="btn all">اعرض الحل كاملًا</button>
+    <span class="count"></span>
+  </div>
+</step-reveal>
+
+<script>
+  class StepReveal extends HTMLElement {
+    shown = 0;
+    steps: HTMLLIElement[] = [];
+
+    connectedCallback() {
+      this.steps = Array.from(this.querySelectorAll<HTMLLIElement>('.content ol > li'));
+      this.querySelector('.next')?.addEventListener('click', () => this.show(this.shown + 1));
+      this.querySelector('.all')?.addEventListener('click', () => this.show(this.steps.length));
+      this.show(0);
+    }
+
+    show(n: number) {
+      this.shown = Math.min(n, this.steps.length);
+      this.steps.forEach((li, i) => {
+        li.hidden = i >= this.shown;
+        if (i === this.shown - 1) li.classList.add('fresh');
+      });
+      const done = this.shown >= this.steps.length;
+      this.querySelectorAll<HTMLButtonElement>('.next, .all').forEach((b) => (b.hidden = done));
+      const c = this.querySelector('.count');
+      if (c) c.textContent = done ? 'اكتمل الحل' : `${this.shown} / ${this.steps.length}`;
+    }
+  }
+  customElements.define('step-reveal', StepReveal);
+</script>
+
+<style>
+  .example {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.2rem;
+    margin: 1.4rem 0;
+  }
+  .label {
+    display: inline-block;
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    background: var(--paper-2);
+    border-radius: 6px;
+    padding: 0.05rem 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+  .content :global(ol) {
+    margin: 0.4rem 0 0;
+    padding-inline-start: 1.4rem;
+  }
+  .content :global(ol > li) {
+    padding: 0.35rem 0.2rem;
+    border-top: 1px dashed var(--line);
+  }
+  .content :global(ol > li.fresh) {
+    animation: fadein 0.35s ease;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+  }
+  .count {
+    color: var(--ink-3);
+    font-size: 0.9rem;
+  }
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: none; }
+  }
+</style>

@@ -1,0 +1,39 @@
+---
+interface Props {
+  type?: 'warning' | 'tip';
+  title?: string;
+}
+
+const { type = 'tip', title } = Astro.props;
+const defaults = { warning: 'خطأ شائع', tip: 'فكرة' };
+---
+
+<div class:list={['callout', type]}>
+  <div class="title">{type === 'warning' ? '⚠' : '💡'} {title ?? defaults[type]}</div>
+  <slot />
+</div>
+
+<style>
+  .callout {
+    --c: var(--brand);
+    --bg: var(--paper-2);
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px dashed color-mix(in srgb, var(--c) 45%, transparent);
+    padding: 0.85rem 1.1rem;
+    margin: 1.2rem 0;
+  }
+  .callout.warning {
+    --c: var(--warn);
+    --bg: var(--warn-bg);
+  }
+  .title {
+    font-family: var(--font-head);
+    font-weight: 600;
+    color: var(--c);
+    margin-bottom: 0.25rem;
+  }
+  .callout :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

@@ -1,0 +1,327 @@
+---
+// Interactive: points on a circle joined by every possible chord.
+// The region count follows 1, 2, 4, 8, 16 ... and then breaks the pattern.
+---
+
+<circle-regions class="panel lab">
+  <div class="lab-head">
+    <span class="tag">مختبر التخمين</span>
+    <span class="hint-small">اسحب النقاط على الدائرة</span>
+  </div>
+
+  <svg viewBox="-170 -170 340 340" class="stage" role="img" aria-label="دائرة عليها نقاط موصولة بأوتار">
+    <circle r="140" class="rim"></circle>
+    <g class="chords"></g>
+    <g class="xs"></g>
+    <g class="pts"></g>
+  </svg>
+
+  <div class="stepper">
+    <button type="button" class="btn minus" aria-label="أنقص نقطة">−</button>
+    <div class="readout">
+      <div>عدد النقاط: <b class="ltr">n = <span class="n">1</span></b></div>
+      <div>عدد المناطق: <b class="regions ltr">1</b></div>
+    </div>
+    <button type="button" class="btn btn-primary plus" aria-label="أضف نقطة">+</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr class="r-n"><th>عدد النقاط</th></tr>
+      <tr class="r-g"><th>التخمين <span class="ltr">2ⁿ⁻¹</span></th></tr>
+      <tr class="r-a"><th>العدد الفعلي</th></tr>
+    </table>
+  </div>
+  <p class="verdict" aria-live="polite"></p>
+</circle-regions>
+
+<script>
+  type P = { x: number; y: number };
+  const NS = 'http://www.w3.org/2000/svg';
+  const R = 140;
+  const MAX = 7;
+  // Slightly irregular angles so no three chords meet at one point.
+  const BASE_ANGLES = [-90, -20, 40, 115, 160, 205, 255].map((d) => (d * Math.PI) / 180);
+
+  function segIntersect(a: P, b: P, c: P, d: P): P | null {
+    const r = { x: b.x - a.x, y: b.y - a.y };
+    const s = { x: d.x - c.x, y: d.y - c.y };
+    const den = r.x * s.y - r.y * s.x;
+    if (Math.abs(den) < 1e-9) return null;
+    const t = ((c.x - a.x) * s.y - (c.y - a.y) * s.x) / den;
+    const u = ((c.x - a.x) * r.y - (c.y - a.y) * r.x) / den;
+    const eps = 1e-6;
+    if (t <= eps || t >= 1 - eps || u <= eps || u >= 1 - eps) return null;
+    return { x: a.x + t * r.x, y: a.y + t * r.y };
+  }
+
+  /** Regions = 1 + chords + Σ(k − 1) over interior crossing points, where k chords meet. */
+  function analyse(pts: P[]) {
+    const chords: [P, P][] = [];
+    for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) chords.push([pts[i], pts[j]]);
+
+    // Cluster crossings that land on (almost) the same spot, remembering which chords pass through.
+    const clusters: { p: P; chords: Set<number> }[] = [];
+    for (let i = 0; i < chords.length; i++)
+      for (let j = i + 1; j < chords.length; j++) {
+        const x = segIntersect(chords[i][0], chords[i][1], chords[j][0], chords[j][1]);
+        if (!x) continue;
+        const hit = clusters.find((c) => Math.hypot(c.p.x - x.x, c.p.y - x.y) < 2.5);
+        if (hit) {
+          hit.chords.add(i);
+          hit.chords.add(j);
+        } else clusters.push({ p: x, chords: new Set([i, j]) });
+      }
+
+    const regions = 1 + chords.length + clusters.reduce((s, c) => s + c.chords.size - 1, 0);
+    return { chords, clusters, regions };
+  }
+
+  // Region counts for points in general position: C(n,4) + C(n,2) + 1
+  const choose = (n: number, k: number) => {
+    if (k > n) return 0;
+    let r = 1;
+    for (let i = 0; i < k; i++) r = (r * (n - i)) / (i + 1);
+    return r;
+  };
+  const general = (n: number) => choose(n, 4) + choose(n, 2) + 1;
+
+  class CircleRegions extends HTMLElement {
+    angles = [...BASE_ANGLES];
+    n = 1;
+    maxSeen = 1;
+    dragging = -1;
+
+    connectedCallback() {
+      this.querySelector('.plus')?.addEventListener('click', () => this.setN(this.n + 1));
+      this.querySelector('.minus')?.addEventListener('click', () => this.setN(this.n - 1));
+
+      const svg = this.querySelector('svg')!;
+      svg.addEventListener('pointermove', (e) => {
+        if (this.dragging < 0) return;
+        const m = svg.getScreenCTM();
+        if (!m) return;
+        const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        this.angles[this.dragging] = Math.atan2(pt.y, pt.x);
+        this.render();
+      });
+      const stop = () => (this.dragging = -1);
+      svg.addEventListener('pointerup', stop);
+      svg.addEventListener('pointerleave', stop);
+      svg.addEventListener('pointercancel', stop);
+
+      this.render();
+    }
+
+    setN(n: number) {
+      this.n = Math.max(1, Math.min(MAX, n));
+      this.maxSeen = Math.max(this.maxSeen, this.n);
+      this.render();
+    }
+
+    render() {
+      const pts = this.angles.slice(0, this.n).map((a) => ({ x: R * Math.cos(a), y: R * Math.sin(a) }));
+      const { chords, clusters, regions } = analyse(pts);
+
+      const gC = this.querySelector('.chords')!;
+      const gX = this.querySelector('.xs')!;
+      const gP = this.querySelector('.pts')!;
+      gC.replaceChildren();
+      gX.replaceChildren();
+      gP.replaceChildren();
+
+      for (const [a, b] of chords) {
+        const l = document.createElementNS(NS, 'line');
+        l.setAttribute('x1', String(a.x));
+        l.setAttribute('y1', String(a.y));
+        l.setAttribute('x2', String(b.x));
+        l.setAttribute('y2', String(b.y));
+        gC.appendChild(l);
+      }
+      for (const c of clusters) {
+        const d = document.createElementNS(NS, 'circle');
+        d.setAttribute('cx', String(c.p.x));
+        d.setAttribute('cy', String(c.p.y));
+        d.setAttribute('r', c.chords.size > 2 ? '6' : '3');
+        if (c.chords.size > 2) d.setAttribute('class', 'multi');
+        gX.appendChild(d);
+      }
+      pts.forEach((p, i) => {
+        const c = document.createElementNS(NS, 'circle');
+        c.setAttribute('cx', String(p.x));
+        c.setAttribute('cy', String(p.y));
+        c.setAttribute('r', '11');
+        c.addEventListener('pointerdown', (e) => {
+          this.dragging = i;
+          // Capture on the <svg>, not the dot: the dots are redrawn on every move.
+          this.querySelector('svg')?.setPointerCapture(e.pointerId);
+          e.preventDefault();
+        });
+        gP.appendChild(c);
+      });
+
+      this.querySelector('.n')!.textContent = String(this.n);
+      this.querySelector('.regions')!.textContent = String(regions);
+      this.querySelector<HTMLButtonElement>('.minus')!.disabled = this.n === 1;
+      this.querySelector<HTMLButtonElement>('.plus')!.disabled = this.n === MAX;
+
+      this.renderTable();
+
+      const concurrent = clusters.some((c) => c.chords.size > 2);
+      const v = this.querySelector('.verdict')!;
+      if (concurrent)
+        v.textContent = `ثلاثة أوتار أو أكثر تمر الآن بنقطة واحدة (النقطة الكبيرة)، لذلك قلّ عدد المناطق إلى ${regions}. حرّك نقطة قليلًا لتعود الأوتار متفرقة.`;
+      else if (this.maxSeen >= 6)
+        v.textContent = 'مثال مضاد! عند 6 نقاط يتوقع التخمين 32 منطقة، لكن العدد الفعلي 31. النمط الذي صمد خمس مرات سقط في السادسة.';
+      else v.textContent = 'هل يستمر العدد في التضاعف؟ سجّل تخمينك، ثم أضف نقطة وتحقّق.';
+      v.className = `verdict${this.maxSeen >= 6 && !concurrent ? ' broken' : ''}`;
+    }
+
+    renderTable() {
+      const rows = ['.r-n', '.r-g', '.r-a'].map((s) => this.querySelector<HTMLTableRowElement>(s)!);
+      rows.forEach((row) => row.querySelectorAll('td').forEach((td) => td.remove()));
+      for (let i = 1; i <= MAX; i++) {
+        const seen = i <= this.maxSeen;
+        const g = 2 ** (i - 1);
+        const a = general(i);
+        const vals = [String(i), String(g), seen ? String(a) : '؟'];
+        rows.forEach((row, k) => {
+          const td = document.createElement('td');
+          td.textContent = vals[k];
+          if (k === 2 && seen) td.className = a === g ? 'ok' : 'no';
+          if (i === this.n) td.classList.add('cur');
+          row.appendChild(td);
+        });
+      }
+    }
+  }
+  customElements.define('circle-regions', CircleRegions);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 340px;
+    margin: 0.4rem auto;
+    touch-action: none;
+  }
+  .rim {
+    fill: var(--paper);
+    stroke: var(--ink-2);
+    stroke-width: 2;
+  }
+  .stage :global(.chords line) {
+    stroke: var(--brand);
+    stroke-width: 1.6;
+    opacity: 0.75;
+  }
+  .stage :global(.xs circle) {
+    fill: var(--ink-2);
+  }
+  .stage :global(.xs circle.multi) {
+    fill: var(--warn);
+  }
+  .stage :global(.pts circle) {
+    fill: var(--accent);
+    stroke: var(--card);
+    stroke-width: 3;
+    cursor: grab;
+  }
+  .stage :global(.pts circle:active) {
+    cursor: grabbing;
+  }
+  .stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .stepper .btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.3rem;
+    padding: 0;
+  }
+  .stepper .btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .readout {
+    text-align: center;
+    line-height: 1.6;
+  }
+  .readout b {
+    font-family: var(--font-head);
+    font-size: 1.2rem;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    margin-top: 0.8rem;
+  }
+  table {
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    margin-inline: auto;
+  }
+  th,
+  table :global(td) {
+    border: 1px solid var(--line);
+    padding: 0.2rem 0.55rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+  th {
+    background: var(--paper-2);
+    font-weight: 500;
+  }
+  table :global(td) {
+    font-family: var(--font-head);
+    min-width: 2.2rem;
+  }
+  table :global(td.cur) {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  table :global(td.ok) {
+    color: var(--good);
+    font-weight: 600;
+  }
+  table :global(td.no) {
+    color: var(--card);
+    background: var(--bad);
+    font-weight: 700;
+  }
+  .verdict {
+    margin: 0.8rem 0 0;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.97rem;
+  }
+  .verdict.broken {
+    background: var(--warn-bg);
+    color: var(--ink);
+    border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  }
+</style>

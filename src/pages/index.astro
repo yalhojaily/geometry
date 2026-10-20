@@ -1,0 +1,227 @@
+---
+import Base from '../layouts/Base.astro';
+import { chapters, allLessons, lessonSlug } from '../data/curriculum';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const readyCount = allLessons.filter((l) => l.ready).length;
+---
+
+<Base title="هندسة · شرح تفاعلي للهندسة الإقليدية">
+  <section class="hero wrap">
+    <h1>الهندسة، خطوة بخطوة</h1>
+    <p>
+      شرح تفاعلي لمنهج الهندسة الإقليدية، بنفس ترتيب فصول الكتاب. حرّك الأشكال، اختبر التخمينات،
+      وحل التمارين بتصحيح فوري.
+    </p>
+    <div class="stats">
+      <span><b>12</b> فصلًا</span>
+      <span><b>{allLessons.length}</b> درسًا</span>
+      <span><b>{readyCount}</b> جاهز</span>
+      <span class="mine">أكملت <b class="done-count">0</b></span>
+    </div>
+  </section>
+
+  <section class="wrap chapters">
+    {
+      chapters.map((c) => (
+        <details class="chapter" open={c.n === 1}>
+          <summary>
+            <span class="cn">{c.n}</span>
+            <span class="ct">
+              <span class="ar">{c.ar}</span>
+              <span class="en">{c.en}</span>
+            </span>
+          </summary>
+          <ol class="lessons">
+            {c.lessons.map((l) => (
+              <li>
+                {l.ready ? (
+                  <a class="lesson ready" href={`${base}/lessons/${lessonSlug(l.id)}/`} data-id={l.id}>
+                    <span class="lid">{l.id}</span>
+                    <span class="lt">{l.ar}</span>
+                    <span class="mark" aria-hidden="true" />
+                  </a>
+                ) : (
+                  <span class="lesson soon">
+                    <span class="lid">{l.id}</span>
+                    <span class="lt">{l.ar}</span>
+                    <span class="badge">قريبًا</span>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </details>
+      ))
+    }
+  </section>
+</Base>
+
+<script>
+  let p: Record<string, boolean> = {};
+  try {
+    p = JSON.parse(localStorage.getItem('progress') ?? '{}');
+  } catch {}
+  document.querySelectorAll<HTMLElement>('.lesson.ready').forEach((a) => {
+    if (p[a.dataset.id ?? '']) a.classList.add('done');
+  });
+  const n = Object.values(p).filter(Boolean).length;
+  const el = document.querySelector('.done-count');
+  if (el) el.textContent = String(n);
+</script>
+
+<style>
+  .hero {
+    padding-top: 2.8rem;
+    padding-bottom: 1.6rem;
+  }
+  h1 {
+    font-size: clamp(1.9rem, 6vw, 2.8rem);
+    margin-bottom: 0.4rem;
+  }
+  .hero p {
+    font-size: 1.12rem;
+    color: var(--ink-2);
+    max-width: 38rem;
+  }
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .stats span {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.15rem 0.85rem;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+  }
+  .stats b {
+    font-family: var(--font-head);
+    color: var(--ink);
+  }
+  .stats .mine {
+    background: var(--accent-soft);
+    border-color: transparent;
+  }
+  .chapters {
+    display: grid;
+    gap: 0.7rem;
+  }
+  .chapter {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: '‹';
+    margin-inline-start: auto;
+    font-size: 1.4rem;
+    color: var(--ink-3);
+    transition: transform 0.2s;
+  }
+  .chapter[open] summary::after {
+    transform: rotate(-90deg);
+  }
+  .cn {
+    flex: none;
+    width: 2.6rem;
+    height: 2.6rem;
+    display: grid;
+    place-items: center;
+    background: var(--brand);
+    color: var(--paper);
+    border-radius: 10px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 1.15rem;
+  }
+  .ct {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.4;
+  }
+  .ar {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 1.08rem;
+  }
+  .lessons {
+    list-style: none;
+    margin: 0;
+    padding: 0 0.6rem 0.6rem;
+    border-top: 1px solid var(--line);
+  }
+  .lesson {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .lesson.ready:hover {
+    background: var(--paper-2);
+  }
+  .lesson.soon {
+    color: var(--ink-3);
+  }
+  .lid {
+    flex: none;
+    width: 2.6rem;
+    font-family: var(--font-head);
+    font-weight: 600;
+    direction: ltr;
+    text-align: end;
+    color: var(--brand);
+  }
+  .soon .lid {
+    color: var(--ink-3);
+  }
+  .lt {
+    flex: 1;
+  }
+  .badge {
+    font-size: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0 0.55rem;
+  }
+  .mark {
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    flex: none;
+  }
+  .lesson.done .mark {
+    background: var(--good);
+    border-color: var(--good);
+    position: relative;
+  }
+  .lesson.done .mark::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--card);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+</style>

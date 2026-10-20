@@ -1,0 +1,199 @@
+---
+import Base from './Base.astro';
+import { findLesson, lessonSlug } from '../data/curriculum';
+
+interface Props {
+  frontmatter: {
+    lesson: string;
+    why: string;
+  };
+}
+
+const { lesson: id, why } = Astro.props.frontmatter;
+const { lesson, prev, next } = findLesson(id);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const href = (l: { id: string; ready?: boolean } | undefined) =>
+  l?.ready ? `${base}/lessons/${lessonSlug(l.id)}/` : undefined;
+const prevHref = href(prev);
+const nextHref = href(next);
+---
+
+<Base title={`${lesson.id} ${lesson.ar} · هندسة`}>
+  <article class="wrap lesson" data-lesson={lesson.id}>
+    <nav class="crumbs">
+      <a href={`${base}/`}>الفهرس</a>
+      <span>›</span>
+      <span>الفصل {lesson.chapter.n}: {lesson.chapter.ar}</span>
+    </nav>
+
+    <header class="lesson-head">
+      <div class="num">{lesson.id}</div>
+      <div>
+        <h1>{lesson.ar}</h1>
+        <div class="en">{lesson.en}</div>
+      </div>
+    </header>
+
+    <aside class="why">
+      <span class="why-label">لماذا هذا الدرس؟</span>
+      <p>{why}</p>
+    </aside>
+
+    <div class="body">
+      <slot />
+    </div>
+
+    <section class="finish panel">
+      <div>
+        <strong>انتهيت من الدرس؟</strong>
+        <p>علّمه كمكتمل ليظهر تقدمك في الفهرس.</p>
+      </div>
+      <button class="btn btn-primary done-btn" type="button">علّم كمكتمل ✓</button>
+    </section>
+
+    <nav class="pager">
+      {
+        prevHref ? (
+          <a class="pg" href={prevHref}>
+            <small>السابق</small>
+            {prev!.id} {prev!.ar}
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a class:list={['pg', 'pg-next', { disabled: !nextHref }]} href={nextHref}>
+            <small>{nextHref ? 'التالي' : 'التالي (قريبًا)'}</small>
+            {next.id} {next.ar}
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</Base>
+
+<script>
+  const article = document.querySelector<HTMLElement>('.lesson');
+  const btn = document.querySelector<HTMLButtonElement>('.done-btn');
+  const id = article?.dataset.lesson ?? '';
+
+  function read(): Record<string, boolean> {
+    try {
+      return JSON.parse(localStorage.getItem('progress') ?? '{}');
+    } catch {
+      return {};
+    }
+  }
+  function render() {
+    if (!btn) return;
+    const done = read()[id];
+    btn.textContent = done ? 'مكتمل ✓ (إلغاء)' : 'علّم كمكتمل ✓';
+    btn.classList.toggle('btn-primary', !done);
+  }
+  btn?.addEventListener('click', () => {
+    const p = read();
+    p[id] = !p[id];
+    try {
+      localStorage.setItem('progress', JSON.stringify(p));
+    } catch {}
+    render();
+  });
+  render();
+</script>
+
+<style>
+  .lesson {
+    padding-top: 1.5rem;
+  }
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--ink-3);
+  }
+  .crumbs a {
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+  .lesson-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.2rem 0 1.4rem;
+  }
+  .num {
+    flex: none;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: var(--paper);
+    background: var(--brand);
+    border-radius: 14px;
+    padding: 0.35rem 0.8rem;
+    direction: ltr;
+  }
+  h1 {
+    font-size: clamp(1.5rem, 4.5vw, 2.1rem);
+    margin: 0;
+  }
+  .why {
+    background: var(--accent-soft);
+    border-inline-start: 4px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 0.9rem 1.1rem;
+  }
+  .why-label {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink-2);
+  }
+  .why p {
+    margin: 0.2rem 0 0;
+    font-size: 1.1rem;
+  }
+  .finish {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 3rem;
+  }
+  .finish p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 0.95rem;
+  }
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+  .pg {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.7rem 1rem;
+    text-decoration: none;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .pg small {
+    display: block;
+    color: var(--ink-3);
+  }
+  .pg-next {
+    text-align: left;
+    grid-column: 2;
+  }
+  .pg.disabled {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+</style>

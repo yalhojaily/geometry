@@ -1,0 +1,209 @@
+---
+// Interactive: test the conjecture "n² + n + 41 is always prime" one value at a time.
+---
+
+<prime-conjecture class="panel lab">
+  <div class="lab-head">
+    <span class="tag">اختبر التخمين</span>
+  </div>
+  <p class="claim">
+    التخمين: لكل عدد صحيح <span class="ltr">n ≥ 0</span>، العدد
+    <span class="ltr formula">n² + n + 41</span> عدد أولي.
+  </p>
+
+  <label class="slider">
+    <span class="ltr">n = <b class="n">0</b></span>
+    <input type="range" min="0" max="45" value="0" dir="ltr" aria-label="قيمة n" />
+  </label>
+
+  <div class="result">
+    <div class="calc ltr"></div>
+    <div class="status"></div>
+  </div>
+
+  <div class="strip ltr" aria-label="نتائج الاختبار لكل قيمة"></div>
+  <div class="actions">
+    <button type="button" class="btn btn-primary run">اختبر كل القيم من 0 إلى 45</button>
+  </div>
+  <p class="verdict" aria-live="polite"></p>
+</prime-conjecture>
+
+<script>
+  const f = (n: number) => n * n + n + 41;
+  function smallestFactor(m: number): number {
+    for (let d = 2; d * d <= m; d++) if (m % d === 0) return d;
+    return m;
+  }
+
+  class PrimeConjecture extends HTMLElement {
+    tested = new Set<number>();
+    running = false;
+
+    connectedCallback() {
+      const strip = this.querySelector('.strip')!;
+      for (let n = 0; n <= 45; n++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = String(n);
+        b.title = `n = ${n}`;
+        b.addEventListener('click', () => this.pick(n));
+        strip.appendChild(b);
+      }
+      const range = this.querySelector<HTMLInputElement>('input')!;
+      range.addEventListener('input', () => this.pick(Number(range.value)));
+      this.querySelector('.run')?.addEventListener('click', () => this.runAll());
+      this.pick(0);
+    }
+
+    pick(n: number) {
+      this.tested.add(n);
+      const v = f(n);
+      const d = smallestFactor(v);
+      const prime = d === v;
+      this.querySelector<HTMLInputElement>('input')!.value = String(n);
+      this.querySelector('.n')!.textContent = String(n);
+      this.querySelector('.calc')!.textContent = `${n}² + ${n} + 41 = ${v}`;
+      const st = this.querySelector<HTMLElement>('.status')!;
+      st.replaceChildren(prime ? 'عدد أولي ✓' : 'ليس أوليًا ✗ ');
+      if (!prime) {
+        const eq = document.createElement('span');
+        eq.className = 'ltr';
+        eq.textContent = `${v} = ${d} × ${v / d}`;
+        st.append(eq);
+      }
+      st.className = `status ${prime ? 'ok' : 'no'}`;
+      this.paint(n);
+    }
+
+    paint(current: number) {
+      this.querySelectorAll<HTMLButtonElement>('.strip button').forEach((b, n) => {
+        b.className = '';
+        if (this.tested.has(n)) b.classList.add(smallestFactor(f(n)) === f(n) ? 'ok' : 'no');
+        if (n === current) b.classList.add('cur');
+      });
+      const failed = [...this.tested].filter((n) => smallestFactor(f(n)) !== f(n)).sort((a, b) => a - b);
+      const v = this.querySelector('.verdict')!;
+      if (failed.length)
+        v.textContent = `وجدت مثالًا مضادًا عند n = ${failed[0]}. صمد التخمين في أربعين حالة متتالية (من 0 إلى 39)، ومع ذلك هو خاطئ.`;
+      else if (this.tested.size >= 10)
+        v.textContent = `اختبرت ${this.tested.size} قيمة وكلها أولية. هل يكفي هذا لنقول إن التخمين صحيح دائمًا؟`;
+      else v.textContent = 'حرّك المؤشر أو اضغط على الأرقام لاختبار قيم مختلفة.';
+      v.className = `verdict${failed.length ? ' broken' : ''}`;
+    }
+
+    async runAll() {
+      if (this.running) return;
+      this.running = true;
+      for (let n = 0; n <= 45; n++) {
+        this.pick(n);
+        await new Promise((r) => setTimeout(r, n < 38 ? 45 : 380));
+      }
+      this.pick(40);
+      this.running = false;
+    }
+  }
+  customElements.define('prime-conjecture', PrimeConjecture);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .claim {
+    margin: 0.4rem 0 0.8rem;
+  }
+  .formula {
+    white-space: nowrap;
+    font-family: var(--font-head);
+    font-weight: 600;
+    background: var(--paper-2);
+    border-radius: 6px;
+    padding: 0 0.4rem;
+  }
+  .slider {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .slider span {
+    flex: none;
+    width: 4.5rem;
+    font-family: var(--font-head);
+  }
+  .slider input {
+    flex: 1;
+    accent-color: var(--brand);
+  }
+  .result {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.8rem 0;
+    padding: 0.6rem 0.9rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 1.15rem;
+  }
+  .status {
+    font-weight: 600;
+  }
+  .status.ok {
+    color: var(--good);
+  }
+  .status.no {
+    color: var(--bad);
+  }
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+    gap: 4px;
+  }
+  .strip :global(button) {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink-3);
+    border-radius: 6px;
+    font-family: var(--font-head);
+    font-size: 0.8rem;
+    padding: 0.25rem 0;
+  }
+  .strip :global(button.ok) {
+    background: var(--thm-bg);
+    color: var(--good);
+    border-color: color-mix(in srgb, var(--good) 35%, transparent);
+  }
+  .strip :global(button.no) {
+    background: var(--bad);
+    color: var(--card);
+    border-color: var(--bad);
+  }
+  .strip :global(button.cur) {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .actions {
+    margin-top: 0.8rem;
+  }
+  .verdict {
+    margin: 0.8rem 0 0;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+  }
+  .verdict.broken {
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  }
+</style>

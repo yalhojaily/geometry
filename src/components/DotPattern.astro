@@ -1,0 +1,221 @@
+---
+// Interactive: grow a dot pattern step by step and watch the differences.
+---
+
+<dot-pattern class="panel lab">
+  <div class="lab-head">
+    <span class="tag">جرّب بنفسك</span>
+    <div class="seg" role="tablist">
+      <button type="button" data-kind="tri" class="on">مثلثي</button>
+      <button type="button" data-kind="sq">مربّع</button>
+    </div>
+  </div>
+
+  <svg viewBox="0 0 320 220" class="stage" role="img" aria-label="شكل النقاط في الخطوة الحالية"></svg>
+
+  <div class="stepper">
+    <button type="button" class="btn minus" aria-label="الخطوة السابقة">−</button>
+    <div class="step">الشكل <b class="n ltr">1</b> يحتوي <b class="count ltr">1</b> نقطة</div>
+    <button type="button" class="btn btn-primary plus" aria-label="الخطوة التالية">+</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <tr class="r-n"><th>الشكل</th></tr>
+      <tr class="r-c"><th>عدد النقاط</th></tr>
+      <tr class="r-d"><th>الزيادة</th></tr>
+    </table>
+  </div>
+  <p class="note">النقاط البرتقالية هي ما أُضيف في هذه الخطوة. لاحظ كيف تتغير الزيادة من شكل إلى الذي يليه.</p>
+</dot-pattern>
+
+<script>
+  type Kind = 'tri' | 'sq';
+  const MAX = 8;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  const count = (k: Kind, n: number) => (k === 'tri' ? (n * (n + 1)) / 2 : n * n);
+
+  class DotPattern extends HTMLElement {
+    kind: Kind = 'tri';
+    n = 1;
+
+    connectedCallback() {
+      this.querySelectorAll<HTMLButtonElement>('.seg button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.kind = b.dataset.kind as Kind;
+          this.querySelectorAll('.seg button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      this.querySelector('.plus')?.addEventListener('click', () => this.go(1));
+      this.querySelector('.minus')?.addEventListener('click', () => this.go(-1));
+      this.render();
+    }
+
+    go(d: number) {
+      this.n = Math.max(1, Math.min(MAX, this.n + d));
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg')!;
+      svg.replaceChildren();
+      const gap = 24;
+      const r = 8;
+      const n = this.n;
+      const dots: { x: number; y: number; isNew: boolean }[] = [];
+
+      if (this.kind === 'tri') {
+        // row i has i+1 dots; the last row is the newly added one
+        for (let i = 0; i < n; i++)
+          for (let j = 0; j <= i; j++)
+            dots.push({ x: 160 + (j - i / 2) * gap, y: 20 + i * gap, isNew: i === n - 1 });
+      } else {
+        // n×n grid; the outer "L" (last row + last column) is new
+        const off = 160 - ((n - 1) * gap) / 2;
+        for (let i = 0; i < n; i++)
+          for (let j = 0; j < n; j++)
+            dots.push({ x: off + j * gap, y: 20 + i * gap, isNew: i === n - 1 || j === n - 1 });
+      }
+
+      for (const d of dots) {
+        const c = document.createElementNS(NS, 'circle');
+        c.setAttribute('cx', String(d.x));
+        c.setAttribute('cy', String(d.y));
+        c.setAttribute('r', String(r));
+        c.setAttribute('class', d.isNew && n > 1 ? 'dot new' : 'dot');
+        svg.appendChild(c);
+      }
+
+      this.querySelector('.n')!.textContent = String(n);
+      this.querySelector('.count')!.textContent = String(count(this.kind, n));
+      this.querySelector<HTMLButtonElement>('.minus')!.disabled = n === 1;
+      this.querySelector<HTMLButtonElement>('.plus')!.disabled = n === MAX;
+      this.renderTable();
+    }
+
+    renderTable() {
+      const rows = ['.r-n', '.r-c', '.r-d'].map((s) => this.querySelector<HTMLTableRowElement>(s)!);
+      rows.forEach((row) => row.querySelectorAll('td').forEach((td) => td.remove()));
+      for (let i = 1; i <= this.n + 1; i++) {
+        const future = i > this.n;
+        const c = count(this.kind, i);
+        const vals = [String(i), future ? '؟' : String(c), i === 1 ? '' : future ? '؟' : `+${c - count(this.kind, i - 1)}`];
+        rows.forEach((row, k) => {
+          const td = document.createElement('td');
+          td.textContent = vals[k];
+          if (future) td.className = 'future';
+          row.appendChild(td);
+        });
+      }
+    }
+  }
+  customElements.define('dot-pattern', DotPattern);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .seg button {
+    border: none;
+    background: var(--card);
+    color: var(--ink-2);
+    padding: 0.3rem 0.9rem;
+  }
+  .seg button.on {
+    background: var(--brand);
+    color: var(--paper);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 380px;
+    margin: 0.6rem auto;
+  }
+  .stage :global(.dot) {
+    fill: var(--brand);
+    transition: fill 0.2s;
+  }
+  .stage :global(.dot.new) {
+    fill: var(--accent);
+  }
+  .stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .stepper .btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.3rem;
+    padding: 0;
+  }
+  .stepper .btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .step b {
+    font-family: var(--font-head);
+    font-size: 1.2rem;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    margin-top: 0.8rem;
+  }
+  table {
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    margin-inline: auto;
+  }
+  th,
+  table :global(td) {
+    border: 1px solid var(--line);
+    padding: 0.2rem 0.6rem;
+    text-align: center;
+    white-space: nowrap;
+  }
+  th {
+    background: var(--paper-2);
+    font-weight: 500;
+  }
+  table :global(td) {
+    font-family: var(--font-head);
+    min-width: 2.4rem;
+  }
+  .r-d :global(td) {
+    direction: ltr;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  table :global(td.future) {
+    color: var(--ink-3);
+    background: var(--accent-soft);
+  }
+  .note {
+    font-size: 0.92rem;
+    color: var(--ink-2);
+    margin: 0.7rem 0 0;
+  }
+</style>

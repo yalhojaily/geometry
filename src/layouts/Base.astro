@@ -1,0 +1,117 @@
+---
+import 'katex/dist/katex.min.css';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'شرح تفاعلي لمنهج الهندسة الإقليدية للثانوية والجامعة' } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>{title}</title>
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="logo" href={`${base}/`}>
+          <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+            <rect width="32" height="32" rx="7" fill="var(--brand)"></rect>
+            <path d="M7 24 L16 7 L25 24 Z" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"></path>
+            <circle cx="16" cy="18" r="3" fill="var(--accent)"></circle>
+          </svg>
+          <span>هندسة</span>
+        </a>
+        <button class="theme-toggle" type="button" aria-label="تبديل الوضع الليلي">◐</button>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">شرح تفاعلي مكتوب بأسلوب مستقل، يتبع ترتيب فصول كتاب الهندسة.</div>
+    </footer>
+  </body>
+</html>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('.theme-toggle');
+  btn?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const isDark =
+      root.dataset.theme === 'dark' ||
+      (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+    const next = isDark ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem('theme', next);
+    } catch {}
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--ink);
+  }
+  .theme-toggle {
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+  }
+  main {
+    min-height: 70vh;
+  }
+  .site-footer {
+    border-top: 1px solid var(--line);
+    margin-top: 4rem;
+    padding: 1.5rem 0 2.5rem;
+    color: var(--ink-3);
+    font-size: 0.9rem;
+  }
+</style>

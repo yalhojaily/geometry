@@ -1,0 +1,203 @@
+---
+// One practice question with instant feedback.
+// The question goes in the default slot; the explanation in slot="explain".
+interface Props {
+  n: number;
+  type: 'choice' | 'number';
+  options?: string[];
+  /** choice: index of the correct option. number: the correct value. */
+  answer: number;
+  hint?: string;
+}
+
+const { n, type, options = [], answer, hint } = Astro.props;
+---
+
+<quiz-q class="quiz" data-type={type} data-answer={String(answer)}>
+  <div class="q">
+    <span class="n">{n}</span>
+    <div class="text"><slot /></div>
+  </div>
+
+  {
+    type === 'choice' ? (
+      <div class="options" role="radiogroup">
+        {options.map((o, i) => (
+          <button type="button" class="opt" data-i={i} role="radio" aria-checked="false">
+            {o}
+          </button>
+        ))}
+      </div>
+    ) : (
+      <div class="num-row">
+        <input class="num" type="text" inputmode="decimal" dir="ltr" aria-label="إجابتك" placeholder="؟" />
+        <button type="button" class="btn btn-primary check">تحقّق</button>
+      </div>
+    )
+  }
+
+  <div class="feedback" aria-live="polite"></div>
+  {hint && <button type="button" class="hint-btn">تلميح</button>}
+  {hint && <p class="hint" hidden>{hint}</p>}
+  <div class="explain" hidden><slot name="explain" /></div>
+</quiz-q>
+
+<script>
+  class QuizQ extends HTMLElement {
+    connectedCallback() {
+      const type = this.dataset.type;
+      const answer = Number(this.dataset.answer);
+
+      if (type === 'choice') {
+        this.querySelectorAll<HTMLButtonElement>('.opt').forEach((b) =>
+          b.addEventListener('click', () => {
+            if (this.classList.contains('solved')) return;
+            const ok = Number(b.dataset.i) === answer;
+            b.classList.add(ok ? 'right' : 'wrong');
+            b.setAttribute('aria-checked', 'true');
+            this.result(ok);
+          }),
+        );
+      } else {
+        const input = this.querySelector<HTMLInputElement>('.num')!;
+        const check = () => {
+          const v = Number(input.value.trim().replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))));
+          if (input.value.trim() === '' || Number.isNaN(v)) return;
+          const ok = Math.abs(v - answer) < 1e-9;
+          input.classList.toggle('wrong', !ok);
+          input.classList.toggle('right', ok);
+          this.result(ok);
+        };
+        this.querySelector('.check')?.addEventListener('click', check);
+        input.addEventListener('keydown', (e) => e.key === 'Enter' && check());
+      }
+
+      this.querySelector('.hint-btn')?.addEventListener('click', (e) => {
+        (e.currentTarget as HTMLElement).hidden = true;
+        this.querySelector<HTMLElement>('.hint')!.hidden = false;
+      });
+    }
+
+    result(ok: boolean) {
+      const fb = this.querySelector<HTMLElement>('.feedback')!;
+      fb.textContent = ok ? 'إجابة صحيحة ✓' : 'ليست صحيحة، حاول مرة أخرى.';
+      fb.className = `feedback ${ok ? 'right' : 'wrong'}`;
+      if (ok) {
+        this.classList.add('solved');
+        this.querySelector<HTMLElement>('.explain')!.hidden = false;
+        this.dispatchEvent(new CustomEvent('quiz-solved', { bubbles: true }));
+      }
+    }
+  }
+  customElements.define('quiz-q', QuizQ);
+</script>
+
+<style>
+  .quiz {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+  }
+  .quiz.solved {
+    border-color: color-mix(in srgb, var(--good) 50%, var(--line));
+  }
+  .q {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  .n {
+    flex: none;
+    width: 1.9rem;
+    height: 1.9rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--brand);
+    color: var(--paper);
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+  }
+  .text :global(p) {
+    margin: 0 0 0.4rem;
+  }
+  .options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+  }
+  .opt {
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 0.5rem 0.7rem;
+    text-align: start;
+    transition: border-color 0.15s;
+  }
+  .opt:hover {
+    border-color: var(--brand);
+  }
+  .opt.right,
+  .num.right {
+    border-color: var(--good);
+    background: var(--thm-bg);
+  }
+  .opt.wrong,
+  .num.wrong {
+    border-color: var(--bad);
+    background: var(--warn-bg);
+  }
+  .num-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+  }
+  .num {
+    width: 9rem;
+    font: inherit;
+    font-size: 1.1rem;
+    padding: 0.4rem 0.7rem;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .feedback {
+    min-height: 1.2em;
+    margin-top: 0.5rem;
+    font-weight: 600;
+  }
+  .feedback.right {
+    color: var(--good);
+  }
+  .feedback.wrong {
+    color: var(--bad);
+  }
+  .hint-btn {
+    border: none;
+    background: none;
+    color: var(--brand);
+    text-decoration: underline dotted;
+    padding: 0;
+  }
+  .hint {
+    color: var(--ink-2);
+    margin: 0.3rem 0 0;
+  }
+  .explain {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--line);
+    color: var(--ink-2);
+  }
+  .explain :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>
