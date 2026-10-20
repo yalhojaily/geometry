@@ -1,0 +1,271 @@
+---
+// Step-by-step compass-and-straightedge construction.
+//  kind="segment": perpendicular bisector (finds the midpoint)
+//  kind="angle":   angle bisector
+interface Props {
+  kind: 'segment' | 'angle';
+}
+const { kind } = Astro.props;
+
+type P = { x: number; y: number };
+const rad = (d: number) => (d * Math.PI) / 180;
+const pol = (c: P, r: number, d: number): P => ({ x: c.x + r * Math.cos(rad(d)), y: c.y - r * Math.sin(rad(d)) });
+const ang = (c: P, p: P) => (Math.atan2(-(p.y - c.y), p.x - c.x) * 180) / Math.PI;
+const arc = (c: P, r: number, a1: number, a2: number) => {
+  const p = pol(c, r, a1);
+  const q = pol(c, r, a2);
+  return `M ${p.x.toFixed(1)} ${p.y.toFixed(1)} A ${r} ${r} 0 ${a2 - a1 > 180 ? 1 : 0} 0 ${q.x.toFixed(1)} ${q.y.toFixed(1)}`;
+};
+
+let steps: string[];
+let svg: string;
+
+if (kind === 'segment') {
+  const A = { x: 80, y: 140 };
+  const B = { x: 280, y: 140 };
+  const r = 130;
+  const h = Math.sqrt(r * r - 100 * 100);
+  const Pt = { x: 180, y: 140 - h };
+  const Q = { x: 180, y: 140 + h };
+  const t = (d: number) => (Math.acos(100 / r) * 180) / Math.PI + d;
+  steps = [
+    'ارسم القطعة $\\overline{AB}$ المطلوب إيجاد منتصفها.',
+    'ضع رأس الفرجار على $A$ وافتحه أكثر من نصف $AB$، وارسم قوسًا فوق القطعة وقوسًا تحتها.',
+    'دون أن تغيّر فتحة الفرجار، ضعه على $B$ وارسم قوسين يقطعان القوسين السابقين في النقطتين $P$ و $Q$.',
+    'صِل $P$ و $Q$ بالمسطرة. المستقيم $\\overleftrightarrow{PQ}$ يقطع $\\overline{AB}$ في منتصفها $M$، وهو عمودي عليها: إنه **العمود المنصف**.',
+  ];
+  svg = `
+    <g data-step="1">
+      <line class="main" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>
+      <circle class="pt" cx="${A.x}" cy="${A.y}" r="4"/><text x="${A.x - 20}" y="${A.y + 5}">A</text>
+      <circle class="pt" cx="${B.x}" cy="${B.y}" r="4"/><text x="${B.x + 10}" y="${B.y + 5}">B</text>
+    </g>
+    <g data-step="2">
+      <path class="arc" d="${arc(A, r, t(-14), t(14))}"/>
+      <path class="arc" d="${arc(A, r, -t(14), -t(-14))}"/>
+      <line class="compass" x1="${A.x}" y1="${A.y}" x2="${pol(A, r, t(0)).x}" y2="${pol(A, r, t(0)).y}"/>
+    </g>
+    <g data-step="3">
+      <path class="arc b" d="${arc(B, r, 180 - t(14), 180 - t(-14))}"/>
+      <path class="arc b" d="${arc(B, r, 180 + t(-14), 180 + t(14))}"/>
+      <line class="compass" x1="${B.x}" y1="${B.y}" x2="${Q.x}" y2="${Q.y}"/>
+      <circle class="hitp" cx="${Pt.x}" cy="${Pt.y}" r="4.5"/><text x="${Pt.x + 8}" y="${Pt.y - 4}">P</text>
+      <circle class="hitp" cx="${Q.x}" cy="${Q.y}" r="4.5"/><text x="${Q.x + 8}" y="${Q.y + 14}">Q</text>
+    </g>
+    <g data-step="4">
+      <line class="result" x1="180" y1="${Pt.y - 18}" x2="180" y2="${Q.y + 18}"/>
+      <polyline class="right" points="180,128 192,128 192,140"/>
+      <line class="tick" x1="130" y1="133" x2="130" y2="147"/>
+      <line class="tick" x1="230" y1="133" x2="230" y2="147"/>
+      <circle class="mid" cx="180" cy="140" r="5"/><text x="164" y="160">M</text>
+    </g>`;
+} else {
+  const V = { x: 50, y: 210 };
+  const half = 25;
+  const X = pol(V, 100, 0);
+  const Y = pol(V, 100, 2 * half);
+  const s = 2 * 100 * Math.cos(rad(half));
+  const d = (s + Math.sqrt(s * s - 4 * (100 * 100 - 80 * 80))) / 2;
+  const Z = pol(V, d, half);
+  const R1 = pol(V, 260, 0);
+  const R2 = pol(V, 250, 2 * half);
+  const aX = ang(X, Z);
+  const aY = ang(Y, Z);
+  const end = pol(V, 275, half);
+  steps = [
+    'ابدأ بالزاوية $\\angle A V C$ المطلوب تنصيفها.',
+    'ضع الفرجار على الرأس $V$ وارسم قوسًا يقطع الضلعين في $X$ و $Y$.',
+    'بفتحة واحدة، ارسم قوسًا من $X$ وقوسًا من $Y$ داخل الزاوية، يتقاطعان في $Z$.',
+    'ارسم الشعاع $\\overrightarrow{VZ}$. إنه **منصف الزاوية**: $m\\angle XVZ = m\\angle ZVY$.',
+  ];
+  svg = `
+    <g data-step="1">
+      <line class="main" x1="${V.x}" y1="${V.y}" x2="${R1.x}" y2="${R1.y}"/>
+      <line class="main" x1="${V.x}" y1="${V.y}" x2="${R2.x}" y2="${R2.y}"/>
+      <circle class="pt" cx="${V.x}" cy="${V.y}" r="4"/><text x="${V.x - 18}" y="${V.y + 6}">V</text>
+      <text x="${R1.x - 4}" y="${R1.y + 20}">C</text><text x="${R2.x + 8}" y="${R2.y + 4}">A</text>
+    </g>
+    <g data-step="2">
+      <path class="arc" d="${arc(V, 100, -8, 2 * half + 8)}"/>
+      <circle class="hitp" cx="${X.x}" cy="${X.y}" r="4.5"/><text x="${X.x - 4}" y="${X.y + 20}">X</text>
+      <circle class="hitp" cx="${Y.x}" cy="${Y.y}" r="4.5"/><text x="${Y.x - 20}" y="${Y.y - 4}">Y</text>
+    </g>
+    <g data-step="3">
+      <path class="arc b" d="${arc(X, 80, aX - 16, aX + 16)}"/>
+      <path class="arc b" d="${arc(Y, 80, aY - 16, aY + 16)}"/>
+      <circle class="hitp" cx="${Z.x}" cy="${Z.y}" r="4.5"/><text x="${Z.x + 4}" y="${Z.y - 10}">Z</text>
+    </g>
+    <g data-step="4">
+      <line class="result" x1="${V.x}" y1="${V.y}" x2="${end.x}" y2="${end.y}"/>
+      <path class="mark" d="${arc(V, 46, 2, half - 2)}"/>
+      <path class="mark" d="${arc(V, 46, half + 2, 2 * half - 2)}"/>
+    </g>`;
+}
+
+import { renderMath } from '../data/math';
+const html = steps.map((s) => renderMath(s));
+---
+
+<construction-steps class="panel lab">
+  <div class="lab-head">
+    <span class="tag">إنشاء بالفرجار والمسطرة</span>
+    <span class="count"></span>
+  </div>
+  <svg viewBox="0 0 360 260" class="stage" role="img" aria-label="خطوات الإنشاء الهندسي" set:html={svg} />
+  <ol class="steps">
+    {html.map((h) => <li set:html={h} />)}
+  </ol>
+  <div class="controls">
+    <button type="button" class="btn prev">السابق</button>
+    <button type="button" class="btn btn-primary next">الخطوة التالية</button>
+  </div>
+</construction-steps>
+
+<script>
+  class ConstructionSteps extends HTMLElement {
+    step = 1;
+    connectedCallback() {
+      this.querySelector('.next')?.addEventListener('click', () => this.go(this.step + 1));
+      this.querySelector('.prev')?.addEventListener('click', () => this.go(this.step - 1));
+      this.go(1);
+    }
+    go(n: number) {
+      const groups = this.querySelectorAll<SVGGElement>('g[data-step]');
+      const total = groups.length;
+      this.step = Math.max(1, Math.min(total, n));
+      groups.forEach((g) => {
+        const k = Number(g.dataset.step);
+        g.style.display = k <= this.step ? '' : 'none';
+        g.classList.toggle('now', k === this.step);
+      });
+      this.querySelectorAll<HTMLLIElement>('.steps li').forEach((li, i) => {
+        li.classList.toggle('now', i === this.step - 1);
+        li.classList.toggle('done', i < this.step - 1);
+      });
+      this.querySelector<HTMLButtonElement>('.prev')!.disabled = this.step === 1;
+      this.querySelector<HTMLButtonElement>('.next')!.disabled = this.step === total;
+      this.querySelector('.count')!.textContent = `${this.step} / ${total}`;
+    }
+  }
+  customElements.define('construction-steps', ConstructionSteps);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .count {
+    font-family: var(--font-head);
+    color: var(--ink-3);
+    font-size: 0.9rem;
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 440px;
+    margin: 0.4rem auto;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.main) {
+    stroke: var(--brand);
+    stroke-width: 2.5;
+  }
+  .stage :global(.pt) {
+    fill: var(--ink);
+  }
+  .stage :global(.arc) {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 1.6;
+  }
+  .stage :global(.arc.b) {
+    stroke: var(--post);
+  }
+  .stage :global(.compass) {
+    stroke: var(--ink-3);
+    stroke-width: 1;
+    stroke-dasharray: 3 4;
+  }
+  .stage :global(g:not(.now) .compass) {
+    display: none;
+  }
+  .stage :global(.hitp) {
+    fill: var(--post);
+  }
+  .stage :global(.result) {
+    stroke: var(--thm);
+    stroke-width: 3;
+  }
+  .stage :global(.right) {
+    fill: none;
+    stroke: var(--thm);
+    stroke-width: 1.5;
+  }
+  .stage :global(.tick) {
+    stroke: var(--warn);
+    stroke-width: 2.5;
+  }
+  .stage :global(.mark) {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+  }
+  .stage :global(.mid) {
+    fill: var(--accent);
+    stroke: var(--card);
+    stroke-width: 2;
+  }
+  .stage :global(text) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    fill: var(--ink);
+  }
+  .stage :global(g.now) {
+    animation: fadein 0.4s ease;
+  }
+  .steps {
+    margin: 0.5rem 0 0;
+    padding-inline-start: 1.4rem;
+  }
+  .steps li {
+    color: var(--ink-3);
+    padding: 0.15rem 0;
+  }
+  .steps li.done {
+    color: var(--ink-2);
+  }
+  .steps li.now {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+  }
+  .controls .btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+  @keyframes fadein {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

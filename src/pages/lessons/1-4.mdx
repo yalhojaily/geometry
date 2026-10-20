@@ -1,0 +1,144 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '1.4'
+why: 'القطعة تقيس المسافة، والزاوية تقيس الانعطاف. بعد هذا الدرس ستقيس أي زاوية وتصنفها، وتستخدم مسلّمة جمع الزوايا كما استخدمت مسلّمة جمع القطع.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import AngleLab from '../../components/AngleLab.astro';
+import FigAngles from '../../components/FigAngles.astro';
+
+## ما الزاوية؟
+
+<Term id="def-angle" />
+
+<FigAngles>ثلاثة أشعة تبدأ من Q، فتكوّن ثلاث زوايا رأسها Q.</FigAngles>
+
+<Example title="مثال 1: تسمية الزوايا">
+
+استخدم الشكل أعلاه.
+
+1. **سمِّ $\angle 1$ بطريقتين أخريين:** $\angle PQR$ أو $\angle RQP$. الرأس $Q$ في الوسط دائمًا، والطرفان نقطة من كل ضلع.
+2. **سمِّ $\angle 2$:** $\angle RQS$ أو $\angle SQR$.
+3. **هناك زاوية ثالثة غير مرقمة. ما هي؟** $\angle PQS$، وهي تتكون من $\angle 1$ و $\angle 2$ معًا.
+4. **لماذا لا يصح اسم $\angle Q$ هنا؟** لأن ثلاث زوايا مختلفة رأسها $Q$، فالاسم لا يحدد أيها نقصد.
+
+</Example>
+
+## قياس الزاوية
+
+<Term id="post-protractor" />
+
+جرّب المنقلة. اسحب النقطتين $A$ و $B$، واقرأ موضع كل شعاع على التدريج الخارجي، ثم اطرح.
+
+<AngleLab mode="measure" />
+
+<Term id="def-angle-types" />
+
+<Callout type="warning" title="أي تدريج أقرأ؟">
+
+المنقلة عليها تدريجان متعاكسان. أي منهما يعطي القياس الصحيح، بشرط أن تقرأ الشعاعين **على التدريج نفسه**. الأسهل أن تضع أحد الضلعين على الصفر، فيصبح القياس هو قراءة الضلع الآخر مباشرة.
+
+</Callout>
+
+<Example title="مثال 2: القراءة بالمنقلة">
+
+على المنقلة يقع $\overrightarrow{OA}$ عند $35$ و $\overrightarrow{OB}$ عند $110$ على التدريج الخارجي. أوجد $m\angle AOB$ وصنّف الزاوية.
+
+1. حسب مسلّمة المنقلة: $m\angle AOB = |110 - 35| = 75^\circ$.
+2. على التدريج الداخلي القراءتان $145$ و $70$، والفرق $|70 - 145| = 75^\circ$ أيضًا.
+3. بما أن $0^\circ < 75^\circ < 90^\circ$ فالزاوية **حادة**.
+
+</Example>
+
+<Term id="def-congruent-angles" />
+
+## مسلّمة جمع الزوايا
+
+تمامًا كما تُجمع القطع على مستقيم، تُجمع الزوايا حول رأس واحد.
+
+<Term id="post-angle-addition" />
+
+<AngleLab mode="add" />
+
+<Term id="def-adjacent-angles" />
+
+في شكل المثال 1، الزاويتان $\angle 1$ و $\angle 2$ متجاورتان: لهما الرأس $Q$ والضلع المشترك $\overrightarrow{QR}$. أما $\angle 1$ و $\angle PQS$ فليستا متجاورتين، لأن $\angle 1$ تقع داخل $\angle PQS$.
+
+<Prereq id="alg-linear-eq" />
+
+<Example title="مثال 3: جمع الزوايا مع الجبر">
+
+النقطة $P$ داخل $\angle RST$، و $m\angle RSP = (2x + 10)^\circ$ و $m\angle PST = (x + 16)^\circ$ و $m\angle RST = 80^\circ$. أوجد قياس كل زاوية.
+
+1. بمسلّمة جمع الزوايا: $m\angle RSP + m\angle PST = m\angle RST$.
+2. نعوّض: $(2x + 10) + (x + 16) = 80$.
+3. نبسّط: $3x + 26 = 80$، إذن $3x = 54$ و $x = 18$.
+4. $m\angle RSP = 2(18) + 10 = 46^\circ$ و $m\angle PST = 18 + 16 = 34^\circ$.
+5. نتحقق: $46 + 34 = 80$ ✓
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={110}>
+
+على المنقلة يقع $\overrightarrow{OA}$ عند $40$ و $\overrightarrow{OB}$ عند $150$. ما $m\angle AOB$ بالدرجات؟
+
+<div slot="explain">$|150 - 40| = 110^\circ$، وهي زاوية منفرجة.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={1} options={['حادة', 'قائمة', 'منفرجة', 'مستقيمة']}>
+
+صنّف زاوية قياسها $90^\circ$.
+
+<div slot="explain">القائمة قياسها $90^\circ$ بالضبط، وتُرسم عادة بمربع صغير عند رأسها.</div>
+</Quiz>
+
+<Quiz n={3} type="choice" answer={2} options={['حادة', 'قائمة', 'منفرجة', 'مستقيمة']}>
+
+صنّف زاوية قياسها $135^\circ$.
+
+<div slot="explain">$135^\circ$ أكبر من $90^\circ$ وأصغر من $180^\circ$، فهي منفرجة.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={65}>
+
+النقطة $D$ داخل $\angle ABC$، و $m\angle ABC = 110^\circ$ و $m\angle ABD = 45^\circ$. ما $m\angle DBC$؟
+
+<div slot="explain">$45 + m\angle DBC = 110$، إذن $m\angle DBC = 65^\circ$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={48} hint="اكتب معادلة جمع الزوايا وأوجد x أولًا.">
+
+النقطة $B$ داخل $\angle AOC$، و $m\angle AOB = (3x)^\circ$ و $m\angle BOC = (2x + 5)^\circ$ و $m\angle AOC = 85^\circ$. ما $m\angle AOB$؟
+
+<div slot="explain">$3x + 2x + 5 = 85$، إذن $5x = 80$ و $x = 16$. ثم $m\angle AOB = 3(16) = 48^\circ$، و $m\angle BOC = 37^\circ$، والمجموع $85^\circ$ ✓</div>
+</Quiz>
+
+<Quiz n={6} type="choice" answer={2} options={['لأن الرأس ليس Q', 'لأن الزاوية منفرجة', 'لأن عدة زوايا رأسها Q', 'لأن الحرف Q لا يستخدم للزوايا']}>
+
+في شكل المثال 1، لماذا لا نسمي $\angle 1$ باسم $\angle Q$؟
+
+<div slot="explain">ثلاث زوايا رأسها $Q$: $\angle 1$ و $\angle 2$ و $\angle PQS$. اسم الرأس وحده يصلح فقط حين تكون عنده زاوية واحدة.</div>
+</Quiz>
+
+<Quiz n={7} type="choice" answer={0} options={['m∠A = m∠B', 'ضلعا الزاويتين متطابقان في الطول', 'الزاويتان متجاورتان', 'الزاويتان لهما الرأس نفسه']}>
+
+ماذا يعني $\angle A \cong \angle B$؟
+
+<div slot="explain">تطابق الزاويتين يعني تساوي قياسيهما فقط. أضلاع الزاوية أشعة لا نهائية، فلا معنى لطولها.</div>
+</Quiz>
+
+## الخلاصة
+
+- **الزاوية** شعاعان لهما بداية واحدة هي الرأس، ونسميها والرأس في وسط الاسم.
+- **مسلّمة المنقلة:** $m\angle AOB = |a - b|$ حيث $a$ و $b$ قراءتا الضلعين على التدريج نفسه.
+- **الأنواع:** حادة (أقل من $90^\circ$)، قائمة ($90^\circ$)، منفرجة (بين $90^\circ$ و $180^\circ$)، مستقيمة ($180^\circ$).
+- **الزوايا المتطابقة** لها القياس نفسه.
+- **مسلّمة جمع الزوايا:** إذا كانت $P$ داخل $\angle RST$ فإن $m\angle RSP + m\angle PST = m\angle RST$.
+- **الزاويتان المتجاورتان** لهما رأس وضلع مشتركان ولا تتداخلان.

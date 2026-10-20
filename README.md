@@ -33,10 +33,14 @@ src/
     Callout.astro     تنبيه (خطأ شائع / فكرة)
     Example.astro     مثال محلول تُكشف خطواته واحدة تلو الأخرى
     Quiz.astro        سؤال بتصحيح فوري وتلميح وشرح
-    DotPattern.astro, CircleRegions.astro, PrimeConjecture.astro   تفاعليات الدرس 1.1
+    *Lab.astro        المختبرات التفاعلية (منقلة، مسطرة، مستوى إحداثي، مكعب...)
+    Construction.astro  إنشاءات الفرجار والمسطرة خطوة بخطوة
+    Fig*.astro        رسوم ثابتة
+  scripts/
+    svg.ts            أدوات مشتركة للرسوم التفاعلية (السحب، الأقواس، الزوايا)
   pages/
     index.astro       الفهرس
-    lessons/1-1.mdx   الدرس 1.1
+    lessons/1-*.mdx   دروس الفصل الأول (1.1 إلى 1.7)
 ```
 
 ## إضافة درس جديد

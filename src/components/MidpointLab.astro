@@ -1,0 +1,272 @@
+---
+// Interactive: midpoint on a coordinate grid.
+//  "find M": drag A and B, M = average of the coordinates.
+//  "find B": drag A and M, B is the reflection of A through M.
+---
+
+<midpoint-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">مختبر نقطة المنتصف</span>
+    <div class="seg" role="tablist">
+      <button type="button" data-m="mid" class="on">أوجد المنتصف</button>
+      <button type="button" data-m="end">أوجد الطرف</button>
+    </div>
+  </div>
+  <svg viewBox="0 0 360 300" class="stage" role="img" aria-label="مستوى إحداثي عليه القطعة AB ومنتصفها M">
+    <g class="grid"></g>
+    <g class="fig"></g>
+    <g class="pts"></g>
+  </svg>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</midpoint-lab>
+
+<script>
+  import { el, text, makeDraggable, type P } from '../scripts/svg';
+
+  const XMIN = -2;
+  const XMAX = 11;
+  const YMIN = -1;
+  const YMAX = 10;
+  const S = 25;
+  const OX = 22;
+  const OY = 280;
+  const px = (x: number) => OX + (x - XMIN) * S;
+  const py = (y: number) => OY - (y - YMIN) * S;
+  const fmt = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1));
+  const inGrid = (p: P) => p.x >= XMIN && p.x <= XMAX && p.y >= YMIN && p.y <= YMAX;
+  type K = 'A' | 'B' | 'M';
+
+  class MidpointLab extends HTMLElement {
+    mode: 'mid' | 'end' = 'mid';
+    A: P = { x: 1, y: 2 };
+    B: P = { x: 8, y: 7 };
+    M: P = { x: 4, y: 5 };
+
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      const grid = this.querySelector('.grid')!;
+      for (let x = XMIN; x <= XMAX; x++)
+        grid.appendChild(el('line', { x1: px(x), y1: py(YMIN), x2: px(x), y2: py(YMAX) }, x === 0 ? 'axis' : 'gl'));
+      for (let y = YMIN; y <= YMAX; y++)
+        grid.appendChild(el('line', { x1: px(XMIN), y1: py(y), x2: px(XMAX), y2: py(y) }, y === 0 ? 'axis' : 'gl'));
+      for (let x = 2; x <= XMAX; x += 2) grid.appendChild(text(px(x), py(0) + 13, String(x), 'num'));
+      for (let y = 2; y <= YMAX; y += 2) grid.appendChild(text(px(0) - 9, py(y) + 4, String(y), 'num'));
+
+      this.querySelectorAll<HTMLButtonElement>('.seg button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.mode = b.dataset.m as 'mid' | 'end';
+          this.querySelectorAll('.seg button').forEach((x) => x.classList.toggle('on', x === b));
+          if (this.mode === 'end') this.M = { x: Math.round((this.A.x + this.B.x) / 2), y: Math.round((this.A.y + this.B.y) / 2) };
+          this.render();
+        }),
+      );
+
+      this.drag = makeDraggable<K>(svg, (k, p) => {
+        const q = { x: Math.round(XMIN + (p.x - OX) / S), y: Math.round(YMIN + (OY - p.y) / S) };
+        if (!inGrid(q)) return;
+        const cur = this[k];
+        if (cur.x === q.x && cur.y === q.y) return;
+        if (this.mode === 'end') {
+          const other = k === 'A' ? this.M : this.A;
+          if (other.x === q.x && other.y === q.y) return;
+          const A = k === 'A' ? q : this.A;
+          const M = k === 'M' ? q : this.M;
+          if (!inGrid({ x: 2 * M.x - A.x, y: 2 * M.y - A.y })) return; // B must stay visible
+        } else {
+          const other = k === 'A' ? this.B : this.A;
+          if (other.x === q.x && other.y === q.y) return;
+        }
+        this[k] = q;
+        this.render();
+      });
+      this.render();
+    }
+
+    drag!: { start: (k: K, e: PointerEvent) => void };
+
+    render() {
+      if (this.mode === 'mid') this.M = { x: (this.A.x + this.B.x) / 2, y: (this.A.y + this.B.y) / 2 };
+      else this.B = { x: 2 * this.M.x - this.A.x, y: 2 * this.M.y - this.A.y };
+      const { A, B, M } = this;
+
+      const fig = this.querySelector('.fig')!;
+      fig.replaceChildren();
+      fig.appendChild(el('line', { x1: px(A.x), y1: py(A.y), x2: px(M.x), y2: py(M.y) }, 'half h1'));
+      fig.appendChild(el('line', { x1: px(M.x), y1: py(M.y), x2: px(B.x), y2: py(B.y) }, 'half h2'));
+      // congruence ticks on both halves
+      for (const [u, v] of [
+        [A, M],
+        [M, B],
+      ] as [P, P][]) {
+        const mx = (px(u.x) + px(v.x)) / 2;
+        const my = (py(u.y) + py(v.y)) / 2;
+        const dx = px(v.x) - px(u.x);
+        const dy = py(v.y) - py(u.y);
+        const L = Math.hypot(dx, dy) || 1;
+        fig.appendChild(el('line', { x1: mx - (dy / L) * 7, y1: my + (dx / L) * 7, x2: mx + (dy / L) * 7, y2: my - (dx / L) * 7 }, 'tick'));
+      }
+      // dashed guides to the axes from M
+      fig.appendChild(el('line', { x1: px(M.x), y1: py(M.y), x2: px(M.x), y2: py(0) }, 'guide'));
+      fig.appendChild(el('line', { x1: px(M.x), y1: py(M.y), x2: px(0), y2: py(M.y) }, 'guide'));
+
+      const pts = this.querySelector('.pts')!;
+      pts.replaceChildren();
+      const draggable: K[] = this.mode === 'mid' ? ['A', 'B'] : ['A', 'M'];
+      (['A', 'B', 'M'] as K[]).forEach((k) => {
+        const q = this[k];
+        const canDrag = draggable.includes(k);
+        const g = el('g', {}, `pt pt-${k} ${canDrag ? 'drag' : 'fixed'}`);
+        if (canDrag) g.appendChild(el('circle', { cx: px(q.x), cy: py(q.y), r: 14 }, 'hit'));
+        g.appendChild(el('circle', { cx: px(q.x), cy: py(q.y), r: 6 }, 'dot'));
+        g.appendChild(text(px(q.x) + 9, py(q.y) - 8, `${k}(${fmt(q.x)}, ${fmt(q.y)})`, 'lbl'));
+        if (canDrag) g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
+        pts.appendChild(g);
+      });
+
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      if (this.mode === 'mid') {
+        calc.innerHTML =
+          `<div>x: (${A.x} + ${B.x}) ÷ 2 = ${fmt(M.x)}</div>` +
+          `<div>y: (${A.y} + ${B.y}) ÷ 2 = ${fmt(M.y)}</div>` +
+          `<div class="big">M(${fmt(M.x)}, ${fmt(M.y)})</div>`;
+        note.textContent = 'المنتصف هو متوسط الإحداثيات. لاحظ العلامتين: AM = MB دائمًا.';
+      } else {
+        calc.innerHTML =
+          `<div>x: ${M.x} = (${A.x} + x) ÷ 2  ⇒  x = 2(${M.x}) − ${A.x} = ${B.x}</div>` +
+          `<div>y: ${M.y} = (${A.y} + y) ÷ 2  ⇒  y = 2(${M.y}) − ${A.y} = ${B.y}</div>` +
+          `<div class="big">B(${B.x}, ${B.y})</div>`;
+        note.textContent = 'تعرف A والمنتصف M. الطرف B يبعد عن M بقدر ما تبعد A عنها، في الاتجاه المعاكس.';
+      }
+    }
+  }
+  customElements.define('midpoint-lab', MidpointLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .seg button {
+    border: none;
+    background: var(--card);
+    color: var(--ink-2);
+    padding: 0.25rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  .seg button.on {
+    background: var(--brand);
+    color: var(--paper);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    margin: 0.4rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.gl) {
+    stroke: var(--line);
+  }
+  .stage :global(.axis) {
+    stroke: var(--ink-3);
+    stroke-width: 1.6;
+  }
+  .stage :global(.num) {
+    font-family: var(--font-head);
+    font-size: 9.5px;
+    fill: var(--ink-3);
+    text-anchor: middle;
+  }
+  .stage :global(.half) {
+    stroke-width: 3.5;
+    stroke-linecap: round;
+  }
+  .stage :global(.h1) {
+    stroke: var(--brand);
+  }
+  .stage :global(.h2) {
+    stroke: var(--thm);
+  }
+  .stage :global(.tick) {
+    stroke: var(--warn);
+    stroke-width: 2.5;
+  }
+  .stage :global(.guide) {
+    stroke: var(--accent);
+    stroke-dasharray: 4 4;
+    stroke-width: 1.4;
+  }
+  .stage :global(.pt.drag) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .stage :global(.pt.fixed .dot) {
+    fill: var(--accent);
+    stroke: var(--card);
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    fill: var(--ink);
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    line-height: 1.7;
+    text-align: left;
+    overflow-x: auto;
+  }
+  .calc :global(div) {
+    white-space: nowrap;
+  }
+  .calc :global(.big) {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1.05rem;
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

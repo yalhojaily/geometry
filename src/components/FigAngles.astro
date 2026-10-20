@@ -1,0 +1,87 @@
+---
+// Static figure: three rays from Q forming ∠1 = ∠PQR and ∠2 = ∠RQS.
+const Q = { x: 70, y: 175 };
+const pol = (r: number, d: number) => ({
+  x: Q.x + r * Math.cos((d * Math.PI) / 180),
+  y: Q.y - r * Math.sin((d * Math.PI) / 180),
+});
+const P = pol(170, 72);
+const R = pol(200, 38);
+const S = pol(220, 6);
+const arc = (r: number, a: number, b: number) => {
+  const p = pol(r, a);
+  const q = pol(r, b);
+  return `M ${p.x} ${p.y} A ${r} ${r} 0 0 0 ${q.x} ${q.y}`;
+};
+const l1 = pol(48, 55);
+const l2 = pol(62, 22);
+---
+
+<figure class="fig">
+  <svg viewBox="0 0 320 200" role="img" aria-label="ثلاثة أشعة من الرأس Q تكوّن الزاويتين 1 و 2">
+    <path class="a1" d={arc(36, 38, 72)}></path>
+    <path class="a2" d={arc(50, 6, 38)}></path>
+    <line x1={Q.x} y1={Q.y} x2={P.x} y2={P.y}></line>
+    <line x1={Q.x} y1={Q.y} x2={R.x} y2={R.y}></line>
+    <line x1={Q.x} y1={Q.y} x2={S.x} y2={S.y}></line>
+    <circle cx={Q.x} cy={Q.y} r="4"></circle>
+    <circle cx={P.x} cy={P.y} r="4"></circle>
+    <circle cx={R.x} cy={R.y} r="4"></circle>
+    <circle cx={S.x} cy={S.y} r="4"></circle>
+    <text x={Q.x - 18} y={Q.y + 6}>Q</text>
+    <text x={P.x + 8} y={P.y + 4}>P</text>
+    <text x={R.x + 8} y={R.y + 4}>R</text>
+    <text x={S.x + 8} y={S.y + 4}>S</text>
+    <text class="n1" x={l1.x - 4} y={l1.y + 4}>1</text>
+    <text class="n2" x={l2.x - 4} y={l2.y + 4}>2</text>
+  </svg>
+  <figcaption><slot /></figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  svg {
+    width: 100%;
+    max-width: 360px;
+    display: block;
+    margin: 0 auto;
+  }
+  line {
+    stroke: var(--brand);
+    stroke-width: 2.5;
+  }
+  circle {
+    fill: var(--ink);
+  }
+  path {
+    fill: none;
+    stroke-width: 2.5;
+  }
+  .a1 {
+    stroke: var(--accent);
+  }
+  .a2 {
+    stroke: var(--thm);
+  }
+  text {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 16px;
+    fill: var(--ink);
+  }
+  .n1 {
+    fill: var(--accent);
+    font-size: 13px;
+  }
+  .n2 {
+    fill: var(--thm);
+    font-size: 13px;
+  }
+  figcaption {
+    font-size: 0.9rem;
+    color: var(--ink-3);
+  }
+</style>

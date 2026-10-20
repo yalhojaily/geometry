@@ -1,0 +1,366 @@
+---
+// Interactive protractor.
+//  mode="measure": two rays; read both on the scale, m∠ = |a − b|, classify.
+//  mode="add":     three rays; test the Angle Addition Postulate.
+//  mode="bisect":  two rays plus the bisector; the halves stay equal.
+interface Props {
+  mode?: 'measure' | 'add' | 'bisect';
+}
+const { mode = 'measure' } = Astro.props;
+const titles = { measure: 'المنقلة', add: 'مختبر جمع الزوايا', bisect: 'منصف الزاوية' };
+---
+
+<angle-lab class="panel lab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{titles[mode]}</span>
+    <span class="hint-small">اسحب النقاط على الأشعة</span>
+  </div>
+  <svg viewBox="0 0 360 225" class="stage" role="img" aria-label="منقلة وأشعة تبدأ من الرأس O">
+    <g class="prot"></g>
+    <g class="arcs"></g>
+    <g class="rays"></g>
+    <g class="pts"></g>
+  </svg>
+  <div class="calc ltr"></div>
+  <div class="verdict" aria-live="polite"></div>
+</angle-lab>
+
+<script>
+  import { el, text, polar, arcPath, screenAngle, makeDraggable, type P } from '../scripts/svg';
+
+  const O: P = { x: 180, y: 198 };
+  const R = 150;
+  const HANDLE = 118;
+  type K = 'A' | 'B' | 'C';
+
+  const kind = (m: number) =>
+    m === 0 ? 'صفرية' : m < 90 ? 'حادة' : m === 90 ? 'قائمة' : m < 180 ? 'منفرجة' : 'مستقيمة';
+
+  class AngleLab extends HTMLElement {
+    mode = 'measure';
+    deg: Record<K, number> = { A: 20, B: 75, C: 140 };
+
+    connectedCallback() {
+      this.mode = this.dataset.mode ?? 'measure';
+      if (this.mode === 'measure') this.deg = { A: 30, B: 115, C: 0 };
+      if (this.mode === 'bisect') this.deg = { A: 25, B: 0, C: 135 };
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drawProtractor();
+      this.drag = makeDraggable<K>(svg, (k, p) => {
+        if (p.y > O.y + 20) return;
+        let d = Math.round(screenAngle(O, p));
+        if (d > 270) d = 0;
+        else if (d > 180) d = 180;
+        if (this.deg[k] !== d) {
+          this.deg[k] = d;
+          this.render();
+        }
+      });
+      this.render();
+    }
+
+    drag!: { start: (k: K, e: PointerEvent) => void };
+
+    drawProtractor() {
+      const g = this.querySelector('.prot')!;
+      g.appendChild(el('path', { d: arcPath(O, R, 0, 180, true) }, 'face'));
+      g.appendChild(el('line', { x1: O.x - R, y1: O.y, x2: O.x + R, y2: O.y }, 'base'));
+      for (let d = 0; d <= 180; d += 5) {
+        const long = d % 10 === 0;
+        const p1 = polar(O, R, d);
+        const p2 = polar(O, R - (long ? 10 : 5), d);
+        g.appendChild(el('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }, 'tick'));
+        if (d % 30 === 0) {
+          const o = polar(O, R - 20, d);
+          g.appendChild(text(o.x, o.y + 3, String(d), 'out'));
+          const i = polar(O, R - 34, d);
+          g.appendChild(text(i.x, i.y + 3, String(180 - d), 'in'));
+        }
+      }
+      g.appendChild(el('circle', { cx: O.x, cy: O.y, r: 3.5 }, 'center'));
+      g.appendChild(text(O.x - 6, O.y + 18, 'O', 'lbl'));
+    }
+
+    render() {
+      const keys: K[] = this.mode === 'add' ? ['A', 'B', 'C'] : this.mode === 'bisect' ? ['A', 'C'] : ['A', 'B'];
+      const arcs = this.querySelector('.arcs')!;
+      const rays = this.querySelector('.rays')!;
+      const pts = this.querySelector('.pts')!;
+      arcs.replaceChildren();
+      rays.replaceChildren();
+      pts.replaceChildren();
+
+      const arc = (a: number, b: number, r: number, cls: string, label?: string) => {
+        const lo = Math.min(a, b);
+        const hi = Math.max(a, b);
+        if (hi - lo < 0.5) return;
+        arcs.appendChild(el('path', { d: arcPath(O, r, lo, hi, true) }, `wedge ${cls}`));
+        arcs.appendChild(el('path', { d: arcPath(O, r, lo, hi) }, `arc ${cls}`));
+        if (label) {
+          const m = polar(O, r + 14, (lo + hi) / 2);
+          arcs.appendChild(text(m.x, m.y + 4, label, `alabel ${cls}`));
+        }
+      };
+
+      const ray = (d: number, cls: string) => {
+        const end = polar(O, R + 12, d);
+        rays.appendChild(el('line', { x1: O.x, y1: O.y, x2: end.x, y2: end.y }, `ray ${cls}`));
+      };
+
+      const handle = (k: K, cls: string) => {
+        const p = polar(O, HANDLE, this.deg[k]);
+        const g = el('g', {}, `pt ${cls}`);
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 15 }, 'hit'));
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 6.5 }, 'dot'));
+        const lp = polar(O, HANDLE + 22, this.deg[k]);
+        g.appendChild(text(lp.x - 5, lp.y + 5, k, 'lbl'));
+        g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
+        pts.appendChild(g);
+      };
+
+      const calc = this.querySelector('.calc')!;
+      const ver = this.querySelector<HTMLElement>('.verdict')!;
+      const { A, B, C } = this.deg;
+
+      if (this.mode === 'measure') {
+        const m = Math.abs(B - A);
+        arc(A, B, 44, 'c1', `${m}°`);
+        ray(A, 'c1');
+        ray(B, 'c1');
+        keys.forEach((k) => handle(k, 'c1'));
+        calc.innerHTML =
+          `<div>OA → ${A}° , OB → ${B}°</div>` + `<div class="big">m∠AOB = |${B} − ${A}| = ${m}°</div>`;
+        ver.textContent = `الزاوية ${kind(m)}.` + (m === 90 ? ' نرسم في ركنها مربعًا صغيرًا بدل القوس.' : '');
+        ver.className = `verdict k-${m < 90 ? 'acute' : m === 90 ? 'right' : m < 180 ? 'obtuse' : 'straight'}`;
+        if (m === 90) {
+          const lo = Math.min(A, B);
+          const p1 = polar(O, 16, lo);
+          const p2 = polar(O, 16 * Math.SQRT2, lo + 45);
+          const p3 = polar(O, 16, lo + 90);
+          arcs.appendChild(el('polyline', { points: `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}` }, 'square'));
+        }
+      } else if (this.mode === 'add') {
+        const lo = Math.min(A, C);
+        const hi = Math.max(A, C);
+        const inside = B > lo && B < hi;
+        const ab = Math.abs(B - A);
+        const bc = Math.abs(C - B);
+        const ac = Math.abs(C - A);
+        arc(A, C, 30, 'c0', `${ac}°`);
+        arc(A, B, 52, 'c1', `${ab}°`);
+        arc(B, C, 70, 'c2', `${bc}°`);
+        ray(A, 'c0');
+        ray(C, 'c0');
+        ray(B, 'c2');
+        handle('A', 'c0');
+        handle('C', 'c0');
+        handle('B', 'c2');
+        calc.innerHTML =
+          `<div>m∠AOB = ${ab}° , m∠BOC = ${bc}° , m∠AOC = ${ac}°</div>` +
+          `<div class="big ${inside ? 'ok' : 'no'}">m∠AOB + m∠BOC = ${ab + bc}° ${ab + bc === ac ? '=' : '≠'} m∠AOC</div>`;
+        ver.textContent = inside
+          ? 'B داخل الزاوية AOC، فالزاويتان الصغيرتان تملآن الكبيرة تمامًا.'
+          : 'B خارج الزاوية AOC، فلا تنطبق المسلّمة: المجموع لا يساوي m∠AOC.';
+        ver.className = `verdict ${inside ? 'yes' : 'no'}`;
+      } else {
+        const lo = Math.min(A, C);
+        const hi = Math.max(A, C);
+        const mid = (lo + hi) / 2;
+        const half = (hi - lo) / 2;
+        arc(lo, mid, 46, 'c1', `${half}°`);
+        arc(mid, hi, 46, 'c2', `${half}°`);
+        ray(A, 'c0');
+        ray(C, 'c0');
+        const end = polar(O, R + 12, mid);
+        rays.appendChild(el('line', { x1: O.x, y1: O.y, x2: end.x, y2: end.y }, 'ray bis'));
+        const lp = polar(O, R + 4, mid);
+        rays.appendChild(text(lp.x + 6, lp.y, 'D', 'lbl'));
+        handle('A', 'c0');
+        handle('C', 'c0');
+        calc.innerHTML =
+          `<div>m∠AOC = ${hi - lo}°</div>` +
+          `<div class="big ok">m∠AOD = m∠DOC = ${hi - lo}° ÷ 2 = ${half}°</div>`;
+        ver.textContent = 'الشعاع OD يقسم الزاوية دائمًا إلى نصفين متطابقين، مهما غيّرت ضلعيها.';
+        ver.className = 'verdict yes';
+      }
+    }
+  }
+  customElements.define('angle-lab', AngleLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    margin: 0.4rem auto;
+    touch-action: none;
+  }
+  .stage :global(.face) {
+    fill: var(--paper-2);
+    stroke: var(--ink-3);
+    stroke-width: 1.2;
+  }
+  .stage :global(.base) {
+    stroke: var(--ink-3);
+    stroke-width: 1.2;
+  }
+  .stage :global(.tick) {
+    stroke: var(--ink-3);
+    stroke-width: 1;
+  }
+  .stage :global(.out),
+  .stage :global(.in) {
+    font-family: var(--font-head);
+    font-size: 9px;
+    text-anchor: middle;
+  }
+  .stage :global(.out) {
+    fill: var(--ink-2);
+  }
+  .stage :global(.in) {
+    fill: var(--ink-3);
+    font-size: 8px;
+  }
+  .stage :global(.center) {
+    fill: var(--ink);
+  }
+  .stage :global(.ray) {
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .stage :global(.ray.c0),
+  .stage :global(.ray.c1) {
+    stroke: var(--brand);
+  }
+  .stage :global(.ray.c2) {
+    stroke: var(--accent);
+  }
+  .stage :global(.ray.bis) {
+    stroke: var(--thm);
+    stroke-dasharray: 7 5;
+  }
+  .stage :global(.wedge) {
+    stroke: none;
+    fill-opacity: 0.18;
+  }
+  .stage :global(.arc) {
+    fill: none;
+    stroke-width: 2;
+  }
+  .stage :global(.c0.wedge) {
+    fill: var(--ink-3);
+    fill-opacity: 0.12;
+  }
+  .stage :global(.c0.arc) {
+    stroke: var(--ink-3);
+  }
+  .stage :global(.c1.wedge) {
+    fill: var(--brand);
+  }
+  .stage :global(.c1.arc) {
+    stroke: var(--brand);
+  }
+  .stage :global(.c2.wedge) {
+    fill: var(--accent);
+  }
+  .stage :global(.c2.arc) {
+    stroke: var(--accent);
+  }
+  .stage :global(.alabel) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 11px;
+    text-anchor: middle;
+    fill: var(--ink);
+    paint-order: stroke;
+    stroke: var(--paper-2);
+    stroke-width: 3px;
+  }
+  .stage :global(.square) {
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 2;
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .stage :global(.pt.c2 .dot) {
+    stroke: var(--accent);
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    fill: var(--ink);
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.92rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    line-height: 1.7;
+    text-align: left;
+    overflow-x: auto;
+  }
+  .calc :global(.big) {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .calc :global(.ok) {
+    color: var(--good);
+  }
+  .calc :global(.no) {
+    color: var(--bad);
+  }
+  .verdict {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+  }
+  .verdict.yes,
+  .verdict.k-right {
+    background: var(--thm-bg);
+  }
+  .verdict.no {
+    background: var(--warn-bg);
+  }
+  .verdict.k-acute {
+    background: var(--def-bg);
+  }
+  .verdict.k-obtuse,
+  .verdict.k-straight {
+    background: var(--post-bg);
+  }
+</style>

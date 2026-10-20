@@ -1,0 +1,247 @@
+---
+// Interactive: two intersecting lines make four angles.
+// Highlight the vertical pairs (equal) or a linear pair (sum 180°).
+---
+
+<cross-lines-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">مستقيمان متقاطعان</span>
+    <span class="hint-small">اسحب طرفي المستقيمين</span>
+  </div>
+  <div class="modes" role="tablist">
+    <button type="button" data-m="vertical" class="on">متقابلتان بالرأس</button>
+    <button type="button" data-m="linear">زوج خطي</button>
+  </div>
+  <svg viewBox="0 0 360 260" class="stage" role="img" aria-label="مستقيمان متقاطعان في O يكوّنان أربع زوايا مرقمة">
+    <g class="wedges"></g>
+    <g class="lines"></g>
+    <g class="pts"></g>
+  </svg>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</cross-lines-lab>
+
+<script>
+  import { el, text, polar, arcPath, screenAngle, makeDraggable, type P } from '../scripts/svg';
+
+  const O: P = { x: 180, y: 130 };
+  const L = 160;
+  type K = 'p' | 'q';
+  const norm = (d: number) => ((d % 360) + 360) % 360;
+
+  class CrossLinesLab extends HTMLElement {
+    a = 20; // direction of line p's handle
+    b = 115; // direction of line q's handle
+    mode: 'vertical' | 'linear' = 'vertical';
+    drag!: { start: (k: K, e: PointerEvent) => void };
+
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.mode = b.dataset.m as 'vertical' | 'linear';
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      this.drag = makeDraggable<K>(svg, (k, p) => {
+        const d = Math.round(screenAngle(O, p));
+        const other = k === 'p' ? this.b : this.a;
+        const diff = norm(d - other) % 180;
+        if (diff < 8 || diff > 172) return; // keep the lines from coinciding
+        if (k === 'p') this.a = d;
+        else this.b = d;
+        this.render();
+      });
+      this.render();
+    }
+
+    render() {
+      const a = norm(this.a);
+      // q's ray that lies within 180° counter-clockwise of a
+      let b = norm(this.b);
+      if (norm(b - a) > 180) b = norm(b + 180);
+      const t = norm(b - a); // m∠1
+      const angles = [
+        { n: 1, from: a, to: a + t, m: t, c: 'v1' },
+        { n: 2, from: a + t, to: a + 180, m: 180 - t, c: 'v2' },
+        { n: 3, from: a + 180, to: a + 180 + t, m: t, c: 'v1' },
+        { n: 4, from: a + 180 + t, to: a + 360, m: 180 - t, c: 'v2' },
+      ];
+      const active = this.mode === 'vertical' ? [1, 2, 3, 4] : [1, 2];
+
+      const wedges = this.querySelector('.wedges')!;
+      wedges.replaceChildren();
+      for (const g of angles) {
+        const on = active.includes(g.n);
+        const r = on ? 46 : 34;
+        wedges.appendChild(el('path', { d: arcPath(O, r, norm(g.from), norm(g.to), true) }, `w ${g.c} ${on ? 'on' : 'off'}`));
+        const lp = polar(O, r + 16, g.from + g.m / 2);
+        wedges.appendChild(text(lp.x, lp.y + 4, on ? `${g.n}: ${g.m}°` : String(g.n), `wl ${g.c} ${on ? 'on' : ''}`));
+      }
+
+      const lines = this.querySelector('.lines')!;
+      lines.replaceChildren();
+      for (const [d, cls] of [
+        [this.a, 'lp'],
+        [this.b, 'lq'],
+      ] as [number, string][]) {
+        const p1 = polar(O, L, d);
+        const p2 = polar(O, L, d + 180);
+        lines.appendChild(el('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y }, `ln ${cls}`));
+      }
+      lines.appendChild(el('circle', { cx: O.x, cy: O.y, r: 4 }, 'o'));
+
+      const pts = this.querySelector('.pts')!;
+      pts.replaceChildren();
+      for (const [k, d] of [
+        ['p', this.a],
+        ['q', this.b],
+      ] as [K, number][]) {
+        const h = polar(O, 125, d);
+        const g = el('g', {}, 'pt');
+        g.appendChild(el('circle', { cx: h.x, cy: h.y, r: 15 }, 'hit'));
+        g.appendChild(el('circle', { cx: h.x, cy: h.y, r: 6.5 }, 'dot'));
+        g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
+        pts.appendChild(g);
+      }
+
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      if (this.mode === 'vertical') {
+        calc.innerHTML =
+          `<div class="big">m∠1 = m∠3 = ${t}°</div><div class="big b2">m∠2 = m∠4 = ${180 - t}°</div>`;
+        note.textContent =
+          '∠1 و ∠3 متقابلتان بالرأس، وكذلك ∠2 و ∠4. حرّك المستقيمين كما تشاء: الزاويتان المتقابلتان بالرأس متساويتان دائمًا.';
+      } else {
+        calc.innerHTML = `<div class="big">m∠1 + m∠2 = ${t}° + ${180 - t}° = 180°</div>`;
+        note.textContent =
+          '∠1 و ∠2 زوج خطي: متجاورتان، وضلعاهما غير المشتركين يكوّنان مستقيمًا. لذلك مجموعهما 180° دائمًا، أي أنهما متكاملتان.';
+      }
+    }
+  }
+  customElements.define('cross-lines-lab', CrossLinesLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .modes {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .modes button {
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 0.25rem 0.8rem;
+  }
+  .modes button.on {
+    border-color: var(--brand);
+    background: var(--def-bg);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 440px;
+    margin: 0.4rem auto;
+    touch-action: none;
+  }
+  .stage :global(.ln) {
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .stage :global(.lp) {
+    stroke: var(--brand);
+  }
+  .stage :global(.lq) {
+    stroke: var(--ink-2);
+  }
+  .stage :global(.o) {
+    fill: var(--ink);
+  }
+  .stage :global(.w) {
+    stroke: none;
+  }
+  .stage :global(.w.off) {
+    fill: var(--ink-3);
+    fill-opacity: 0.12;
+  }
+  .stage :global(.w.v1.on) {
+    fill: var(--brand);
+    fill-opacity: 0.3;
+  }
+  .stage :global(.w.v2.on) {
+    fill: var(--accent);
+    fill-opacity: 0.45;
+  }
+  .stage :global(.wl) {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 700;
+    text-anchor: middle;
+    fill: var(--ink-3);
+    paint-order: stroke;
+    stroke: var(--card);
+    stroke-width: 3px;
+  }
+  .stage :global(.wl.on) {
+    fill: var(--ink);
+    font-size: 13px;
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.95rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    line-height: 1.7;
+    text-align: left;
+  }
+  .calc :global(.big) {
+    font-weight: 700;
+    color: var(--brand);
+  }
+  .calc :global(.b2) {
+    color: var(--accent);
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

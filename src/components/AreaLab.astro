@@ -1,0 +1,339 @@
+---
+// Interactive: perimeter and area of a rectangle, a triangle and a circle.
+---
+
+<area-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">مختبر المحيط والمساحة</span>
+    <div class="seg" role="tablist">
+      <button type="button" data-s="rect" class="on">مستطيل</button>
+      <button type="button" data-s="tri">مثلث</button>
+      <button type="button" data-s="circ">دائرة</button>
+    </div>
+  </div>
+  <svg viewBox="0 0 360 265" class="stage" role="img" aria-label="شكل على شبكة مربعات وحدتها 1">
+    <g class="grid"></g>
+    <g class="fig"></g>
+    <g class="pts"></g>
+  </svg>
+  <label class="slider" hidden>
+    <span class="ltr">r = <b class="r">3</b></span>
+    <input type="range" min="1" max="4.5" step="0.5" value="3" dir="ltr" aria-label="نصف القطر" />
+  </label>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</area-lab>
+
+<script>
+  import { el, text, makeDraggable, type P } from '../scripts/svg';
+
+  const U = 25;
+  const OX = 18;
+  const OY = 250;
+  const XMAX = 13;
+  const YMAX = 9;
+  const px = (x: number) => OX + x * U;
+  const py = (y: number) => OY - y * U;
+  const r2 = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(2));
+  type Shape = 'rect' | 'tri' | 'circ';
+  type K = 'corner' | 'apex';
+
+  class AreaLab extends HTMLElement {
+    shape: Shape = 'rect';
+    corner: P = { x: 6, y: 4 };
+    apex: P = { x: 3, y: 6 };
+    base: [number, number] = [1, 9]; // triangle base on y = 1
+    r = 3;
+    drag!: { start: (k: K, e: PointerEvent) => void };
+
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      const grid = this.querySelector('.grid')!;
+      for (let x = 0; x <= XMAX; x++) grid.appendChild(el('line', { x1: px(x), y1: py(0), x2: px(x), y2: py(YMAX) }, 'gl'));
+      for (let y = 0; y <= YMAX; y++) grid.appendChild(el('line', { x1: px(0), y1: py(y), x2: px(XMAX), y2: py(y) }, 'gl'));
+
+      this.querySelectorAll<HTMLButtonElement>('.seg button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.shape = b.dataset.s as Shape;
+          this.querySelectorAll('.seg button').forEach((q) => q.classList.toggle('on', q === b));
+          this.querySelector<HTMLElement>('.slider')!.hidden = this.shape !== 'circ';
+          this.render();
+        }),
+      );
+      const range = this.querySelector<HTMLInputElement>('input')!;
+      range.addEventListener('input', () => {
+        this.r = Number(range.value);
+        this.render();
+      });
+
+      this.drag = makeDraggable<K>(svg, (k, p) => {
+        const q = { x: Math.round((p.x - OX) / U), y: Math.round((OY - p.y) / U) };
+        if (k === 'corner') {
+          q.x = Math.max(1, Math.min(12, q.x));
+          q.y = Math.max(1, Math.min(8, q.y));
+          if (q.x === this.corner.x && q.y === this.corner.y) return;
+          this.corner = q;
+        } else {
+          q.x = Math.max(0, Math.min(XMAX, q.x));
+          q.y = Math.max(2, Math.min(YMAX, q.y));
+          if (q.x === this.apex.x && q.y === this.apex.y) return;
+          this.apex = q;
+        }
+        this.render();
+      });
+      this.render();
+    }
+
+    handle(k: K, p: P) {
+      const g = el('g', {}, 'pt');
+      g.appendChild(el('circle', { cx: px(p.x), cy: py(p.y), r: 15 }, 'hit'));
+      g.appendChild(el('circle', { cx: px(p.x), cy: py(p.y), r: 6.5 }, 'dot'));
+      g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
+      this.querySelector('.pts')!.appendChild(g);
+    }
+
+    render() {
+      const fig = this.querySelector('.fig')!;
+      const pts = this.querySelector('.pts')!;
+      fig.replaceChildren();
+      pts.replaceChildren();
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+
+      if (this.shape === 'rect') {
+        const { x: l, y: w } = this.corner;
+        for (let i = 0; i < l; i++)
+          for (let j = 0; j < w; j++)
+            fig.appendChild(
+              el('rect', { x: px(i) + 1, y: py(j + 1) + 1, width: U - 2, height: U - 2, rx: 3 }, (i + j) % 2 ? 'cell a' : 'cell b'),
+            );
+        fig.appendChild(el('rect', { x: px(0), y: py(w), width: l * U, height: w * U }, 'outline'));
+        fig.appendChild(text(px(l / 2), py(0) + 13, `ℓ = ${l}`, 'dim'));
+        fig.appendChild(text(px(l) + 6, py(w / 2) + 4, `w = ${w}`, 'dim start'));
+        this.handle('corner', this.corner);
+        calc.innerHTML =
+          `<div>P = 2ℓ + 2w = 2(${l}) + 2(${w}) = <b>${2 * l + 2 * w}</b></div>` +
+          `<div>A = ℓw = ${l} × ${w} = <b>${l * w}</b></div>`;
+        note.textContent =
+          l === w
+            ? 'الطول يساوي العرض: هذا مربع، فالمساحة s² والمحيط 4s. عدّ المربعات الصغيرة لتتحقق من المساحة.'
+            : 'كل مربع صغير مساحته وحدة مربعة واحدة. عدّها لتتحقق من المساحة، وعدّ أضلاع الحدود لتتحقق من المحيط.';
+      } else if (this.shape === 'tri') {
+        const [b1, b2] = this.base;
+        const { x: ax, y: ay } = this.apex;
+        const b = b2 - b1;
+        const h = ay - 1;
+        const lo = Math.min(b1, ax);
+        const hi = Math.max(b2, ax);
+        fig.appendChild(el('rect', { x: px(b1), y: py(ay), width: b * U, height: h * U }, 'ghost'));
+        if (ax < b1 || ax > b2)
+          fig.appendChild(el('line', { x1: px(lo), y1: py(1), x2: px(hi), y2: py(1) }, 'ext'));
+        fig.appendChild(
+          el('polygon', { points: `${px(b1)},${py(1)} ${px(b2)},${py(1)} ${px(ax)},${py(ay)}` }, 'tri'),
+        );
+        fig.appendChild(el('line', { x1: px(ax), y1: py(ay), x2: px(ax), y2: py(1) }, 'height'));
+        fig.appendChild(
+          el('polyline', { points: `${px(ax) + 8},${py(1)} ${px(ax) + 8},${py(1) - 8} ${px(ax)},${py(1) - 8}` }, 'sq'),
+        );
+        fig.appendChild(text(px((b1 + b2) / 2), py(1) + 15, `b = ${b}`, 'dim'));
+        fig.appendChild(text(px(ax) + 6, py((ay + 1) / 2) + 4, `h = ${h}`, 'dim start'));
+        this.handle('apex', this.apex);
+        const s1 = Math.hypot(ax - b1, ay - 1);
+        const s2 = Math.hypot(ax - b2, ay - 1);
+        calc.innerHTML =
+          `<div>A = ½bh = ½ × ${b} × ${h} = <b>${r2((b * h) / 2)}</b></div>` +
+          `<div>P = ${b} + ${s1.toFixed(2)} + ${s2.toFixed(2)} ≈ <b>${(b + s1 + s2).toFixed(2)}</b></div>`;
+        note.textContent =
+          'المستطيل الباهت مساحته b × h، والمثلث نصفه بالضبط. حرّك الرأس أفقيًا: يتغير شكل المثلث ومحيطه، لكن مساحته لا تتغير لأن القاعدة والارتفاع ثابتان.';
+      } else {
+        const r = this.r;
+        const c = { x: 6.5, y: 4.5 };
+        fig.appendChild(el('rect', { x: px(c.x), y: py(c.y + r), width: r * U, height: r * U }, 'rsq'));
+        fig.appendChild(text(px(c.x + r / 2), py(c.y + r / 2) + 4, 'r²', 'dim'));
+        fig.appendChild(el('circle', { cx: px(c.x), cy: py(c.y), r: r * U }, 'circ'));
+        fig.appendChild(el('line', { x1: px(c.x), y1: py(c.y), x2: px(c.x - r), y2: py(c.y) }, 'radius'));
+        fig.appendChild(text(px(c.x - r / 2), py(c.y) - 6, `r = ${r}`, 'dim'));
+        fig.appendChild(el('circle', { cx: px(c.x), cy: py(c.y), r: 3.5 }, 'center'));
+        this.querySelector('.r')!.textContent = String(r);
+        calc.innerHTML =
+          `<div>C = 2πr = 2π(${r}) = ${r2(2 * r)}π ≈ <b>${(2 * Math.PI * r).toFixed(2)}</b></div>` +
+          `<div>A = πr² = π(${r})² = ${r2(r * r)}π ≈ <b>${(Math.PI * r * r).toFixed(2)}</b></div>`;
+        note.textContent =
+          'المربع البرتقالي مساحته r². مساحة الدائرة تساوي π ≈ 3.14 من هذه المربعات، مهما كان نصف القطر.';
+      }
+    }
+  }
+  customElements.define('area-lab', AreaLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .seg button {
+    border: none;
+    background: var(--card);
+    color: var(--ink-2);
+    padding: 0.25rem 0.8rem;
+  }
+  .seg button.on {
+    background: var(--brand);
+    color: var(--paper);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    margin: 0.4rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.gl) {
+    stroke: var(--line);
+  }
+  .stage :global(.cell.a) {
+    fill: var(--brand);
+    fill-opacity: 0.2;
+  }
+  .stage :global(.cell.b) {
+    fill: var(--brand);
+    fill-opacity: 0.32;
+  }
+  .stage :global(.outline) {
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 3;
+  }
+  .stage :global(.dim) {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 700;
+    fill: var(--ink);
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+  }
+  .stage :global(.dim.start) {
+    text-anchor: start;
+  }
+  .stage :global(.ghost) {
+    fill: var(--ink-3);
+    fill-opacity: 0.1;
+    stroke: var(--ink-3);
+    stroke-dasharray: 4 4;
+  }
+  .stage :global(.ext) {
+    stroke: var(--ink-3);
+    stroke-dasharray: 3 4;
+    stroke-width: 1.5;
+  }
+  .stage :global(.tri) {
+    fill: var(--thm);
+    fill-opacity: 0.25;
+    stroke: var(--thm);
+    stroke-width: 3;
+    stroke-linejoin: round;
+  }
+  .stage :global(.height) {
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+  .stage :global(.sq) {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.4;
+  }
+  .stage :global(.circ) {
+    fill: var(--def);
+    fill-opacity: 0.15;
+    stroke: var(--def);
+    stroke-width: 3;
+  }
+  .stage :global(.rsq) {
+    fill: var(--accent);
+    fill-opacity: 0.4;
+    stroke: var(--accent);
+  }
+  .stage :global(.radius) {
+    stroke: var(--ink);
+    stroke-width: 2;
+  }
+  .stage :global(.center) {
+    fill: var(--ink);
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .slider {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .slider[hidden] {
+    display: none;
+  }
+  .slider span {
+    flex: none;
+    width: 4.5rem;
+    font-family: var(--font-head);
+  }
+  .slider input {
+    flex: 1;
+    accent-color: var(--brand);
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.92rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    margin-top: 0.4rem;
+    line-height: 1.7;
+    text-align: left;
+    overflow-x: auto;
+  }
+  .calc :global(div) {
+    white-space: nowrap;
+  }
+  .calc :global(b) {
+    color: var(--accent);
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

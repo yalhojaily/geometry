@@ -1,0 +1,219 @@
+---
+// Interactive: an angle and its complement / supplement placed next to it.
+---
+
+<pair-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">المتممة والمكملة</span>
+    <div class="seg" role="tablist">
+      <button type="button" data-m="comp" class="on">المتممة</button>
+      <button type="button" data-m="supp">المكملة</button>
+    </div>
+  </div>
+  <svg viewBox="0 0 360 200" class="stage" role="img" aria-label="زاوية ومتممتها أو مكملتها"></svg>
+  <label class="slider">
+    <span class="ltr">x = <b class="x">35</b>°</span>
+    <input type="range" min="1" max="179" value="35" dir="ltr" aria-label="قياس الزاوية" />
+  </label>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</pair-lab>
+
+<script>
+  import { el, text, polar, arcPath, type P } from '../scripts/svg';
+
+  const O: P = { x: 180, y: 175 };
+  const L = 160;
+
+  class PairLab extends HTMLElement {
+    x = 35;
+    mode: 'comp' | 'supp' = 'comp';
+
+    connectedCallback() {
+      const range = this.querySelector<HTMLInputElement>('input')!;
+      range.addEventListener('input', () => {
+        this.x = Number(range.value);
+        this.render();
+      });
+      this.querySelectorAll<HTMLButtonElement>('.seg button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.mode = b.dataset.m as 'comp' | 'supp';
+          this.querySelectorAll('.seg button').forEach((q) => q.classList.toggle('on', q === b));
+          this.render();
+        }),
+      );
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const x = this.x;
+      const total = this.mode === 'comp' ? 90 : 180;
+      const other = total - x;
+      const ok = other > 0;
+
+      if (ok) {
+        svg.appendChild(el('path', { d: arcPath(O, 60, x, total, true) }, 'w w2'));
+        const lp = polar(O, 80, x + other / 2);
+        svg.appendChild(text(lp.x, lp.y + 4, `${other}°`, 'wl w2t'));
+      }
+      svg.appendChild(el('path', { d: arcPath(O, 48, 0, x, true) }, 'w w1'));
+      const lx = polar(O, 70, x / 2);
+      svg.appendChild(text(lx.x, lx.y + 4, `${x}°`, 'wl w1t'));
+
+      const ray = (d: number, cls: string) => {
+        const p = polar(O, L, d);
+        svg.appendChild(el('line', { x1: O.x, y1: O.y, x2: p.x, y2: p.y }, cls));
+      };
+      ray(0, 'ray');
+      ray(x, 'ray');
+      if (this.mode === 'comp') {
+        ray(90, 'ray guide');
+        const s = 14;
+        svg.appendChild(el('polyline', { points: `${O.x + s},${O.y} ${O.x + s},${O.y - s} ${O.x},${O.y - s}` }, 'sq'));
+      } else ray(180, 'ray');
+      svg.appendChild(el('circle', { cx: O.x, cy: O.y, r: 4 }, 'o'));
+
+      this.querySelector('.x')!.textContent = String(x);
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      const name = this.mode === 'comp' ? 'المتممة' : 'المكملة';
+      if (ok) {
+        calc.innerHTML = `<div class="big">${total}° − ${x}° = ${other}°</div><div>${x}° + ${other}° = ${total}°</div>`;
+        note.textContent =
+          this.mode === 'comp'
+            ? `${name} هي ما ينقص الزاوية لتصبح قائمة. كلما كبرت الزاوية صغرت متممتها.`
+            : `${name} هي ما ينقص الزاوية لتصبح مستقيمة. الزاوية ومكملتها هنا زوج خطي.`;
+      } else {
+        calc.innerHTML = `<div class="big no">${total}° − ${x}° = ${other}°</div>`;
+        note.textContent = `زاوية قياسها ${x}° ليس لها متممة: المتممة يجب أن يكون قياسها موجبًا، فالزاوية يجب أن تكون حادة.`;
+      }
+    }
+  }
+  customElements.define('pair-lab', PairLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .seg button {
+    border: none;
+    background: var(--card);
+    color: var(--ink-2);
+    padding: 0.25rem 0.9rem;
+  }
+  .seg button.on {
+    background: var(--brand);
+    color: var(--paper);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 440px;
+    margin: 0.4rem auto;
+  }
+  .stage :global(.ray) {
+    stroke: var(--brand);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .stage :global(.ray.guide) {
+    stroke: var(--thm);
+    stroke-dasharray: 6 5;
+    stroke-width: 2;
+  }
+  .stage :global(.sq) {
+    fill: none;
+    stroke: var(--thm);
+    stroke-width: 1.5;
+  }
+  .stage :global(.o) {
+    fill: var(--ink);
+  }
+  .stage :global(.w) {
+    stroke: none;
+  }
+  .stage :global(.w1) {
+    fill: var(--brand);
+    fill-opacity: 0.3;
+  }
+  .stage :global(.w2) {
+    fill: var(--accent);
+    fill-opacity: 0.4;
+  }
+  .stage :global(.wl) {
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 700;
+    text-anchor: middle;
+    paint-order: stroke;
+    stroke: var(--card);
+    stroke-width: 3px;
+  }
+  .stage :global(.w1t) {
+    fill: var(--brand);
+  }
+  .stage :global(.w2t) {
+    fill: var(--ink);
+  }
+  .slider {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .slider span {
+    flex: none;
+    width: 5.5rem;
+    font-family: var(--font-head);
+  }
+  .slider input {
+    flex: 1;
+    accent-color: var(--brand);
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.95rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    margin-top: 0.5rem;
+    line-height: 1.7;
+    text-align: left;
+  }
+  .calc :global(.big) {
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .calc :global(.no) {
+    color: var(--bad);
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

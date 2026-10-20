@@ -61,7 +61,13 @@ const { n, type, options = [], answer, hint } = Astro.props;
       } else {
         const input = this.querySelector<HTMLInputElement>('.num')!;
         const check = () => {
-          const v = Number(input.value.trim().replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))));
+          const v = Number(
+            input.value
+              .trim()
+              .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+              .replace(/[−–]/g, '-')
+              .replace('٫', '.'),
+          );
           if (input.value.trim() === '' || Number.isNaN(v)) return;
           const ok = Math.abs(v - answer) < 1e-9;
           input.classList.toggle('wrong', !ok);
