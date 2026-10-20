@@ -1,0 +1,155 @@
+---
+// "تحتاج هنا" card: a quick algebra refresher placed right where a lesson needs it.
+import { skillById } from '../data/skills';
+import { renderMath } from '../data/math';
+
+interface Props {
+  id: string;
+}
+
+const s = skillById[Astro.props.id];
+if (!s) throw new Error(`Unknown skill id: ${Astro.props.id}`);
+---
+
+<details class="prereq" id={s.id}>
+  <summary>
+    <span class="badge">تحتاج هنا</span>
+    <span class="name">{s.ar}</span>
+    <span class="en">{s.en}</span>
+  </summary>
+  <div class="inner">
+    <p set:html={renderMath(s.review)} />
+    <div class="ex" set:html={renderMath(s.example)} />
+    <prereq-check class="check" data-answer={String(s.check.answer)}>
+      <span class="q-label">تأكد بسرعة:</span>{" "}
+      <span set:html={renderMath(s.check.q)} />
+      <span class="row">
+        <input type="text" inputmode="decimal" dir="ltr" aria-label="إجابتك" placeholder="؟" />
+        <button type="button" class="btn">تحقّق</button>
+        <span class="fb" aria-live="polite"></span>
+      </span>
+    </prereq-check>
+  </div>
+</details>
+
+<script>
+  class PrereqCheck extends HTMLElement {
+    connectedCallback() {
+      const answer = Number(this.dataset.answer);
+      const input = this.querySelector('input')!;
+      const fb = this.querySelector<HTMLElement>('.fb')!;
+      const check = () => {
+        const raw = input.value
+          .trim()
+          .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+          .replace(/[−–]/g, '-')
+          .replace('٫', '.');
+        if (raw === '') return;
+        const ok = Math.abs(Number(raw) - answer) < 1e-9;
+        fb.textContent = ok ? 'صحيح ✓' : 'حاول مرة أخرى';
+        fb.className = `fb ${ok ? 'right' : 'wrong'}`;
+        input.className = ok ? 'right' : 'wrong';
+      };
+      this.querySelector('button')?.addEventListener('click', check);
+      input.addEventListener('keydown', (e) => e.key === 'Enter' && check());
+    }
+  }
+  customElements.define('prereq-check', PrereqCheck);
+</script>
+
+<style>
+  .prereq {
+    background: var(--alg-bg);
+    border: 1px solid color-mix(in srgb, var(--alg) 35%, transparent);
+    border-radius: var(--radius);
+    margin: 1.2rem 0;
+    scroll-margin-top: 80px;
+  }
+  summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: '+';
+    margin-inline-start: auto;
+    font-family: var(--font-head);
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--alg);
+  }
+  .prereq[open] summary::after {
+    content: '−';
+  }
+  .badge {
+    font-family: var(--font-head);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--card);
+    background: var(--alg);
+    border-radius: 6px;
+    padding: 0.05rem 0.5rem;
+  }
+  .name {
+    font-family: var(--font-head);
+    font-weight: 600;
+  }
+  .inner {
+    padding: 0 1rem 0.9rem;
+  }
+  .inner p {
+    margin: 0 0 0.5rem;
+  }
+  .ex {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 0.45rem 0.8rem;
+    margin-bottom: 0.7rem;
+    overflow-x: auto;
+  }
+  .check {
+    display: block;
+  }
+  .q-label {
+    font-weight: 600;
+    color: var(--alg);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+  }
+  input {
+    width: 7rem;
+    font: inherit;
+    padding: 0.3rem 0.6rem;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--ink);
+  }
+  input.right {
+    border-color: var(--good);
+  }
+  input.wrong {
+    border-color: var(--bad);
+  }
+  .fb {
+    font-weight: 600;
+  }
+  .fb.right {
+    color: var(--good);
+  }
+  .fb.wrong {
+    color: var(--bad);
+  }
+</style>

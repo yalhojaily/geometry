@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import { findLesson, lessonSlug } from '../data/curriculum';
+import { skills } from '../data/skills';
 
 interface Props {
   frontmatter: {
@@ -11,6 +12,7 @@ interface Props {
 
 const { lesson: id, why } = Astro.props.frontmatter;
 const { lesson, prev, next } = findLesson(id);
+const lessonSkills = skills.filter((s) => s.usedIn.includes(id));
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (l: { id: string; ready?: boolean } | undefined) =>
   l?.ready ? `${base}/lessons/${lessonSlug(l.id)}/` : undefined;
@@ -38,6 +40,19 @@ const nextHref = href(next);
       <span class="why-label">لماذا هذا الدرس؟</span>
       <p>{why}</p>
     </aside>
+
+    {
+      lessonSkills.length > 0 && (
+        <div class="skills">
+          <span class="skills-label">جبر تحتاجه في هذا الدرس:</span>
+          {lessonSkills.map((s) => (
+            <a class="chip" href={`#${s.id}`}>
+              {s.ar}
+            </a>
+          ))}
+        </div>
+      )
+    }
 
     <div class="body">
       <slot />
@@ -92,6 +107,20 @@ const nextHref = href(next);
     btn.textContent = done ? 'مكتمل ✓ (إلغاء)' : 'علّم كمكتمل ✓';
     btn.classList.toggle('btn-primary', !done);
   }
+  // Jumping to an algebra card opens it.
+  function openFromHash() {
+    const el = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    if (el instanceof HTMLDetailsElement) el.open = true;
+  }
+  addEventListener('hashchange', openFromHash);
+  document.querySelectorAll<HTMLAnchorElement>('.chip').forEach((a) =>
+    a.addEventListener('click', () => {
+      const el = document.getElementById(a.hash.slice(1));
+      if (el instanceof HTMLDetailsElement) el.open = true;
+    }),
+  );
+  openFromHash();
+
   btn?.addEventListener('click', () => {
     const p = read();
     p[id] = !p[id];
@@ -154,6 +183,25 @@ const nextHref = href(next);
   .why p {
     margin: 0.2rem 0 0;
     font-size: 1.1rem;
+  }
+  .skills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.9rem;
+    font-size: 0.92rem;
+  }
+  .skills-label {
+    color: var(--ink-2);
+  }
+  .chip {
+    text-decoration: none;
+    color: var(--alg);
+    background: var(--alg-bg);
+    border: 1px solid color-mix(in srgb, var(--alg) 35%, transparent);
+    border-radius: 999px;
+    padding: 0.05rem 0.7rem;
   }
   .finish {
     display: flex;

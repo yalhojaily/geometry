@@ -8,6 +8,7 @@ import Term from '../../components/Term.astro';
 import Callout from '../../components/Callout.astro';
 import Example from '../../components/Example.astro';
 import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
 import DotPattern from '../../components/DotPattern.astro';
 import CircleRegions from '../../components/CircleRegions.astro';
 import PrimeConjecture from '../../components/PrimeConjecture.astro';
@@ -96,6 +97,8 @@ import PrimeConjecture from '../../components/PrimeConjecture.astro';
 
 </Callout>
 
+<Prereq id="alg-square-fraction" />
+
 <Example title="مثال 4: إيجاد مثال مضاد">
 
 التخمين: «مربع أي عدد أكبر من العدد نفسه». أوجد مثالًا مضادًا.
@@ -116,6 +119,8 @@ import PrimeConjecture from '../../components/PrimeConjecture.astro';
 ## من التخمين إلى البرهان
 
 الاستدلال الاستقرائي يساعدنا على **اكتشاف** ما قد يكون صحيحًا، لكنه لا **يثبته**. الإثبات يحتاج نوعًا آخر من التفكير هو الاستدلال الاستنتاجي، وهو موضوع الفصل الثاني.
+
+<Prereq id="alg-factor-common" />
 
 إليك لمحة سريعة. أي عدد فردي يمكن كتابته بالصيغة $2a + 1$ حيث $a$ عدد صحيح. إذن مجموع عددين فرديين:
 
