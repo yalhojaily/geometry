@@ -1,0 +1,99 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '8.4'
+why: 'لإثبات تشابه مضلعين عمومًا تحتاج كل الزوايا وكل النسب. لكن المثلثات أكرم: زاويتان متطابقتان تكفيان. هذه المسلّمة وحدها تحل مسائل قياس الأشياء البعيدة، كارتفاع شجرة من ظلها.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import FigTri from '../../components/FigTri.astro';
+import SimTriLab from '../../components/SimTriLab.astro';
+import { proofs } from '../../data/proofs';
+
+## مسلّمة AA
+
+<Term id="post-aa" />
+
+لماذا زاويتان تكفيان؟ لأن الزاوية الثالثة تتحدد تلقائيًا: $180^\circ$ ناقص الزاويتين (نظرية الزوايا الثالثة، الدرس 4.2). فتكون الزوايا الثلاث متطابقة. وفي المثلث، الزوايا تحدد الشكل، والحجم وحده يبقى حرًا.
+
+<SimTriLab mode="aa" />
+
+<ProofTable {...proofs.splitterSim} mode="fill">
+  <FigTri kind="splitter">DE يوازي BC، فيصنع زاويتين متناظرتين مع كل من AB و AC.</FigTri>
+</ProofTable>
+
+<Callout type="tip" title="ابحث عن الزوايا المجانية">
+
+الزوايا المتطابقة تأتي غالبًا من: **زاوية مشتركة** بين المثلثين، أو **زاويتين متقابلتين بالرأس**، أو **مستقيمين متوازيين** (زوايا متناظرة أو متبادلة)، أو **زاويتين قائمتين**.
+
+</Callout>
+
+<Prereq id="alg-proportion" />
+
+<Example title="مثال 1: ارتفاع الشجرة">
+
+عمود طوله $2 \text{ m}$ ظله $3 \text{ m}$. وفي الوقت نفسه ظل شجرة $18 \text{ m}$. ما ارتفاع الشجرة؟
+
+1. أشعة الشمس متوازية، فالزاوية التي تصنعها مع الأرض واحدة للعمود والشجرة. والعمود والشجرة يعامدان الأرض.
+2. زاويتان متطابقتان، فالمثلثان متشابهان (AA).
+3. $\tfrac{h}{2} = \tfrac{18}{3}$، إذن $h = 12 \text{ m}$.
+
+</Example>
+
+<Example title="مثال 2: زاويتان متقابلتان بالرأس">
+
+$\overline{AE}$ و $\overline{BD}$ تتقاطعان في $C$، و $\overline{AB} \parallel \overline{DE}$. إذا كان $AC = 6$ و $CE = 9$ و $AB = 8$، فأوجد $DE$.
+
+1. $\angle ACB \cong \angle ECD$ (متقابلتان بالرأس).
+2. $\angle BAC \cong \angle DEC$ (متبادلتان داخليًا، لأن $\overline{AB} \parallel \overline{DE}$).
+3. $\triangle ABC \sim \triangle EDC$ (AA)، والتناظر: $A \leftrightarrow E$ و $B \leftrightarrow D$.
+4. $\tfrac{DE}{AB} = \tfrac{EC}{AC}$، أي $\tfrac{DE}{8} = \tfrac{9}{6}$، إذن $DE = 12$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={0} options={['نعم، بـ AA', 'لا', 'لا يمكن الحكم']}>
+
+مثلث زاويتاه $40^\circ$ و $75^\circ$، ومثلث آخر زاويتاه $75^\circ$ و $65^\circ$. هل هما متشابهان؟
+
+<div slot="explain">الثالثة في الأول $65^\circ$. فالمثلثان زواياهما $40^\circ$ و $75^\circ$ و $65^\circ$: متشابهان.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={1} options={['نعم', 'لا']}>
+
+مثلث زاويتاه $50^\circ$ و $60^\circ$، وآخر زاويتاه $50^\circ$ و $80^\circ$. هل هما متشابهان؟
+
+<div slot="explain">زوايا الأول $50, 60, 70$، والثاني $50, 80, 50$. غير متطابقة، فلا.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={20} hint="ارتفاع/ظل متساوية للجسمين.">
+
+شخص طوله $1.6 \text{ m}$ ظله $2 \text{ m}$. ظل مبنى $25 \text{ m}$ في الوقت نفسه. ما ارتفاع المبنى؟
+
+<div slot="explain">$\tfrac{h}{1.6} = \tfrac{25}{2}$، إذن $h = 20$.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={0} options={['دائمًا', 'أحيانًا', 'أبدًا']}>
+
+مثلثان متطابقا الأضلاع متشابهان…
+
+<div slot="explain">دائمًا: زوايا كل منهما $60^\circ$.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={1} options={['دائمًا', 'أحيانًا', 'أبدًا']}>
+
+مثلثان قائمان متشابهان…
+
+<div slot="explain">أحيانًا: الزاوية القائمة مشتركة، لكن يلزم تطابق زاوية حادة أيضًا.</div>
+</Quiz>
+
+## الخلاصة
+
+- **مسلّمة AA:** زاويتان متطابقتان تكفيان لتشابه مثلثين.
+- الزوايا المتطابقة تأتي من: زاوية مشتركة، أو متقابلتين بالرأس، أو مستقيمين متوازيين، أو زوايا قائمة.
+- بعد إثبات التشابه، اكتب التناسب بين الأضلاع المتناظرة وحل.

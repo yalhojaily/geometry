@@ -1,0 +1,198 @@
+---
+// Interactive similarity tests for triangles.
+//  mode="aa":  two angles + a size → the triangles are always similar.
+//  mode="sss": three sides of DEF → similar only if all three ratios match.
+//  mode="sas": two sides and the included angle of DEF.
+import '../styles/qlab.css';
+interface Props {
+  mode?: 'aa' | 'sss' | 'sas';
+}
+const { mode = 'aa' } = Astro.props;
+const TAGS = { aa: 'التشابه AA', sss: 'التشابه SSS', sas: 'التشابه SAS' };
+---
+
+<simtri-lab class="panel lab qlab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{TAGS[mode]}</span>
+    <span class="kind badge-k"></span>
+  </div>
+  <svg viewBox="0 0 360 210" class="stage" role="img" aria-label="مثلثان للمقارنة"></svg>
+  <div class="sliders"></div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</simtri-lab>
+
+<script>
+  import { el, text, type P } from '../scripts/svg';
+  import { len, pts, centroid } from '../scripts/quad';
+
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+  type Tri = [P, P, P];
+  const rad = (d: number) => (d * Math.PI) / 180;
+
+  /** Triangle with base c along the x-axis and angles A, B at its ends (math coords, y up). */
+  const fromASA = (c: number, A: number, B: number): Tri => {
+    const C = 180 - A - B;
+    const b = (c * Math.sin(rad(B))) / Math.sin(rad(C));
+    return [{ x: 0, y: 0 }, { x: c, y: 0 }, { x: b * Math.cos(rad(A)), y: b * Math.sin(rad(A)) }];
+  };
+  /** Triangle from sides AB = c, BC = a, CA = b. Null if impossible. */
+  const fromSSS = (c: number, a: number, b: number): Tri | null => {
+    if (a + b <= c || a + c <= b || b + c <= a) return null;
+    const x = (b * b + c * c - a * a) / (2 * c);
+    return [{ x: 0, y: 0 }, { x: c, y: 0 }, { x, y: Math.sqrt(b * b - x * x) }];
+  };
+  /** Triangle from AB = c, AC = b and the included angle A. */
+  const fromSAS = (c: number, b: number, A: number): Tri => [
+    { x: 0, y: 0 },
+    { x: c, y: 0 },
+    { x: b * Math.cos(rad(A)), y: b * Math.sin(rad(A)) },
+  ];
+  const sidesOf = (t: Tri) => [len(t[0], t[1]), len(t[1], t[2]), len(t[2], t[0])]; // AB, BC, CA
+  const angleAt = (t: Tri, i: number) => {
+    const v = t[i];
+    const p = t[(i + 1) % 3];
+    const q = t[(i + 2) % 3];
+    const u = { x: p.x - v.x, y: p.y - v.y };
+    const w = { x: q.x - v.x, y: q.y - v.y };
+    return (Math.acos((u.x * w.x + u.y * w.y) / (Math.hypot(u.x, u.y) * Math.hypot(w.x, w.y))) * 180) / Math.PI;
+  };
+
+  const SL: Record<string, [string, string, number, number, number, number][]> = {
+    aa: [
+      ['A', '∠A', 20, 120, 5, 50],
+      ['B', '∠B', 20, 120, 5, 65],
+      ['k', 'k', 0.5, 2, 0.25, 1.5],
+    ],
+    sss: [
+      ['de', 'DE', 1, 10, 0.5, 6],
+      ['ef', 'EF', 1, 10, 0.5, 7],
+      ['fd', 'FD', 1, 10, 0.5, 4.5],
+    ],
+    sas: [
+      ['de', 'DE', 1, 10, 0.5, 6],
+      ['df', 'DF', 1, 10, 0.5, 4],
+      ['D', '∠D', 20, 140, 5, 50],
+    ],
+  };
+
+  class SimTriLab extends HTMLElement {
+    mode = 'aa';
+    v: Record<string, number> = {};
+
+    connectedCallback() {
+      this.mode = this.dataset.mode ?? 'aa';
+      const box = this.querySelector('.sliders')!;
+      box.innerHTML = SL[this.mode]
+        .map(([k, label, min, max, step, val]) => {
+          this.v[k] = val;
+          const unit = label.includes('∠') ? '°' : '';
+          return `<label><span class="ltr">${label} = <b data-v="${k}">${val}</b>${unit}</span><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${val}" dir="ltr" aria-label="${label}" /></label>`;
+        })
+        .join('');
+      box.querySelectorAll<HTMLInputElement>('input').forEach((inp) =>
+        inp.addEventListener('input', () => {
+          this.v[inp.dataset.k!] = Number(inp.value);
+          if (this.mode === 'aa' && this.v.A + this.v.B > 165) {
+            const other = inp.dataset.k === 'A' ? 'B' : 'A';
+            this.v[other] = 165 - this.v[inp.dataset.k!];
+            const o = box.querySelector<HTMLInputElement>(`input[data-k=${other}]`);
+            if (o) o.value = String(this.v[other]);
+          }
+          this.render();
+        }),
+      );
+      this.render();
+    }
+
+    place(svg: Element, t: Tri, s: number, cx: number, names: string[], cls: string) {
+      const xs = t.map((p) => p.x);
+      const w = Math.max(...xs) - Math.min(...xs);
+      const x0 = cx - (w * s) / 2 - Math.min(...xs) * s;
+      const sp = t.map((p) => ({ x: x0 + p.x * s, y: 190 - p.y * s }));
+      svg.appendChild(el('polygon', { points: pts(sp) }, cls));
+      const c = centroid(sp);
+      sp.forEach((p, i) => {
+        const d = len(p, c) || 1;
+        svg.appendChild(text(p.x + ((p.x - c.x) / d) * 14, p.y + ((p.y - c.y) / d) * 14, names[i], 'lbl'));
+      });
+      return sp;
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      this.querySelectorAll<HTMLElement>('[data-v]').forEach((e) => (e.textContent = String(this.v[e.dataset.v!])));
+      const v = this.v;
+      let t1: Tri;
+      let t2: Tri | null;
+      if (this.mode === 'aa') {
+        t1 = fromASA(4, v.A, v.B);
+        t2 = fromASA(4 * v.k, v.A, v.B);
+      } else if (this.mode === 'sss') {
+        t1 = fromSSS(4, 5, 3)!; // AB = 4, BC = 5, CA = 3
+        t2 = fromSSS(v.de, v.ef, v.fd);
+      } else {
+        t1 = fromSAS(4, 3, 50); // AB = 4, AC = 3, ∠A = 50°
+        t2 = fromSAS(v.de, v.df, v.D);
+      }
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      const badge = this.querySelector('.kind')!;
+      if (!t2) {
+        this.place(svg, t1, 20, 90, ['A', 'B', 'C'], 'poly');
+        calc.innerHTML = `<div>DE = ${v.de} , EF = ${v.ef} , FD = ${v.fd}</div>`;
+        note.textContent = 'هذه الأطوال لا تصنع مثلثًا أصلًا: مجموع الضلعين الأقصرين لا يزيد على الأطول (متباينة المثلث).';
+        badge.textContent = '—';
+        return;
+      }
+      const all = [...t1, ...t2];
+      const H = Math.max(...t1.map((p) => p.y), ...t2.map((p) => p.y));
+      const W = Math.max(
+        Math.max(...t1.map((p) => p.x)) - Math.min(...t1.map((p) => p.x)),
+        Math.max(...t2.map((p) => p.x)) - Math.min(...t2.map((p) => p.x)),
+      );
+      void all;
+      const s = Math.min(160 / H, 140 / W, 34);
+      this.place(svg, t1, s, 90, ['A', 'B', 'C'], 'poly');
+      this.place(svg, t2, s, 270, ['D', 'E', 'F'], 'poly2');
+
+      const s1 = sidesOf(t1);
+      const s2 = sidesOf(t2);
+      const r = s2.map((x, i) => x / s1[i]);
+      const sim = r.every((x) => Math.abs(x - r[0]) < 0.005);
+      badge.textContent = sim ? 'متشابهان' : 'غير متشابهين';
+      const ang = (t: Tri) => [0, 1, 2].map((i) => Math.round(angleAt(t, i)));
+      const a1 = ang(t1);
+      const a2 = ang(t2);
+      calc.innerHTML =
+        `<div>DE/AB = ${fmt(r[0])} , EF/BC = ${fmt(r[1])} , FD/CA = ${fmt(r[2])}</div>` +
+        `<div>∠A, ∠B, ∠C = ${a1.join('°, ')}°</div><div>∠D, ∠E, ∠F = ${a2.join('°, ')}°</div>`;
+      if (this.mode === 'aa') {
+        note.textContent = `المؤشران يضبطان الزاويتين A و D معًا، والزاويتين B و E معًا. زاويتان متطابقتان تكفيان: الثالثة °${180 - v.A - v.B} في المثلثين، والنسب الثلاث متساوية (${fmt(v.k)}) مهما غيّرت k.`;
+      } else if (this.mode === 'sss') {
+        note.textContent = sim
+          ? `النسب الثلاث متساوية (${fmt(r[0])})، فالمثلثان متشابهان، والزوايا المتناظرة متطابقة تلقائيًا.`
+          : 'النسب غير متساوية، فالمثلثان غير متشابهين. جرّب أطوالًا تتناسب مع 4 و 5 و 3، مثل 8 و 10 و 6.';
+      } else {
+        note.textContent = sim
+          ? `الزاويتان المحصورتان متطابقتان (50°)، والضلعان الحاصران متناسبان (${fmt(r[0])})، فالمثلثان متشابهان.`
+          : 'يلزم الشرطان معًا: أن تكون الزاوية D قياسها °50، وأن تتساوى النسبتان DE/AB و DF/AC. غيّر المؤشرات حتى يتحققا.';
+      }
+    }
+  }
+  customElements.define('simtri-lab', SimTriLab);
+</script>
+
+<style is:global>
+  simtri-lab .stage .poly2 {
+    fill: var(--accent);
+    fill-opacity: 0.18;
+    stroke: var(--accent);
+    stroke-width: 2.6;
+    stroke-linejoin: round;
+  }
+  simtri-lab .sliders span {
+    width: 6.4rem;
+  }
+</style>

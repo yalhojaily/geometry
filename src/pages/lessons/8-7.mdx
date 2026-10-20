@@ -1,0 +1,97 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '8.7'
+why: 'في الفصل السابع درسنا تحويلات تحفظ الحجم. التمدد تحويل يغيّر الحجم ويحفظ الشكل، فيصل بين التحويلات والتشابه. هكذا تعمل أداة التكبير في الهاتف، وآلة عرض الصور.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import TransformLab from '../../components/TransformLab.astro';
+
+## التمدد
+
+<Term id="def-dilation" />
+<Term id="formula-dilation" />
+
+<TransformLab modes={['dilate']} lengths />
+
+<Callout type="tip" title="التمدد ليس حركة صلبة">
+
+الانعكاس والدوران والانسحاب تحفظ الأطوال، فتعطي صورة **مطابقة**. التمدد يضرب كل الأطوال في $k$، فيعطي صورة **مشابهة**. الزوايا محفوظة في الحالتين.
+
+</Callout>
+
+<Example title="مثال 1: تمدد بالإحداثيات">
+
+مثلث رؤوسه $A(2, 1)$ و $B(4, 1)$ و $C(2, 3)$. أوجد صورته بالتمدد حول الأصل بمعامل $3$.
+
+1. القاعدة: $(x, y) \to (3x, 3y)$.
+2. $A'(6, 3)$ و $B'(12, 3)$ و $C'(6, 9)$.
+3. $AB = 2$ و $A'B' = 6$: الطول تضاعف ثلاث مرات.
+
+</Example>
+
+<Example title="مثال 2: أوجد المعامل">
+
+تمدد مركزه $C$ ينقل $P$ إلى $P'$، و $CP = 12$ و $CP' = 4$. ما المعامل؟ وهل هو تكبير أم تصغير؟
+
+1. $k = \tfrac{CP'}{CP} = \tfrac{4}{12} = \tfrac{1}{3}$.
+2. $k < 1$، فهو تصغير.
+
+</Example>
+
+<Example title="مثال 3: الظل من مصباح">
+
+مصباح على بعد $30 \text{ cm}$ من دمية طولها $5 \text{ cm}$، وعلى بعد $90 \text{ cm}$ من الجدار. ما طول ظلها على الجدار؟
+
+1. الظل صورة الدمية بتمدد مركزه المصباح.
+2. $k = \tfrac{90}{30} = 3$.
+3. طول الظل $3 \times 5 = 15 \text{ cm}$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={2} options={['(6, 2)', '(3, 4)', '(6, 8)', '(1.5, 2)']}>
+
+ما صورة $(3, 4)$ بتمدد حول الأصل بمعامل $2$؟
+
+<div slot="explain">$(2 \times 3, 2 \times 4) = (6, 8)$.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={0} options={['(2, −3)', '(8, −12)', '(4, −6)', '(−2, 3)']}>
+
+ما صورة $(4, -6)$ بتمدد حول الأصل بمعامل $\tfrac{1}{2}$؟
+
+<div slot="explain">$(2, -3)$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={2.5}>
+
+تمدد ينقل قطعة طولها $4$ إلى قطعة طولها $10$. ما المعامل؟
+
+<div slot="explain">$\tfrac{10}{4} = 2.5$.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={1} options={['تكبير', 'تصغير']}>
+
+تمدد بمعامل $0.75$…
+
+<div slot="explain">المعامل بين $0$ و $1$: تصغير.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={60}>
+
+مثلث زاويته $60^\circ$. ما قياس الزاوية المناظرة في صورته بتمدد معامله $4$؟
+
+<div slot="explain">التمدد يحفظ الزوايا: $60^\circ$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **التمدد** بمركز $C$ ومعامل $k$: $CP' = k \cdot CP$ على الشعاع نفسه.
+- $k > 1$ **تكبير**، و $0 < k < 1$ **تصغير**.
+- حول الأصل: $(x, y) \to (kx, ky)$.
+- الصورة **مشابهة** للأصل بمعامل $k$: الزوايا محفوظة، والأطوال تُضرب في $k$.

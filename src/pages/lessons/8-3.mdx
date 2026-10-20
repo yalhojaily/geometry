@@ -1,0 +1,103 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '8.3'
+why: 'متى نقول إن شكلين «لهما الشكل نفسه»؟ ليس يكفي أن يكونا مستطيلين: الشاشة العريضة والشاشة المربعة مستطيلان مختلفا الشكل. التشابه يعطي جوابًا دقيقًا بشرطين: زوايا متطابقة وأضلاع متناسبة.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import ScaleLab from '../../components/ScaleLab.astro';
+
+## التعريف
+
+<Term id="def-similar-polygons" />
+<Term id="def-scale-factor" />
+
+<ScaleLab />
+
+<Callout type="warning" title="الشرطان معًا">
+
+- **زوايا متطابقة وحدها لا تكفي:** كل المستطيلات زواياها قائمة، لكن مستطيل $1 \times 5$ لا يشبه مربعًا.
+- **أضلاع متناسبة وحدها لا تكفي:** مربع ومعين ضلعاهما متساويان (النسبة $1$)، لكن زوايا المعين ليست قائمة.
+
+جرّب «مطّ أفقي فقط» في المختبر: الزوايا تتغير والنسب تختلف.
+
+</Callout>
+
+<Term id="thm-similar-perimeters" />
+
+<Prereq id="alg-proportion" />
+
+<Example title="مثال 1: هل المستطيلان متشابهان؟">
+
+مستطيل $6 \times 9$ ومستطيل $8 \times 12$.
+
+1. الزوايا قائمة في الاثنين، فهي متطابقة.
+2. النسب: $\tfrac{8}{6} = \tfrac{4}{3}$ و $\tfrac{12}{9} = \tfrac{4}{3}$. متساويتان.
+3. متشابهان، ومعامل التشابه $\tfrac{4}{3}$.
+
+</Example>
+
+<Example title="مثال 2: ضلع مجهول">
+
+$ABCD \sim PQRS$، و $AB = 6$ و $BC = 8$ و $PQ = 9$. أوجد $QR$ ومعامل التشابه.
+
+1. معامل التشابه من $ABCD$ إلى $PQRS$: $\tfrac{PQ}{AB} = \tfrac{9}{6} = 1.5$.
+2. $\tfrac{QR}{BC} = 1.5$، إذن $QR = 1.5 \times 8 = 12$.
+
+</Example>
+
+<Example title="مثال 3: المحيط">
+
+مثلثان متشابهان معامل التشابه بينهما $\tfrac{2}{5}$. محيط الأكبر $45$. ما محيط الأصغر؟
+
+1. نسبة المحيطين تساوي معامل التشابه: $\tfrac{P}{45} = \tfrac{2}{5}$.
+2. $P = 18$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={0} options={['دائمًا', 'أحيانًا', 'أبدًا']}>
+
+مربعان متشابهان…
+
+<div slot="explain">دائمًا: زواياهما قائمة، ونسبة أي ضلعين ثابتة لأن أضلاع كل مربع متساوية.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={1} options={['دائمًا', 'أحيانًا', 'أبدًا']}>
+
+مستطيلان متشابهان…
+
+<div slot="explain">أحيانًا: الزوايا متطابقة دائمًا، لكن النسب قد لا تتساوى.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={15} hint="اكتب التناسب بين الأضلاع المتناظرة.">
+
+$\triangle JKL \sim \triangle XYZ$، و $JK = 4$ و $KL = 6$ و $XY = 10$. ما $YZ$؟
+
+<div slot="explain">$\tfrac{10}{4} = \tfrac{YZ}{6}$، إذن $YZ = 15$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={28}>
+
+مضلعان متشابهان معامل التشابه $\tfrac{4}{3}$. محيط الأصغر $21$. ما محيط الأكبر؟
+
+<div slot="explain">$21 \times \tfrac{4}{3} = 28$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={70}>
+
+$ABCD \sim EFGH$، و $m\angle B = 70^\circ$. ما $m\angle F$؟
+
+<div slot="explain">الزوايا المتناظرة متطابقة: $70^\circ$. التشابه يغيّر الأطوال لا الزوايا.</div>
+</Quiz>
+
+## الخلاصة
+
+- مضلعان **متشابهان** إذا تطابقت زواياهما المتناظرة **وتناسبت** أضلاعهما المتناظرة.
+- **معامل التشابه** نسبة ضلعين متناظرين، ونسبة المحيطين تساويه.
+- اكتب الرؤوس بترتيب التناظر، فهو يخبرك أي ضلع يقابل أي ضلع.

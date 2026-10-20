@@ -1,0 +1,80 @@
+---
+// Interactive: the geometric mean of a and b is the side of the square
+// whose area equals the a × b rectangle.
+import '../styles/qlab.css';
+---
+
+<geomean-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">الوسط الهندسي</span>
+  </div>
+  <svg viewBox="0 0 360 200" class="stage" role="img" aria-label="مستطيل ومربع لهما المساحة نفسها"></svg>
+  <div class="sliders">
+    <label><span class="ltr">a = <b data-v="a">2</b></span><input type="range" data-k="a" min="1" max="9" value="2" dir="ltr" aria-label="a" /></label>
+    <label><span class="ltr">b = <b data-v="b">8</b></span><input type="range" data-k="b" min="1" max="9" value="8" dir="ltr" aria-label="b" /></label>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</geomean-lab>
+
+<script>
+  import { el, text } from '../scripts/svg';
+
+  const U = 16;
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+
+  class GeoMeanLab extends HTMLElement {
+    v: Record<string, number> = { a: 2, b: 8 };
+    connectedCallback() {
+      this.querySelectorAll<HTMLInputElement>('input[data-k]').forEach((inp) =>
+        inp.addEventListener('input', () => {
+          this.v[inp.dataset.k!] = Number(inp.value);
+          this.render();
+        }),
+      );
+      this.render();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const { a, b } = this.v;
+      const g = Math.sqrt(a * b);
+      const base = 185;
+      // rectangle a (height) × b (width) on the left, square g × g on the right
+      const rw = b * U;
+      const rh = a * U;
+      svg.appendChild(el('rect', { x: 40, y: base - rh, width: rw, height: rh }, 'r1'));
+      svg.appendChild(text(40 + rw / 2, base - rh - 8, `b = ${b}`, 'mlbl'));
+      const al = text(24, base - rh / 2, `a = ${a}`, 'mlbl');
+      al.setAttribute('transform', `rotate(-90 24 ${base - rh / 2})`);
+      svg.appendChild(al);
+      const sx = 360 - 15 - g * U;
+      svg.appendChild(el('rect', { x: sx, y: base - g * U, width: g * U, height: g * U }, 'r2'));
+      svg.appendChild(text(sx + (g * U) / 2, base - g * U - 8, `x = ${fmt(g)}`, 'mlbl'));
+      svg.appendChild(text(40 + rw / 2, base - rh / 2, `${a * b}`, 'val'));
+      svg.appendChild(text(sx + (g * U) / 2, base - (g * U) / 2, `${a * b}`, 'val'));
+      this.querySelectorAll<HTMLElement>('[data-v]').forEach((e) => (e.textContent = String(this.v[e.dataset.v!])));
+      const exact = Number.isInteger(g);
+      this.querySelector('.calc')!.innerHTML =
+        `<div>${a} / x = x / ${b}  ⇒  x² = ${a} × ${b} = ${a * b}</div>` +
+        `<div class="big">x = √${a * b}${exact ? ` = ${g}` : ` ≈ ${fmt(g)}`}</div>` +
+        `<div>(a + b) ÷ 2 = ${fmt((a + b) / 2)}  ≥  ${fmt(g)}</div>`;
+      this.querySelector('.note')!.textContent =
+        'المستطيل والمربع لهما المساحة نفسها. ضلع المربع هو الوسط الهندسي. لاحظ أنه لا يزيد أبدًا على الوسط الحسابي (المتوسط العادي)، ويساويه فقط حين a = b.';
+    }
+  }
+  customElements.define('geomean-lab', GeoMeanLab);
+</script>
+
+<style is:global>
+  geomean-lab .stage .r1 {
+    fill: var(--def-bg);
+    stroke: var(--def);
+    stroke-width: 2;
+  }
+  geomean-lab .stage .r2 {
+    fill: var(--thm-bg);
+    stroke: var(--thm);
+    stroke-width: 2;
+  }
+</style>

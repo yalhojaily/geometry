@@ -87,7 +87,7 @@ export const skills: Skill[] = [
     review: 'في التناسب $\\tfrac{a}{b} = \\tfrac{c}{d}$ يكون حاصل ضرب الطرفين مساويًا لحاصل ضرب الوسطين: $ad = bc$.',
     example: '$\\tfrac{x}{6} = \\tfrac{10}{15} \\Rightarrow 15x = 60 \\Rightarrow x = 4$',
     check: { q: 'إذا كان $\\tfrac{3}{x} = \\tfrac{9}{12}$، فما قيمة $x$؟', answer: 4 },
-    usedIn: ['8.1', '8.2', '8.3', '8.6'],
+    usedIn: ['8.1', '8.2', '8.3', '8.4', '8.6'],
   },
   {
     id: 'alg-radicals',
@@ -123,7 +123,7 @@ export const skills: Skill[] = [
     review: 'مربع العدد السالب موجب، لأن سالب × سالب = موجب. والجذر التربيعي $\\sqrt{n}$ هو العدد الموجب الذي مربعه $n$. إذا لم يكن $n$ مربعًا كاملًا نقرّب الجذر.',
     example: '$(-6)^2 = 36$، و $\\sqrt{36 + 64} = \\sqrt{100} = 10$، و $\\sqrt{20} \\approx 4.47$',
     check: { q: 'ما قيمة $\\sqrt{(-5)^2 + 12^2}$؟', answer: 13 },
-    usedIn: ['1.3', '9.2'],
+    usedIn: ['1.3', '8.2', '9.2'],
   },
   {
     id: 'alg-solve-for-y',

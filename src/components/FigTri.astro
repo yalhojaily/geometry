@@ -2,7 +2,7 @@
 // Static triangle figures used in chapter 4 proofs.
 //  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso'
 interface Props {
-  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso' | 'perpbis' | 'pgram' | 'pgramdiag';
+  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso' | 'perpbis' | 'pgram' | 'pgramdiag' | 'splitter';
   marks?: boolean;
 }
 const { kind, marks = true } = Astro.props;
@@ -104,6 +104,20 @@ if (kind === 'kite') {
   if (marks) tickList = [...ticks(A, P), ...ticks(P, B)];
   arcs = [{ d: `M ${P.x} ${P.y - 12} L ${P.x + 12} ${P.y - 12} L ${P.x + 12} ${P.y}`, cls: 'a2' }];
   aria = 'المستقيم CP عمود منصف للقطعة AB عند P';
+} else if (kind === 'splitter') {
+  const A = { x: 150, y: 20 }, B = { x: 40, y: 185 }, C = { x: 290, y: 185 };
+  const t = 0.45;
+  const D = { x: A.x + (B.x - A.x) * t, y: A.y + (B.y - A.y) * t };
+  const E = { x: A.x + (C.x - A.x) * t, y: A.y + (C.y - A.y) * t };
+  segs = [[A, B], [A, C], [B, C], [D, E]];
+  labels = [
+    { p: { x: A.x - 5, y: A.y - 6 }, t: 'A' }, { p: { x: B.x - 16, y: B.y + 6 }, t: 'B' },
+    { p: { x: C.x + 8, y: C.y + 6 }, t: 'C' }, { p: { x: D.x - 18, y: D.y + 4 }, t: 'D' },
+    { p: { x: E.x + 8, y: E.y + 4 }, t: 'E' },
+  ];
+  arcs = [{ d: arc(D, A, E, 16), cls: 'a1' }, { d: arc(B, A, C, 16), cls: 'a1' }, { d: arc(E, D, A, 16), cls: 'a2' }, { d: arc(C, B, A, 16), cls: 'a2' }];
+  aria = 'المثلث ABC والقطعة DE توازي BC';
+  vb = '0 0 330 200';
 } else if (kind === 'pgram' || kind === 'pgramdiag') {
   const A = { x: 40, y: 170 }, B = { x: 110, y: 40 }, C = { x: 290, y: 40 }, D = { x: 220, y: 170 };
   const E = { x: 165, y: 105 };

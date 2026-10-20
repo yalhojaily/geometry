@@ -15,7 +15,8 @@ const NAMES: Record<string, string> = {
   rotate: 'دوران',
   translate: 'انسحاب',
   glide: 'انعكاس انزلاقي',
-  stretch: 'تمديد',
+  stretch: 'مطّ',
+  dilate: 'تمدد',
   compose: 'انعكاسان',
 };
 ---
@@ -87,6 +88,7 @@ const NAMES: Record<string, string> = {
     a = -4;
     b = -3;
     ga = 4;
+    dk = 2;
     sub = 'par';
     k1 = 1;
     k2 = 3;
@@ -99,6 +101,7 @@ const NAMES: Record<string, string> = {
       this.m = (this.dataset.modes ?? 'reflect').split(',')[0];
       this.showLen = !!this.dataset.lengths;
       this.sub = this.dataset.sub ?? 'par';
+      if (this.m === 'dilate') this.pre = [{ x: 1, y: 1 }, { x: 3, y: 1 }, { x: 1, y: 3 }];
       if (this.sub === 'int') this.pre = [{ x: 3, y: -1 }, { x: 6, y: -1 }, { x: 4, y: -3 }];
       if (this.m === 'glide' || (this.m === 'compose' && this.sub === 'par')) this.pre = [{ x: -5, y: 1 }, { x: -2, y: 1 }, { x: -4, y: 3 }];
       this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
@@ -143,6 +146,8 @@ const NAMES: Record<string, string> = {
         c.innerHTML = `<div class="sliders">${slider('angle', '∠', 0, 345, 15, this.angle, '°')}</div>`;
       } else if (this.m === 'translate') {
         c.innerHTML = `<div class="sliders">${slider('a', 'a', -6, 6, 1, this.a)}${slider('b', 'b', -6, 6, 1, this.b)}</div>`;
+      } else if (this.m === 'dilate') {
+        c.innerHTML = `<div class="sliders">${slider('dk', 'k', 0.25, 2, 0.25, this.dk)}</div>`;
       } else if (this.m === 'glide') {
         c.innerHTML = `<div class="sliders">${slider('ga', 'a', -6, 8, 1, this.ga)}</div>`;
       } else if (this.m === 'compose') {
@@ -293,6 +298,23 @@ const NAMES: Record<string, string> = {
         });
         rule = `(x, y) → (x ${sg(this.ga)}, y) → (x ${sg(this.ga)}, −y)`;
         note = 'الخطوة 1: انسحاب موازٍ لمحور x (الشكل المتقطع). الخطوة 2: انعكاس في محور x. الانسحاب يوازي محور الانعكاس.';
+      } else if (this.m === 'dilate') {
+        const k = this.dk;
+        img = pre.map((p) => ({ x: k * p.x, y: k * p.y }));
+        const o = px(O);
+        pre.forEach((p, i) => {
+          const far = k >= 1 ? img[i] : p;
+          const b = px(far);
+          svg.appendChild(el('line', { x1: o.x, y1: o.y, x2: b.x, y2: b.y }, 'help'));
+        });
+        svg.appendChild(el('circle', { cx: o.x, cy: o.y, r: 4.5 }, 'ctr'));
+        rule = `(x, y) → (${fmt(k)}x, ${fmt(k)}y)`;
+        note =
+          k > 1
+            ? `تكبير بمعامل ${fmt(k)}: كل نقطة تبتعد عن المركز على شعاعها، فيتضاعف بعدها ${fmt(k)} مرة. الصورة مشابهة للأصل، لا مطابقة له.`
+            : k < 1
+              ? `تصغير بمعامل ${fmt(k)}: كل نقطة تقترب من المركز على شعاعها. الصورة مشابهة للأصل وأصغر منه.`
+              : 'المعامل 1: الصورة تنطبق على الأصل.';
       } else if (this.m === 'stretch') {
         img = pre.map((p) => ({ x: 1.5 * p.x, y: p.y }));
         pre.forEach((p, i) => {
@@ -350,7 +372,9 @@ const NAMES: Record<string, string> = {
         const d0 = len(pre[0], pre[1]);
         const d1 = len(img[0], img[1]);
         const same = Math.abs(d0 - d1) < 0.01;
-        html += `<div>AB = ${fmt(d0)} , A′B′ = ${fmt(d1)} ${same ? '✓' : '✗'}</div>`;
+        html += this.m === 'dilate'
+          ? `<div>AB = ${fmt(d0)} , A′B′ = ${fmt(d1)} , A′B′ / AB = ${fmt(d1 / d0)}</div>`
+          : `<div>AB = ${fmt(d0)} , A′B′ = ${fmt(d1)} ${same ? '✓' : '✗'}</div>`;
       }
       this.querySelector('.calc')!.innerHTML = html;
       this.querySelector('.note')!.textContent = note;

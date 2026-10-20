@@ -1,0 +1,112 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '8.2'
+why: 'الخرائط والمجسمات والمخططات كلها مرسومة بمقياس رسم، أي بتناسب. هنا نتعلم خصائص إضافية للتناسب تختصر الحل، ونتعرف على الوسط الهندسي الذي سيظهر في المثلثات القائمة في الفصل التاسع.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import GeoMeanLab from '../../components/GeoMeanLab.astro';
+
+## خصائص إضافية
+
+<Term id="prop-proportion-more" />
+
+<Example title="مثال 1: استخدم الخصائص">
+
+إذا كان $\tfrac{x}{y} = \tfrac{5}{3}$:
+
+1. **تبديل الوسطين:** $\tfrac{x}{5} = \tfrac{y}{3}$.
+2. **إضافة 1:** $\tfrac{x + y}{y} = \tfrac{5 + 3}{3} = \tfrac{8}{3}$.
+3. **المقلوب:** $\tfrac{y}{x} = \tfrac{3}{5}$.
+
+</Example>
+
+<Prereq id="alg-proportion" />
+
+<Example title="مثال 2: مقياس الرسم">
+
+خريطة مقياسها $1 \text{ cm} : 25 \text{ km}$. المسافة بين مدينتين على الخريطة $7.2 \text{ cm}$. ما المسافة الحقيقية؟
+
+1. $\tfrac{1}{25} = \tfrac{7.2}{x}$.
+2. $x = 25 \times 7.2 = 180 \text{ km}$.
+
+</Example>
+
+<Example title="مثال 3: نسبة أجزاء قطعة">
+
+في الشكل، $\tfrac{AB}{BC} = \tfrac{3}{5}$ و $AC = 32$، حيث $B$ بين $A$ و $C$. أوجد $AB$.
+
+1. بخاصية إضافة 1: $\tfrac{AB + BC}{BC} = \tfrac{3 + 5}{5}$، أي $\tfrac{AC}{BC} = \tfrac{8}{5}$.
+2. $\tfrac{32}{BC} = \tfrac{8}{5}$، إذن $BC = 20$.
+3. $AB = 32 - 20 = 12$.
+
+</Example>
+
+## الوسط الهندسي
+
+<Term id="def-geometric-mean" />
+
+<GeoMeanLab />
+
+<Prereq id="alg-squares-roots" />
+
+<Example title="مثال 4: أوجد الوسط الهندسي">
+
+1. **$4$ و $9$:** $x = \sqrt{4 \cdot 9} = \sqrt{36} = 6$. تحقق: $\tfrac{4}{6} = \tfrac{6}{9}$ ✓
+2. **$3$ و $12$:** $\sqrt{36} = 6$.
+3. **$5$ و $8$:** $\sqrt{40} = 2\sqrt{10} \approx 6.32$.
+
+</Example>
+
+<Callout type="tip" title="الوسط الحسابي والوسط الهندسي">
+
+الوسط الحسابي لـ $4$ و $9$ هو $6.5$، والهندسي $6$. الهندسي لا يزيد على الحسابي أبدًا، ويتساويان فقط حين يتساوى العددان. جرّب ذلك في المختبر.
+
+</Callout>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={10}>
+
+ما الوسط الهندسي للعددين $5$ و $20$؟
+
+<div slot="explain">$\sqrt{100} = 10$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={12}>
+
+ما الوسط الهندسي للعددين $8$ و $18$؟
+
+<div slot="explain">$\sqrt{144} = 12$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={9} hint="اكتب التناسب، ثم حوّل السنتيمترات إلى أمتار.">
+
+مخطط بيت مقياسه $1 : 50$. طول غرفة على المخطط $18 \text{ cm}$. ما طولها الحقيقي بالمتر؟
+
+<div slot="explain">$18 \times 50 = 900 \text{ cm} = 9 \text{ m}$.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={0} options={['x/3 = y/7', 'x/7 = y/3', 'x/y = 7/3', '(x + y)/y = 3/7']}>
+
+إذا كان $\tfrac{x}{y} = \tfrac{3}{7}$، فأي العبارات صحيحة؟
+
+<div slot="explain">بتبديل الوسطين: $\tfrac{x}{3} = \tfrac{y}{7}$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={15}>
+
+$\tfrac{PQ}{QR} = \tfrac{3}{2}$ و $PR = 25$، حيث $Q$ بين $P$ و $R$. ما $PQ$؟
+
+<div slot="explain">$\tfrac{PR}{QR} = \tfrac{5}{2}$، فيكون $QR = 10$ و $PQ = 15$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **تبديل الوسطين:** $\tfrac{a}{b} = \tfrac{c}{d} \Rightarrow \tfrac{a}{c} = \tfrac{b}{d}$.
+- **إضافة 1:** $\tfrac{a}{b} = \tfrac{c}{d} \Rightarrow \tfrac{a + b}{b} = \tfrac{c + d}{d}$. مفيدة حين تعرف المجموع.
+- **الوسط الهندسي** لـ $a$ و $b$ هو $\sqrt{ab}$، وهو ضلع المربع الذي يساوي مساحة المستطيل $a \times b$.

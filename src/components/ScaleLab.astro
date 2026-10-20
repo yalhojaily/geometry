@@ -1,0 +1,108 @@
+---
+// Interactive: a polygon and a scaled copy (similar) or a copy stretched one way (not similar).
+import '../styles/qlab.css';
+---
+
+<scale-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">المضلعات المتشابهة</span>
+  </div>
+  <div class="modes" role="tablist">
+    <button type="button" data-m="sim" class="on">تكبير في الاتجاهين</button>
+    <button type="button" data-m="str">مطّ أفقي فقط</button>
+  </div>
+  <svg viewBox="0 0 360 220" class="stage" role="img" aria-label="مضلع ونسخة مكبرة منه"></svg>
+  <div class="sliders">
+    <label><span class="ltr">k = <b class="kv">1.5</b></span><input type="range" class="k" min="0.5" max="2.5" step="0.25" value="1.5" dir="ltr" aria-label="معامل التشابه" /></label>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</scale-lab>
+
+<script>
+  import { el, text, type P } from '../scripts/svg';
+  import { len, pts, interiorAngles, centroid } from '../scripts/quad';
+
+  const SHAPE: P[] = [
+    { x: 0, y: 0 },
+    { x: 4, y: 0 },
+    { x: 4, y: 2 },
+    { x: 2, y: 3.5 },
+    { x: 0, y: 2 },
+  ];
+  const U = 20;
+  const BASE = 205;
+  const N1 = ['A', 'B', 'C', 'D', 'E'];
+  const N2 = ['F', 'G', 'H', 'J', 'K'];
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+
+  class ScaleLab extends HTMLElement {
+    k = 1.5;
+    m = 'sim';
+    connectedCallback() {
+      const k = this.querySelector<HTMLInputElement>('input.k')!;
+      k.addEventListener('input', () => {
+        this.k = Number(k.value);
+        this.render();
+      });
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.m = b.dataset.m!;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      this.render();
+    }
+    draw(svg: Element, ps: P[], x0: number, cls: string, names: string[]) {
+      const s = ps.map((p) => ({ x: x0 + p.x * U, y: BASE - p.y * U }));
+      svg.appendChild(el('polygon', { points: pts(s) }, cls));
+      const c = centroid(s);
+      s.forEach((p, i) => {
+        const d = len(p, c) || 1;
+        svg.appendChild(text(p.x + ((p.x - c.x) / d) * 13, p.y + ((p.y - c.y) / d) * 13, names[i], 'lbl sm'));
+      });
+      return s;
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const k = this.k;
+      const img = SHAPE.map((p) => (this.m === 'sim' ? { x: p.x * k, y: p.y * k } : { x: p.x * k, y: p.y }));
+      this.draw(svg, SHAPE, 18, 'poly', N1);
+      this.draw(svg, img, 140, 'poly2', N2);
+      this.querySelector('.kv')!.textContent = String(k);
+
+      const sides = (ps: P[]) => ps.map((p, i) => len(p, ps[(i + 1) % ps.length]));
+      const s1 = sides(SHAPE);
+      const s2 = sides(img);
+      const r = s2.map((x, i) => x / s1[i]);
+      const a1 = interiorAngles(SHAPE).map((a) => a.m);
+      const a2 = interiorAngles(img).map((a) => a.m);
+      const p1 = s1.reduce((s, x) => s + x, 0);
+      const p2 = s2.reduce((s, x) => s + x, 0);
+      const same = r.every((x) => Math.abs(x - r[0]) < 0.01) && a1.every((x, i) => Math.abs(x - a2[i]) < 0.5);
+      this.querySelector('.calc')!.innerHTML =
+        `<div>FG/AB = ${fmt(r[0])} , GH/BC = ${fmt(r[1])} , HJ/CD = ${fmt(r[2])}</div>` +
+        `<div>m∠D = ${Math.round(a1[3])}° , m∠J = ${Math.round(a2[3])}°</div>` +
+        `<div class="big">P₂ / P₁ = ${fmt(p2)} / ${fmt(p1)} = ${fmt(p2 / p1)}</div>`;
+      this.querySelector('.note')!.textContent = same
+        ? `متشابهان: كل الأضلاع تضاعفت بالمعامل نفسه ${k}، والزوايا لم تتغير. ونسبة المحيطين تساوي معامل التشابه.`
+        : 'ليسا متشابهين: النسب بين الأضلاع المتناظرة مختلفة، والزاوية عند J تغيّرت. الشكل صار أعرض فقط.';
+    }
+  }
+  customElements.define('scale-lab', ScaleLab);
+</script>
+
+<style is:global>
+  scale-lab .stage .poly2 {
+    fill: var(--accent);
+    fill-opacity: 0.18;
+    stroke: var(--accent);
+    stroke-width: 2.6;
+    stroke-linejoin: round;
+  }
+  scale-lab .stage .lbl.sm {
+    font-size: 12px;
+  }
+</style>

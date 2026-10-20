@@ -100,13 +100,13 @@ export const chapters: Chapter[] = [
   {
     n: 8, en: 'Similarity', ar: 'التشابه',
     lessons: [
-      { id: '8.1', en: 'Ratio and Proportion', ar: 'النسبة والتناسب' },
-      { id: '8.2', en: 'Problem Solving in Geometry with Proportions', ar: 'حل المسائل الهندسية بالتناسب' },
-      { id: '8.3', en: 'Similar Polygons', ar: 'المضلعات المتشابهة' },
-      { id: '8.4', en: 'Similar Triangles', ar: 'المثلثات المتشابهة' },
-      { id: '8.5', en: 'Proving Triangles are Similar', ar: 'إثبات تشابه المثلثات' },
-      { id: '8.6', en: 'Proportions and Similar Triangles', ar: 'التناسب والمثلثات المتشابهة' },
-      { id: '8.7', en: 'Dilations', ar: 'التمدد' },
+      { id: '8.1', en: 'Ratio and Proportion', ar: 'النسبة والتناسب', ready: true },
+      { id: '8.2', en: 'Problem Solving in Geometry with Proportions', ar: 'حل المسائل الهندسية بالتناسب', ready: true },
+      { id: '8.3', en: 'Similar Polygons', ar: 'المضلعات المتشابهة', ready: true },
+      { id: '8.4', en: 'Similar Triangles', ar: 'المثلثات المتشابهة', ready: true },
+      { id: '8.5', en: 'Proving Triangles are Similar', ar: 'إثبات تشابه المثلثات', ready: true },
+      { id: '8.6', en: 'Proportions and Similar Triangles', ar: 'التناسب والمثلثات المتشابهة', ready: true },
+      { id: '8.7', en: 'Dilations', ar: 'التمدد', ready: true },
     ],
   },
   {

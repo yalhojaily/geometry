@@ -1,0 +1,111 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '8.5'
+why: 'أحيانًا لا تعرف زوايا المثلثين، بل أطوال أضلاعهما. هنا نظريتان تثبتان التشابه بالأطوال: SSS و SAS، وهما نظيرتا مسلّمتي التطابق اللتين تعرفهما، لكن مع «متناسبة» مكان «متطابقة».'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import SimTriLab from '../../components/SimTriLab.astro';
+
+## التشابه SSS
+
+<Term id="thm-sss-sim" />
+
+المثلث $ABC$ أضلاعه $AB = 4$ و $BC = 5$ و $CA = 3$. غيّر أضلاع $DEF$ وابحث عن مثلث مشابه:
+
+<SimTriLab mode="sss" />
+
+<Callout type="tip" title="رتّب قبل أن تقسم">
+
+لمقارنة مثلثين بالأطوال: رتّب أضلاع كل منهما من الأقصر إلى الأطول، ثم اقسم الأقصر على الأقصر، والأوسط على الأوسط، والأطول على الأطول. إذا تساوت النسب الثلاث فهما متشابهان.
+
+</Callout>
+
+## التشابه SAS
+
+<Term id="thm-sas-sim" />
+
+المثلث $ABC$ فيه $AB = 4$ و $AC = 3$ و $m\angle A = 50^\circ$:
+
+<SimTriLab mode="sas" />
+
+| التطابق | التشابه |
+|---|---|
+| SSS: ثلاثة أضلاع **متطابقة** | SSS: ثلاثة أضلاع **متناسبة** |
+| SAS: ضلعان **متطابقان** وزاوية محصورة | SAS: ضلعان **متناسبان** وزاوية محصورة |
+| ASA و AAS: زاويتان وضلع | AA: زاويتان فقط |
+
+<Example title="مثال 1: SSS">
+
+$\triangle ABC$ أضلاعه $6$ و $8$ و $10$، و $\triangle DEF$ أضلاعه $9$ و $12$ و $15$. هل هما متشابهان؟
+
+1. رتّب: $6 < 8 < 10$ و $9 < 12 < 15$.
+2. النسب: $\tfrac{9}{6} = 1.5$ و $\tfrac{12}{8} = 1.5$ و $\tfrac{15}{10} = 1.5$.
+3. متساوية، فهما متشابهان (SSS) بمعامل $1.5$.
+
+</Example>
+
+<Example title="مثال 2: SAS مع زاوية مشتركة">
+
+في $\triangle ABC$، النقطة $D$ على $\overline{AB}$ و $E$ على $\overline{AC}$، و $AD = 3$ و $AB = 9$ و $AE = 4$ و $AC = 12$. هل $\triangle ADE \sim \triangle ABC$؟
+
+1. $\angle A$ مشتركة بين المثلثين.
+2. $\tfrac{AD}{AB} = \tfrac{3}{9} = \tfrac{1}{3}$ و $\tfrac{AE}{AC} = \tfrac{4}{12} = \tfrac{1}{3}$.
+3. الضلعان الحاصران لـ $\angle A$ متناسبان، فالمثلثان متشابهان (SAS).
+
+</Example>
+
+<Example title="مثال 3: ليسا متشابهين">
+
+مثلث أضلاعه $4$ و $6$ و $7$، وآخر أضلاعه $8$ و $12$ و $15$.
+
+1. $\tfrac{8}{4} = 2$ و $\tfrac{12}{6} = 2$ و $\tfrac{15}{7} \approx 2.14$.
+2. النسبة الثالثة مختلفة، فهما غير متشابهين.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={0} options={['نعم', 'لا']}>
+
+مثلث أضلاعه $5$ و $7$ و $9$، وآخر أضلاعه $15$ و $21$ و $27$. هل هما متشابهان؟
+
+<div slot="explain">كل النسب $3$: متشابهان (SSS).</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={1} options={['نعم', 'لا']}>
+
+مثلث أضلاعه $3$ و $4$ و $5$، وآخر أضلاعه $6$ و $8$ و $9$. هل هما متشابهان؟
+
+<div slot="explain">$\tfrac{6}{3} = 2$ و $\tfrac{8}{4} = 2$ لكن $\tfrac{9}{5} = 1.8$. لا.</div>
+</Quiz>
+
+<Quiz n={3} type="choice" answer={2} options={['AA', 'SSS', 'SAS', 'لا يكفي']}>
+
+$\angle P \cong \angle X$، و $\tfrac{PQ}{XY} = \tfrac{PR}{XZ} = 2$. بأي نظرية يتشابه $\triangle PQR$ و $\triangle XYZ$؟
+
+<div slot="explain">زاوية متطابقة والضلعان الحاصران لها متناسبان: SAS.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={9} hint="اجعل نسبة الضلعين الحاصرين متساوية.">
+
+في $\triangle ABC$ و $\triangle DEF$: $\angle B \cong \angle E$، و $AB = 4$ و $BC = 6$ و $DE = 6$. ما قيمة $EF$ التي تجعلهما متشابهين بـ SAS؟
+
+<div slot="explain">$\tfrac{DE}{AB} = \tfrac{6}{4} = 1.5$، فيلزم $EF = 1.5 \times 6 = 9$.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={1} options={['يكفي', 'لا يكفي']}>
+
+ضلعان متناسبان وزاوية **غير محصورة** بينهما متطابقة. هل هذا يكفي للتشابه؟
+
+<div slot="explain">لا يكفي، تمامًا كما أن SSA لا يكفي للتطابق.</div>
+</Quiz>
+
+## الخلاصة
+
+- **SSS:** الأضلاع الثلاثة متناسبة، فالمثلثان متشابهان.
+- **SAS:** زاوية متطابقة، والضلعان الحاصران لها متناسبان.
+- مع **AA** يكتمل عندنا ثلاث طرق لإثبات تشابه مثلثين.

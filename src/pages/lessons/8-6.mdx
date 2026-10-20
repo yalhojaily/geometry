@@ -1,0 +1,116 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '8.6'
+why: 'التشابه يولّد تناسبات مختبئة داخل المثلث: مستقيم يوازي ضلعًا يقسم الضلعين الآخرين بنسبة واحدة، ومنصف الزاوية يقسم الضلع المقابل بنسبة الضلعين المجاورين. نظريتان قصيرتان تختصران حسابات كثيرة.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import SplitterLab from '../../components/SplitterLab.astro';
+
+## نظرية التناسب في المثلث
+
+<Term id="thm-triangle-proportionality" />
+
+<SplitterLab mode="parallel" />
+
+<Callout type="warning" title="انتبه لأي نسبة تكتب">
+
+$\tfrac{AD}{DB} = \tfrac{AE}{EC}$ صحيحة، لكن $\tfrac{DE}{BC}$ **لا** تساوي $\tfrac{AD}{DB}$. القطعة $\overline{DE}$ تقارَن بـ $\overline{BC}$ عبر التشابه: $\tfrac{DE}{BC} = \tfrac{AD}{AB}$.
+
+</Callout>
+
+<Prereq id="alg-proportion" />
+
+<Example title="مثال 1: قطعة مجهولة">
+
+في $\triangle ABC$، $\overline{DE} \parallel \overline{BC}$، و $AD = 4$ و $DB = 6$ و $AE = 5$. أوجد $EC$.
+
+1. $\tfrac{AD}{DB} = \tfrac{AE}{EC}$، أي $\tfrac{4}{6} = \tfrac{5}{EC}$.
+2. $4 \cdot EC = 30$، إذن $EC = 7.5$.
+
+</Example>
+
+<Example title="مثال 2: هل يتوازيان؟">
+
+$AD = 6$ و $DB = 9$ و $AE = 8$ و $EC = 12$. هل $\overline{DE} \parallel \overline{BC}$؟
+
+1. $\tfrac{AD}{DB} = \tfrac{6}{9} = \tfrac{2}{3}$ و $\tfrac{AE}{EC} = \tfrac{8}{12} = \tfrac{2}{3}$.
+2. النسبتان متساويتان، فبعكس النظرية: نعم، متوازيان.
+
+</Example>
+
+## ثلاثة مستقيمات متوازية
+
+<Term id="thm-parallels-proportional" />
+
+<Example title="مثال 3: قطع الأراضي">
+
+ثلاثة شوارع متوازية يقطعها شارعان. على الأول تقسم الشوارع المتوازية القطعتين $40 \text{ m}$ و $60 \text{ m}$، وعلى الثاني القطعة الأولى $50 \text{ m}$. ما الثانية؟
+
+1. $\tfrac{40}{60} = \tfrac{50}{x}$.
+2. $40x = 3000$، إذن $x = 75 \text{ m}$.
+
+</Example>
+
+## منصف الزاوية
+
+<Term id="thm-bisector-ratio" />
+
+<SplitterLab mode="bisector" />
+
+<Example title="مثال 4: منصف الزاوية">
+
+في $\triangle ABC$، $\overline{AD}$ ينصف $\angle A$، و $AB = 8$ و $AC = 12$ و $BC = 15$. أوجد $BD$ و $DC$.
+
+1. $\tfrac{BD}{DC} = \tfrac{AB}{AC} = \tfrac{8}{12} = \tfrac{2}{3}$.
+2. $BD = 2x$ و $DC = 3x$، و $5x = 15$، إذن $x = 3$.
+3. $BD = 6$ و $DC = 9$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={8}>
+
+$\overline{DE} \parallel \overline{BC}$، و $AD = 6$ و $DB = 3$ و $AE = 16$. ما $EC$؟
+
+<div slot="explain">$\tfrac{6}{3} = \tfrac{16}{EC}$، إذن $EC = 8$.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={1} options={['نعم', 'لا']}>
+
+$AD = 5$ و $DB = 4$ و $AE = 6$ و $EC = 5$. هل $\overline{DE} \parallel \overline{BC}$؟
+
+<div slot="explain">$\tfrac{5}{4} = 1.25$ و $\tfrac{6}{5} = 1.2$. غير متساويتين، فلا.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={9} hint="BD/DC = AB/AC.">
+
+$\overline{AD}$ ينصف $\angle A$، و $AB = 6$ و $AC = 9$ و $BD = 6$. ما $DC$؟
+
+<div slot="explain">$\tfrac{6}{DC} = \tfrac{6}{9}$، إذن $DC = 9$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={12}>
+
+ثلاثة مستقيمات متوازية تقسم قاطعًا إلى $4$ و $6$، وتقسم قاطعًا آخر إلى $8$ و $x$. ما $x$؟
+
+<div slot="explain">$\tfrac{4}{6} = \tfrac{8}{x}$، إذن $x = 12$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={4}>
+
+$\overline{DE} \parallel \overline{BC}$، و $AD = 2$ و $AB = 6$ و $BC = 12$. ما $DE$؟
+
+<div slot="explain">$\triangle ADE \sim \triangle ABC$ بمعامل $\tfrac{AD}{AB} = \tfrac{1}{3}$، إذن $DE = 4$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **مستقيم يوازي ضلعًا** يقسم الضلعين الآخرين بنسبة واحدة: $\tfrac{AD}{DB} = \tfrac{AE}{EC}$، والعكس صحيح.
+- **ثلاثة مستقيمات متوازية** تقسم أي قاطعين بنسب متساوية.
+- **منصف الزاوية** يقسم الضلع المقابل بنسبة الضلعين المجاورين: $\tfrac{BD}{DC} = \tfrac{AB}{AC}$.

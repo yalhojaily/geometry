@@ -1,0 +1,145 @@
+---
+// Interactive proportions in a triangle.
+//  mode="parallel": DE ∥ BC splits AB and AC in the same ratio.
+//  mode="bisector": the bisector of ∠A splits BC in the ratio AB : AC.
+import '../styles/qlab.css';
+interface Props {
+  mode?: 'parallel' | 'bisector';
+}
+const { mode = 'parallel' } = Astro.props;
+---
+
+<splitter-lab class="panel lab qlab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{mode === 'parallel' ? 'مستقيم يوازي ضلعًا' : 'منصف زاوية في مثلث'}</span>
+    <span class="hint-small">اسحب الرؤوس</span>
+  </div>
+  <svg viewBox="0 0 360 250" class="stage" role="img" aria-label={mode === 'parallel' ? 'مثلث ABC و DE يوازي BC' : 'مثلث ABC ومنصف الزاوية A'}></svg>
+  {
+    mode === 'parallel' && (
+      <div class="sliders">
+        <label>
+          <span class="ltr">
+            AD/AB = <b class="tv">0.4</b>
+          </span>
+          <input type="range" class="t" min="0.1" max="0.9" step="0.05" value="0.4" dir="ltr" aria-label="موضع D" />
+        </label>
+      </div>
+    )
+  }
+  <div class="calc"></div>
+  <p class="note"></p>
+</splitter-lab>
+
+<script>
+  import { el, text, makeDraggable, type P } from '../scripts/svg';
+  import { len, pts, centroid, handle, chevron, clamp } from '../scripts/quad';
+
+  const U = 30;
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+  const lerp = (a: P, b: P, t: number): P => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+
+  class SplitterLab extends HTMLElement {
+    mode = 'parallel';
+    v: P[] = [{ x: 150, y: 30 }, { x: 40, y: 225 }, { x: 320, y: 225 }];
+    t = 0.4;
+    drag!: { start: (k: string, e: PointerEvent) => void };
+
+    connectedCallback() {
+      this.mode = this.dataset.mode ?? 'parallel';
+      if (this.mode === 'bisector') this.v = [{ x: 110, y: 35 }, { x: 40, y: 225 }, { x: 330, y: 225 }];
+      this.querySelector<HTMLInputElement>('input.t')?.addEventListener('input', (e) => {
+        this.t = Number((e.target as HTMLInputElement).value);
+        this.render();
+      });
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<string>(svg, (k, p) => {
+        const i = Number(k);
+        const q = clamp(p, 18, 342, 18, 232);
+        const next = this.v.slice();
+        next[i] = q;
+        const [A, B, C] = next;
+        if (Math.abs((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) / 2 < 2500) return;
+        this.v = next;
+        this.render();
+      });
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const [A, B, C] = this.v;
+      const cen = centroid(this.v);
+      svg.appendChild(el('polygon', { points: pts(this.v) }, 'poly'));
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      if (this.mode === 'parallel') {
+        const D = lerp(A, B, this.t);
+        const E = lerp(A, C, this.t);
+        svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: D.x, y2: D.y }, 'hl'));
+        svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: E.x, y2: E.y }, 'hl'));
+        svg.appendChild(el('line', { x1: D.x, y1: D.y, x2: B.x, y2: B.y }, 'hl2'));
+        svg.appendChild(el('line', { x1: E.x, y1: E.y, x2: C.x, y2: C.y }, 'hl2'));
+        svg.appendChild(el('line', { x1: D.x, y1: D.y, x2: E.x, y2: E.y }, 'diag'));
+        chevron(svg, D, E, 1);
+        chevron(svg, B, C, 1);
+        for (const [p, n, dx] of [[D, 'D', -16], [E, 'E', 16]] as [P, string, number][]) {
+          svg.appendChild(el('circle', { cx: p.x, cy: p.y, r: 4 }, 'mk'));
+          svg.appendChild(text(p.x + dx, p.y, n, 'mlbl'));
+        }
+        const ad = len(A, D) / U;
+        const db = len(D, B) / U;
+        const ae = len(A, E) / U;
+        const ec = len(E, C) / U;
+        this.querySelector('.tv')!.textContent = String(this.t);
+        calc.innerHTML =
+          `<div>AD = ${fmt(ad)} , DB = ${fmt(db)}</div><div>AE = ${fmt(ae)} , EC = ${fmt(ec)}</div>` +
+          `<div class="big">AD/DB = ${fmt(ad / db)} , AE/EC = ${fmt(ae / ec)}</div>` +
+          `<div>DE/BC = ${fmt(len(D, E) / len(B, C))}</div>`;
+        note.textContent =
+          'القطعة DE توازي BC دائمًا. لاحظ أن النسبتين AD/DB و AE/EC متساويتان مهما غيّرت المثلث أو موضع D. أما نسبة DE إلى BC فتساوي AD/AB، لا AD/DB.';
+      } else {
+        const ab = len(A, B);
+        const ac = len(A, C);
+        const D = lerp(B, C, ab / (ab + ac));
+        svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: D.x, y2: D.y }, 'diag'));
+        svg.appendChild(el('line', { x1: B.x, y1: B.y, x2: D.x, y2: D.y }, 'hl'));
+        svg.appendChild(el('line', { x1: D.x, y1: D.y, x2: C.x, y2: C.y }, 'hl2'));
+        // equal angle marks at A
+        const ang = (p: P) => Math.atan2(-(p.y - A.y), p.x - A.x);
+        const aB = ang(B);
+        const aC = ang(C);
+        const aD = ang(D);
+        const arc = (a1: number, a2: number, r: number, cls: string) => {
+          const p1 = { x: A.x + r * Math.cos(a1), y: A.y - r * Math.sin(a1) };
+          const p2 = { x: A.x + r * Math.cos(a2), y: A.y - r * Math.sin(a2) };
+          let d = a2 - a1;
+          while (d > Math.PI) d -= 2 * Math.PI;
+          while (d <= -Math.PI) d += 2 * Math.PI;
+          const sweep = d > 0 ? 0 : 1;
+          svg.appendChild(el('path', { d: `M ${A.x} ${A.y} L ${p1.x} ${p1.y} A ${r} ${r} 0 0 ${sweep} ${p2.x} ${p2.y} Z` }, cls));
+        };
+        arc(aD, aB, 26, 'wedge w0');
+        arc(aC, aD, 30, 'wedge w1');
+        svg.appendChild(el('circle', { cx: D.x, cy: D.y, r: 4 }, 'mk'));
+        svg.appendChild(text(D.x, D.y + 16, 'D', 'mlbl'));
+        const bd = len(B, D) / U;
+        const dc = len(D, C) / U;
+        calc.innerHTML =
+          `<div>AB = ${fmt(ab / U)} , AC = ${fmt(ac / U)}</div><div>BD = ${fmt(bd)} , DC = ${fmt(dc)}</div>` +
+          `<div class="big">BD/DC = ${fmt(bd / dc)} , AB/AC = ${fmt(ab / ac)}</div>`;
+        note.textContent =
+          'المنصف لا ينصف الضلع المقابل عادة: الجزء الأطول يقع جهة الضلع الأطول. النسبتان متساويتان دائمًا.';
+      }
+      ['A', 'B', 'C'].forEach((n, i) => handle(svg, this.v[i], n, cen, (e) => this.drag.start(String(i), e)));
+    }
+  }
+  customElements.define('splitter-lab', SplitterLab);
+</script>
+
+<style is:global>
+  splitter-lab.qlab .sliders span {
+    width: 7.5rem;
+  }
+</style>
