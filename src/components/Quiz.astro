@@ -66,7 +66,8 @@ const { n, type, options = [], answer, hint } = Astro.props;
               .trim()
               .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
               .replace(/[−–]/g, '-')
-              .replace('٫', '.'),
+              .replace('٫', '.')
+              .replace(/[,٬\s]/g, ''),
           );
           if (input.value.trim() === '' || Number.isNaN(v)) return;
           const ok = Math.abs(v - answer) < 1e-9;

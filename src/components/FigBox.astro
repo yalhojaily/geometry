@@ -1,0 +1,106 @@
+---
+// Static figure: a box showing parallel lines, skew lines and parallel planes.
+const V: Record<string, [number, number]> = {
+  A: [50, 190], B: [230, 190], F: [230, 90], E: [50, 90],
+  D: [110, 150], C: [290, 150], G: [290, 50], H: [110, 50],
+};
+const edges: [string, string, string?][] = [
+  ['A', 'B', 'par'], ['B', 'F'], ['F', 'E'], ['E', 'A'],
+  ['C', 'G', 'skew'], ['G', 'H', 'par'], ['D', 'H', 'hid'], ['D', 'C', 'hid'],
+  ['A', 'D', 'hid'], ['B', 'C'], ['F', 'G'], ['E', 'H'],
+];
+const pt = (k: string) => ({ x: V[k][0], y: V[k][1] });
+const off: Record<string, [number, number]> = {
+  A: [-16, 14], B: [4, 16], F: [4, -6], E: [-16, -6], D: [-16, 4], C: [8, 10], G: [8, -4], H: [-16, -4],
+};
+---
+
+<figure class="fig">
+  <svg viewBox="0 0 330 215" role="img" aria-label="متوازي مستطيلات: AB يوازي HG، و AB و CG متخالفان، والوجهان الأمامي والخلفي متوازيان">
+    <polygon class="face f1" points={['A', 'B', 'F', 'E'].map((k) => V[k].join(',')).join(' ')}></polygon>
+    <polygon class="face f2" points={['D', 'C', 'G', 'H'].map((k) => V[k].join(',')).join(' ')}></polygon>
+    {
+      edges.map(([a, b, c]) => (
+        <line x1={pt(a).x} y1={pt(a).y} x2={pt(b).x} y2={pt(b).y} class={c ?? 'e'} />
+      ))
+    }
+    {Object.keys(V).map((k) => <text x={V[k][0] + off[k][0]} y={V[k][1] + off[k][1]}>{k}</text>)}
+  </svg>
+  <figcaption>
+    <span class="k par">AB ∥ HG</span>
+    <span class="k skew">AB و CG متخالفان</span>
+    <span class="k pl">المستوى ABF ∥ المستوى DCG</span>
+  </figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  svg {
+    width: 100%;
+    max-width: 380px;
+    display: block;
+    margin: 0 auto;
+  }
+  .face {
+    stroke: none;
+  }
+  .f1 {
+    fill: var(--def);
+    fill-opacity: 0.12;
+  }
+  .f2 {
+    fill: var(--def);
+    fill-opacity: 0.22;
+  }
+  line {
+    stroke-width: 2;
+  }
+  .e {
+    stroke: var(--ink-2);
+  }
+  .hid {
+    stroke: var(--ink-3);
+    stroke-dasharray: 5 5;
+  }
+  .par {
+    stroke: var(--thm);
+    stroke-width: 4;
+  }
+  .skew {
+    stroke: var(--accent);
+    stroke-width: 4;
+  }
+  text {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    fill: var(--ink);
+  }
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem 0.9rem;
+    font-size: 0.88rem;
+    margin-top: 0.4rem;
+  }
+  .k {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-weight: 600;
+  }
+  .k.par {
+    color: var(--thm);
+  }
+  .k.skew {
+    color: var(--accent);
+    direction: rtl;
+  }
+  .k.pl {
+    color: var(--def);
+    direction: rtl;
+  }
+</style>

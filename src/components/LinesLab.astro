@@ -1,0 +1,322 @@
+---
+// Interactive: slope on a coordinate grid.
+//  mode="parallel": a second line through P with the same slope.
+//  mode="perp":     a second line through P with the negative reciprocal slope.
+interface Props {
+  mode: 'parallel' | 'perp';
+}
+const { mode } = Astro.props;
+---
+
+<lines-lab class="panel lab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{mode === 'parallel' ? 'الميل والتوازي' : 'الميل والتعامد'}</span>
+    <span class="hint-small">اسحب A و B و P</span>
+  </div>
+  <svg viewBox="0 0 360 300" class="stage" role="img" aria-label="مستوى إحداثي فيه مستقيم يمر بـ A و B ومستقيم ثانٍ يمر بـ P"></svg>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</lines-lab>
+
+<script>
+  import { el, text, makeDraggable, type P } from '../scripts/svg';
+
+  const XMIN = -5;
+  const XMAX = 8;
+  const YMIN = -4;
+  const YMAX = 7;
+  const S = 25;
+  const OX = 18;
+  const OY = 285;
+  const px = (x: number) => OX + (x - XMIN) * S;
+  const py = (y: number) => OY - (y - YMIN) * S;
+  type K = 'A' | 'B' | 'P';
+
+  const gcd = (a: number, b: number): number => (b === 0 ? Math.abs(a) : gcd(b, a % b));
+  /** Reduced fraction n/d as text. */
+  function frac(n: number, d: number): string {
+    if (d < 0) {
+      n = -n;
+      d = -d;
+    }
+    const g = gcd(n, d) || 1;
+    n /= g;
+    d /= g;
+    return d === 1 ? String(n) : `${n}/${d}`;
+  }
+
+  class LinesLab extends HTMLElement {
+    A: P = { x: -2, y: -1 };
+    B: P = { x: 2, y: 2 };
+    Pp: P = { x: 3, y: -2 };
+    drag!: { start: (k: K, e: PointerEvent) => void };
+
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<K>(svg, (k, p) => {
+        const q = {
+          x: Math.max(XMIN, Math.min(XMAX, Math.round(XMIN + (p.x - OX) / S))),
+          y: Math.max(YMIN, Math.min(YMAX, Math.round(YMIN + (OY - p.y) / S))),
+        };
+        const others = (['A', 'B', 'P'] as K[]).filter((x) => x !== k).map((x) => this.get(x));
+        if (others.some((o) => o.x === q.x && o.y === q.y)) return;
+        const cur = this.get(k);
+        if (cur.x === q.x && cur.y === q.y) return;
+        if (k === 'P') this.Pp = q;
+        else this[k] = q;
+        this.render();
+      });
+      this.render();
+    }
+
+    get(k: K): P {
+      return k === 'P' ? this.Pp : this[k];
+    }
+
+    /** Endpoints of the line through p with direction (dx, dy), clipped to the grid. */
+    clip(p: P, dx: number, dy: number): [P, P] {
+      let t0 = -1e9;
+      let t1 = 1e9;
+      const bounds: [number, number, number, number][] = [
+        [dx, p.x, XMIN, XMAX],
+        [dy, p.y, YMIN, YMAX],
+      ];
+      for (const [d, v, lo, hi] of bounds) {
+        if (Math.abs(d) < 1e-12) continue;
+        const a = (lo - v) / d;
+        const b = (hi - v) / d;
+        t0 = Math.max(t0, Math.min(a, b));
+        t1 = Math.min(t1, Math.max(a, b));
+      }
+      return [
+        { x: p.x + t0 * dx, y: p.y + t0 * dy },
+        { x: p.x + t1 * dx, y: p.y + t1 * dy },
+      ];
+    }
+
+    eq(p: P, n: number, d: number): string {
+      // y = (n/d)x + b, with b = p.y − (n/d)p.x = (p.y·d − n·p.x)/d
+      if (d === 0) return `x = ${p.x}`;
+      const m = frac(n, d);
+      const bn = p.y * d - n * p.x;
+      const mx = m === '0' ? '' : m === '1' ? 'x' : m === '-1' ? '−x' : `(${m})x`;
+      if (!mx) return `y = ${frac(bn, d)}`;
+      if (bn === 0) return `y = ${mx}`;
+      return `y = ${mx} ${bn * d > 0 ? '+' : '−'} ${frac(Math.abs(bn), Math.abs(d))}`;
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      for (let x = XMIN; x <= XMAX; x++)
+        svg.appendChild(el('line', { x1: px(x), y1: py(YMIN), x2: px(x), y2: py(YMAX) }, x === 0 ? 'axis' : 'gl'));
+      for (let y = YMIN; y <= YMAX; y++)
+        svg.appendChild(el('line', { x1: px(XMIN), y1: py(y), x2: px(XMAX), y2: py(y) }, y === 0 ? 'axis' : 'gl'));
+
+      const { A, B, Pp } = this;
+      const rise = B.y - A.y;
+      const run = B.x - A.x;
+      const perp = this.dataset.mode === 'perp';
+      // direction of the second line
+      const [n2, d2] = perp ? [-run, rise] : [rise, run];
+
+      // rise/run triangle on line 1
+      if (rise !== 0 && run !== 0) {
+        svg.appendChild(el('line', { x1: px(A.x), y1: py(A.y), x2: px(B.x), y2: py(A.y) }, 'run'));
+        svg.appendChild(el('line', { x1: px(B.x), y1: py(A.y), x2: px(B.x), y2: py(B.y) }, 'rise'));
+        svg.appendChild(text((px(A.x) + px(B.x)) / 2, py(A.y) + (rise > 0 ? 14 : -6), `${run}`, 'tl run-t'));
+        svg.appendChild(text(px(B.x) + (run > 0 ? 6 : -6), (py(A.y) + py(B.y)) / 2 + 4, `${rise}`, `tl rise-t ${run > 0 ? '' : 'end'}`));
+      }
+
+      const [a1, a2] = this.clip(A, run, rise);
+      svg.appendChild(el('line', { x1: px(a1.x), y1: py(a1.y), x2: px(a2.x), y2: py(a2.y) }, 'l1'));
+      const [b1, b2] = this.clip(Pp, d2, n2);
+      svg.appendChild(el('line', { x1: px(b1.x), y1: py(b1.y), x2: px(b2.x), y2: py(b2.y) }, 'l2'));
+
+      // right-angle mark at the intersection, in perpendicular mode
+      if (perp) {
+        const den = run * n2 - rise * d2;
+        if (den !== 0) {
+          const t = ((Pp.x - A.x) * n2 - (Pp.y - A.y) * d2) / den;
+          const X = { x: A.x + t * run, y: A.y + t * rise };
+          if (X.x > XMIN && X.x < XMAX && X.y > YMIN && X.y < YMAX) {
+            const L1 = Math.hypot(run, rise);
+            const L2 = Math.hypot(d2, n2);
+            const u = { x: (run / L1) * 0.45, y: (rise / L1) * 0.45 };
+            const v = { x: (d2 / L2) * 0.45, y: (n2 / L2) * 0.45 };
+            const pts = [
+              { x: X.x + u.x, y: X.y + u.y },
+              { x: X.x + u.x + v.x, y: X.y + u.y + v.y },
+              { x: X.x + v.x, y: X.y + v.y },
+            ];
+            svg.appendChild(el('polyline', { points: pts.map((q) => `${px(q.x)},${py(q.y)}`).join(' ') }, 'sq'));
+          }
+        }
+      }
+
+      (['A', 'B', 'P'] as K[]).forEach((k) => {
+        const q = this.get(k);
+        const g = el('g', {}, `pt pt-${k}`);
+        g.appendChild(el('circle', { cx: px(q.x), cy: py(q.y), r: 14 }, 'hit'));
+        g.appendChild(el('circle', { cx: px(q.x), cy: py(q.y), r: 5.5 }, 'dot'));
+        g.appendChild(text(px(q.x) + 8, py(q.y) - 8, `${k}(${q.x}, ${q.y})`, 'lbl'));
+        g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
+        svg.appendChild(g);
+      });
+
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      const m1 = run === 0 ? 'غير معرَّف' : frac(rise, run);
+      const m2 = d2 === 0 ? 'غير معرَّف' : frac(n2, d2);
+      let lines =
+        `<div>m₁ = (${B.y} − ${A.y}) / (${B.x} − ${A.x}) = ${m1}</div>` +
+        `<div class="e1">${this.eq(A, rise, run)}</div>` +
+        `<div class="e2">${this.eq(Pp, n2, d2)}</div>`;
+      if (perp && run !== 0 && rise !== 0)
+        lines += `<div class="big">m₁ · m₂ = (${frac(rise, run)}) · (${frac(n2, d2)}) = −1</div>`;
+      calc.innerHTML = lines;
+
+      if (!perp) {
+        note.textContent =
+          run === 0
+            ? 'المستقيم رأسي وميله غير معرَّف. الموازي له رأسي أيضًا.'
+            : `الميلان متساويان (${m1})، فالمستقيمان متوازيان: لا يلتقيان مهما امتدا. حرّك P لترى كل الموازيات الممكنة.`;
+      } else {
+        note.textContent =
+          run === 0
+            ? 'المستقيم الأول رأسي، فالعمودي عليه أفقي وميله 0.'
+            : rise === 0
+              ? 'المستقيم الأول أفقي (ميله 0)، فالعمودي عليه رأسي وميله غير معرَّف.'
+              : `ميل العمودي ${m2} هو المقلوب السالب لـ ${m1}: اقلب الكسر وغيّر الإشارة. حاصل ضربهما −1 دائمًا.`;
+      }
+    }
+  }
+  customElements.define('lines-lab', LinesLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    margin: 0.4rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.gl) {
+    stroke: var(--line);
+  }
+  .stage :global(.axis) {
+    stroke: var(--ink-3);
+    stroke-width: 1.6;
+  }
+  .stage :global(.l1) {
+    stroke: var(--brand);
+    stroke-width: 3;
+  }
+  .stage :global(.l2) {
+    stroke: var(--thm);
+    stroke-width: 3;
+  }
+  .stage :global(.run),
+  .stage :global(.rise) {
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+  }
+  .stage :global(.tl) {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 700;
+    fill: var(--accent);
+    text-anchor: middle;
+  }
+  .stage :global(.rise-t) {
+    text-anchor: start;
+  }
+  .stage :global(.rise-t.end) {
+    text-anchor: end;
+  }
+  .stage :global(.sq) {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .stage :global(.pt-P .dot) {
+    stroke: var(--thm);
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    fill: var(--ink);
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.92rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    line-height: 1.7;
+    text-align: left;
+    overflow-x: auto;
+  }
+  .calc :global(div) {
+    white-space: nowrap;
+  }
+  .calc :global(.e1) {
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .calc :global(.e2) {
+    color: var(--thm);
+    font-weight: 700;
+  }
+  .calc :global(.big) {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

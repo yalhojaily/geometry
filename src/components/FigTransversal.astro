@@ -1,0 +1,101 @@
+---
+// Static figure: lines p and q cut by transversal t, angles numbered 1–8
+// (same numbering as TransversalLab). Optional perpendicular transversal.
+interface Props {
+  perp?: boolean;
+}
+const { perp = false } = Astro.props;
+const rad = (d: number) => (d * Math.PI) / 180;
+const pol = (c: { x: number; y: number }, r: number, d: number) => ({
+  x: c.x + r * Math.cos(rad(d)),
+  y: c.y - r * Math.sin(rad(d)),
+});
+const C = { x: 175, y: 95 };
+const t = perp ? 90 : 70;
+const a = 0;
+const P1 = pol(C, 45, t);
+const P2 = pol(C, -45, t);
+const x = t - a; // m∠2
+const lab = (P: { x: number; y: number }, n: number) => {
+  const k = ((n - 1) % 4) + 1;
+  const mids = [0, t + (180 - x) / 2, a + x / 2, a + 180 + x / 2, t + 180 + (180 - x) / 2];
+  return pol(P, 20, mids[k]);
+};
+const nums = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => ({ n, p: lab(n <= 4 ? P1 : P2, n) }));
+const line = (P: { x: number; y: number }, d: number, r = 140) => ({ a: pol(P, r, d), b: pol(P, r, d + 180) });
+const lp = line(P1, a);
+const lq = line(P2, a);
+const lt = line(C, t, 95);
+const arrow = (P: { x: number; y: number }) => {
+  const tip = pol(P, 112, a);
+  return `${tip.x - 8},${tip.y - 6} ${tip.x},${tip.y} ${tip.x - 8},${tip.y + 6}`;
+};
+---
+
+<figure class="fig">
+  <svg viewBox="0 0 345 190" role="img" aria-label="مستقيمان متوازيان p و q يقطعهما القاطع t، والزوايا مرقمة من 1 إلى 8">
+    <line x1={lp.a.x} y1={lp.a.y} x2={lp.b.x} y2={lp.b.y} class="pq"></line>
+    <line x1={lq.a.x} y1={lq.a.y} x2={lq.b.x} y2={lq.b.y} class="pq"></line>
+    <line x1={lt.a.x} y1={lt.a.y} x2={lt.b.x} y2={lt.b.y} class="t"></line>
+    <polyline points={arrow(P1)} class="ar"></polyline>
+    <polyline points={arrow(P2)} class="ar"></polyline>
+    {perp && <polyline points={`${P1.x + 10},${P1.y} ${P1.x + 10},${P1.y + 10} ${P1.x},${P1.y + 10}`} class="sq" />}
+    <text x={lp.b.x + 2} y={lp.b.y - 6} class="nm">p</text>
+    <text x={lq.b.x + 2} y={lq.b.y - 6} class="nm">q</text>
+    <text x={lt.a.x + 6} y={lt.a.y + 10} class="nm t">t</text>
+    {nums.map((o) => <text x={o.p.x} y={o.p.y + 4} class="n">{o.n}</text>)}
+  </svg>
+  <figcaption><slot /></figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 0.8rem 0;
+    text-align: center;
+  }
+  svg {
+    width: 100%;
+    max-width: 340px;
+    display: block;
+    margin: 0 auto;
+  }
+  .pq {
+    stroke: var(--brand);
+    stroke-width: 2.5;
+  }
+  .t {
+    stroke: var(--ink-2);
+    stroke-width: 2.5;
+  }
+  .ar,
+  .sq {
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 2;
+  }
+  .sq {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  .nm {
+    font-family: var(--font-head);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 15px;
+    fill: var(--brand);
+  }
+  .nm.t {
+    fill: var(--ink-2);
+  }
+  .n {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 12px;
+    fill: var(--accent);
+    text-anchor: middle;
+  }
+  figcaption {
+    font-size: 0.88rem;
+    color: var(--ink-3);
+  }
+</style>

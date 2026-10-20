@@ -1,0 +1,134 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '3.3'
+why: 'إذا عرفت أن مستقيمين متوازيان، تكفيك زاوية واحدة عند القاطع لتعرف الزوايا الثماني كلها. هذا الدرس يشرح لماذا، بمسلّمة واحدة وثلاث نظريات.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import TransversalLab from '../../components/TransversalLab.astro';
+import FigTransversal from '../../components/FigTransversal.astro';
+import { proofs } from '../../data/proofs';
+
+## نقطة البداية: مسلّمة
+
+<Term id="post-corresponding" />
+
+المستقيمان المتوازيان يتجهان الاتجاه نفسه، فالقاطع يلقى كلًّا منهما بالميل نفسه. لهذا تتطابق الزاويتان في الموقع نفسه. نقبل هذا مسلّمة، ثم نبرهن منه كل ما يلي.
+
+<TransversalLab mode="parallel" />
+
+جرّب كل نوع من الأزواج، وأمِل القاطع كما تشاء. ستجد أن المتناظرتين والمتبادلتين (داخليًا وخارجيًا) متطابقة دائمًا، والمتحالفتين متكاملتان دائمًا. ثم ألغِ التوازي لترى أن كل ذلك ينهار.
+
+## ثلاث نظريات من مسلّمة واحدة
+
+<Term id="thm-alt-interior" />
+
+<ProofTable {...proofs.altInterior}>
+  <FigTransversal>p ∥ q، والترقيم كما في المختبر.</FigTransversal>
+</ProofTable>
+
+الفكرة: نصل من $\angle 3$ إلى $\angle 6$ عبر محطة وسيطة هي $\angle 7$. الأولى تناظرها، والثانية تقابلها بالرأس.
+
+<Term id="thm-consecutive-interior" />
+
+أكمل البرهان بنفسك. المحطة الوسيطة هنا $\angle 2$: تناظر $\angle 6$، وتشكل زوجًا خطيًا مع $\angle 4$.
+
+<ProofTable {...proofs.consecutiveInterior} mode="fill" />
+
+<Term id="thm-alt-exterior" />
+
+<Term id="thm-perp-transversal" />
+
+<FigTransversal perp>القاطع t عمودي على p، فهو عمودي على q أيضًا.</FigTransversal>
+
+<Callout type="tip" title="كيف تتذكر أيها متطابق وأيها متكامل؟">
+
+في الشكل زاويتان فقط بقياسين مختلفين: صغيرة وكبيرة (إلا إذا كان القاطع عموديًا فكلها $90^\circ$). كل الزوايا الصغيرة متطابقة، وكل الكبيرة متطابقة، وأي صغيرة مع أي كبيرة مجموعهما $180^\circ$. المتحالفتان دائمًا واحدة صغيرة وواحدة كبيرة.
+
+</Callout>
+
+<Example title="مثال 1: زاوية واحدة تكفي">
+
+$p \parallel q$ و $m\angle 1 = 115^\circ$. أوجد قياسات الزوايا الأخرى.
+
+1. $\angle 1$ و $\angle 2$ زوج خطي: $m\angle 2 = 180 - 115 = 65^\circ$.
+2. المتقابلتان بالرأس عند $p$: $m\angle 4 = 115^\circ$ و $m\angle 3 = 65^\circ$.
+3. المتناظرات: $m\angle 5 = m\angle 1 = 115^\circ$ و $m\angle 6 = m\angle 2 = 65^\circ$.
+4. وكذلك $m\angle 7 = m\angle 3 = 65^\circ$ و $m\angle 8 = m\angle 4 = 115^\circ$.
+
+</Example>
+
+<Prereq id="alg-linear-eq" />
+
+<Example title="مثال 2: الجبر مع التوازي">
+
+$p \parallel q$، و $m\angle 4 = (3x + 10)^\circ$ و $m\angle 6 = (2x + 20)^\circ$. أوجد $x$.
+
+1. $\angle 4$ و $\angle 6$ متحالفتان، فبالنظرية هما متكاملتان.
+2. $(3x + 10) + (2x + 20) = 180$.
+3. $5x + 30 = 180$، إذن $x = 30$.
+4. $m\angle 4 = 100^\circ$ و $m\angle 6 = 80^\circ$، ومجموعهما $180^\circ$ ✓
+
+</Example>
+
+<Callout type="warning" title="العلاقة أولًا، المعادلة ثانيًا">
+
+قبل أن تكتب المعادلة حدد نوع الزوج. المتناظرتان والمتبادلتان: معادلة **تساوٍ**. المتحالفتان: معادلة **مجموع يساوي 180**. الخطأ في هذا الاختيار يعطي جوابًا خاطئًا بحسابات صحيحة.
+
+</Callout>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={72}>
+
+$p \parallel q$ و $m\angle 3 = 72^\circ$. ما $m\angle 6$؟
+
+<div slot="explain">$\angle 3$ و $\angle 6$ متبادلتان داخليًا، فهما متطابقتان: $72^\circ$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={108}>
+
+$p \parallel q$ و $m\angle 3 = 72^\circ$. ما $m\angle 5$؟
+
+<div slot="explain">$\angle 3$ و $\angle 5$ متحالفتان، فهما متكاملتان: $180 - 72 = 108^\circ$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={72}>
+
+$p \parallel q$ و $m\angle 3 = 72^\circ$. ما $m\angle 7$؟
+
+<div slot="explain">متناظرتان: $72^\circ$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={25} hint="المتبادلتان خارجيًا متطابقتان.">
+
+$p \parallel q$، و $m\angle 1 = (5x - 15)^\circ$ و $m\angle 8 = (3x + 35)^\circ$. ما قيمة $x$؟
+
+<div slot="explain">$\angle 1$ و $\angle 8$ متبادلتان خارجيًا: $5x - 15 = 3x + 35$، إذن $x = 25$، وكل زاوية $110^\circ$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={20} hint="ما نوع الزوج 4 و 6؟">
+
+$p \parallel q$، و $m\angle 4 = (4x + 30)^\circ$ و $m\angle 6 = (3x + 10)^\circ$. ما قيمة $x$؟
+
+<div slot="explain">متحالفتان، فهما متكاملتان: $7x + 40 = 180$، إذن $x = 20$.</div>
+</Quiz>
+
+<Quiz n={6} type="choice" answer={1} options={['لا يمكن معرفته', '90°', '45°', 'يعتمد على الزاوية بين p و q']}>
+
+$p \parallel q$ والقاطع $t$ عمودي على $p$. ما قياس الزاوية بين $t$ و $q$؟
+
+<div slot="explain">بنظرية القاطع العمودي: $t \perp q$، فالزاوية $90^\circ$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **مسلّمة الزوايا المتناظرة:** مع التوازي، المتناظرتان متطابقتان.
+- ومنها نبرهن: **المتبادلتان داخليًا** و**خارجيًا** متطابقتان، و**المتحالفتان** متكاملتان.
+- **القاطع العمودي** على أحد متوازيين عمودي على الآخر.
+- مع التوازي هناك قياسان فقط: كل الصغيرة متطابقة، وكل الكبيرة متطابقة، وصغيرة مع كبيرة تساوي $180^\circ$.

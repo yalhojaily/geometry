@@ -42,13 +42,13 @@ export const chapters: Chapter[] = [
   {
     n: 3, en: 'Perpendicular and Parallel Lines', ar: 'المستقيمات المتعامدة والمتوازية',
     lessons: [
-      { id: '3.1', en: 'Lines and Angles', ar: 'المستقيمات والزوايا' },
-      { id: '3.2', en: 'Proof and Perpendicular Lines', ar: 'البرهان والمستقيمات المتعامدة' },
-      { id: '3.3', en: 'Parallel Lines and Transversals', ar: 'المستقيمات المتوازية والقواطع' },
-      { id: '3.4', en: 'Proving Lines are Parallel', ar: 'إثبات توازي المستقيمات' },
-      { id: '3.5', en: 'Using Properties of Parallel Lines', ar: 'استخدام خصائص المستقيمات المتوازية' },
-      { id: '3.6', en: 'Parallel Lines in the Coordinate Plane', ar: 'المستقيمات المتوازية في المستوى الإحداثي' },
-      { id: '3.7', en: 'Perpendicular Lines in the Coordinate Plane', ar: 'المستقيمات المتعامدة في المستوى الإحداثي' },
+      { id: '3.1', en: 'Lines and Angles', ar: 'المستقيمات والزوايا', ready: true },
+      { id: '3.2', en: 'Proof and Perpendicular Lines', ar: 'البرهان والمستقيمات المتعامدة', ready: true },
+      { id: '3.3', en: 'Parallel Lines and Transversals', ar: 'المستقيمات المتوازية والقواطع', ready: true },
+      { id: '3.4', en: 'Proving Lines are Parallel', ar: 'إثبات توازي المستقيمات', ready: true },
+      { id: '3.5', en: 'Using Properties of Parallel Lines', ar: 'استخدام خصائص المستقيمات المتوازية', ready: true },
+      { id: '3.6', en: 'Parallel Lines in the Coordinate Plane', ar: 'المستقيمات المتوازية في المستوى الإحداثي', ready: true },
+      { id: '3.7', en: 'Perpendicular Lines in the Coordinate Plane', ar: 'المستقيمات المتعامدة في المستوى الإحداثي', ready: true },
     ],
   },
   {

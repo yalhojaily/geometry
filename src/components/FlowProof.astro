@@ -1,0 +1,175 @@
+---
+// Flow proof: statements in boxes, the reason under each, arrows showing
+// which statements lead to which. Rows are laid out top to bottom; boxes in
+// the same row are independent and both feed the next row.
+import { termHref } from '../data/terms';
+import { renderMath } from '../data/math';
+
+interface Node {
+  s: string;
+  r: string;
+  ref?: string;
+}
+interface Props {
+  title: string;
+  given: string;
+  prove: string;
+  rows: Node[][];
+}
+const { title, given, prove, rows } = Astro.props;
+const html = rows.map((row) =>
+  row.map((n) => ({ s: renderMath(n.s), r: renderMath(n.r), href: n.ref ? termHref(n.ref) : undefined })),
+);
+---
+
+<flow-proof class="flow">
+  <div class="head">
+    <span class="badge">برهان انسيابي</span>
+    <span class="title">{title}</span>
+  </div>
+  <div class="gp">
+    <div><b>المعطى:</b> <span set:html={renderMath(given)} /></div>
+    <div><b>المطلوب:</b> <span set:html={renderMath(prove)} /></div>
+  </div>
+  <slot />
+  <div class="rows">
+    {
+      html.map((row, i) => (
+        <div class:list={['row', { first: i === 0 }]} data-row={i}>
+          {row.map((n) => (
+            <div class="node">
+              <div class="s" set:html={n.s} />
+              <div class="r">{n.href ? <a href={n.href} set:html={n.r} /> : <span set:html={n.r} />}</div>
+            </div>
+          ))}
+        </div>
+      ))
+    }
+  </div>
+  <div class="controls">
+    <button type="button" class="btn btn-primary next">الخطوة التالية</button>
+    <button type="button" class="btn all">اعرض البرهان كاملًا</button>
+  </div>
+</flow-proof>
+
+<script>
+  class FlowProof extends HTMLElement {
+    shown = 1;
+    connectedCallback() {
+      this.querySelector('.next')?.addEventListener('click', () => this.show(this.shown + 1));
+      this.querySelector('.all')?.addEventListener('click', () => this.show(999));
+      this.show(1);
+    }
+    show(n: number) {
+      const rows = this.querySelectorAll<HTMLElement>('.row');
+      this.shown = Math.min(n, rows.length);
+      rows.forEach((r, i) => (r.hidden = i >= this.shown));
+      const done = this.shown >= rows.length;
+      this.querySelectorAll<HTMLButtonElement>('.controls .btn').forEach((b) => (b.hidden = done));
+    }
+  }
+  customElements.define('flow-proof', FlowProof);
+</script>
+
+<style>
+  .flow {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.1rem;
+    margin: 1.4rem 0;
+  }
+  .head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-family: var(--font-head);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--card);
+    background: var(--post);
+    border-radius: 6px;
+    padding: 0.05rem 0.55rem;
+  }
+  .title {
+    font-family: var(--font-head);
+    font-weight: 600;
+  }
+  .gp {
+    margin: 0.6rem 0;
+    padding: 0.5rem 0.8rem;
+    background: var(--paper-2);
+    border-radius: 10px;
+    line-height: 1.9;
+  }
+  .rows {
+    display: grid;
+    gap: 1.6rem;
+    margin-top: 0.8rem;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem;
+    position: relative;
+    animation: fadein 0.35s ease;
+  }
+  .row:not(.first)::before {
+    content: '↓';
+    position: absolute;
+    top: -1.55rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--post);
+  }
+  .node {
+    flex: 1 1 200px;
+    min-width: 0;
+    max-width: 320px;
+    border: 2px solid var(--post);
+    border-radius: 12px;
+    background: var(--post-bg);
+    padding: 0.45rem 0.6rem;
+    text-align: center;
+  }
+  .s {
+    font-weight: 500;
+    overflow-x: auto;
+  }
+  .r {
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+    border-top: 1px dashed color-mix(in srgb, var(--post) 40%, transparent);
+    font-size: 0.85rem;
+    color: var(--ink-2);
+  }
+  .r a {
+    color: var(--post);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+    flex-wrap: wrap;
+  }
+  @keyframes fadein {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

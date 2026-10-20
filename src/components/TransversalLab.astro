@@ -1,0 +1,417 @@
+---
+// Interactive: two lines p and q cut by a transversal t, making eight angles.
+// Pick a pair type to highlight; drag the lines; lock them parallel or not.
+//  mode="name":     lesson 3.1 (naming the pairs; lines free)
+//  mode="parallel": lesson 3.3 (lines locked parallel)
+//  mode="converse": lesson 3.4 (lines free; find when they become parallel)
+interface Props {
+  mode?: 'name' | 'parallel' | 'converse';
+}
+const { mode = 'name' } = Astro.props;
+---
+
+<transversal-lab class="panel lab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">مستقيمان وقاطع</span>
+    <label class="lock"><input type="checkbox" class="lockbox" /> اجعل p ∥ q</label>
+  </div>
+  <div class="types" role="tablist">
+    <button type="button" data-t="corr" class="on">متناظرتان</button>
+    <button type="button" data-t="altInt">متبادلتان داخليًا</button>
+    <button type="button" data-t="altExt">متبادلتان خارجيًا</button>
+    <button type="button" data-t="consec">متحالفتان</button>
+  </div>
+  <svg viewBox="0 0 360 300" class="stage" role="img" aria-label="مستقيمان p و q يقطعهما القاطع t فتتكون ثماني زوايا">
+    <g class="interior"></g>
+    <g class="wedges"></g>
+    <g class="lines"></g>
+    <g class="pts"></g>
+  </svg>
+  <div class="bar">
+    <button type="button" class="btn next-pair">زوج آخر من النوع نفسه</button>
+  </div>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</transversal-lab>
+
+<script>
+  import { el, text, polar, arcPath, screenAngle, makeDraggable, type P } from '../scripts/svg';
+
+  const C: P = { x: 180, y: 150 };
+  const GAP = 62;
+  type K = 'p' | 'q' | 't';
+  type Type = 'corr' | 'altInt' | 'altExt' | 'consec';
+  const PAIRS: Record<Type, [number, number][]> = {
+    corr: [
+      [1, 5],
+      [2, 6],
+      [3, 7],
+      [4, 8],
+    ],
+    altInt: [
+      [3, 6],
+      [4, 5],
+    ],
+    altExt: [
+      [1, 8],
+      [2, 7],
+    ],
+    consec: [
+      [3, 5],
+      [4, 6],
+    ],
+  };
+  const DESC: Record<Type, string> = {
+    corr: 'متناظرتان: كل منهما في الموقع نفسه عند نقطة تقاطعها، مثل «فوق المستقيم وعلى يمين القاطع» عند النقطتين.',
+    altInt: 'متبادلتان داخليًا: كلتاهما بين المستقيمين p و q، وعلى جانبين مختلفين من القاطع.',
+    altExt: 'متبادلتان خارجيًا: كلتاهما خارج المستقيمين p و q، وعلى جانبين مختلفين من القاطع.',
+    consec: 'متحالفتان: كلتاهما بين المستقيمين p و q، وعلى الجانب نفسه من القاطع.',
+  };
+  const norm = (d: number) => ((d % 360) + 360) % 360;
+
+  class TransversalLab extends HTMLElement {
+    a = { p: 12, q: -8 }; // line directions (degrees)
+    t = 72; // transversal "up" direction
+    locked = false;
+    type: Type = 'corr';
+    idx = 0;
+    drag!: { start: (k: K, e: PointerEvent) => void };
+
+    connectedCallback() {
+      const mode = this.dataset.mode;
+      this.locked = mode === 'parallel';
+      if (this.locked) this.a.q = this.a.p;
+      const box = this.querySelector<HTMLInputElement>('.lockbox')!;
+      box.checked = this.locked;
+      box.addEventListener('change', () => {
+        this.locked = box.checked;
+        if (this.locked) this.a.q = this.a.p;
+        this.render();
+      });
+      this.querySelectorAll<HTMLButtonElement>('.types button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.type = b.dataset.t as Type;
+          this.idx = 0;
+          this.querySelectorAll('.types button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      this.querySelector('.next-pair')?.addEventListener('click', () => {
+        this.idx = (this.idx + 1) % PAIRS[this.type].length;
+        this.render();
+      });
+
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<K>(svg, (k, pt) => {
+        if (k === 't') {
+          const d = Math.round(screenAngle(C, pt));
+          if (d < 35 || d > 145) return;
+          // keep the lines from getting too close to the transversal
+          if ([this.a.p, this.a.q].some((a) => Math.abs(((((d - a) % 180) + 180) % 180) - 90) > 72)) return;
+          this.t = d;
+        } else {
+          const P0 = this.point(k);
+          let d = Math.round(screenAngle(P0, pt));
+          d = ((d + 90) % 180) - 90; // fold into (−90, 90]
+          if (Math.abs(((((this.t - d) % 180) + 180) % 180) - 90) > 72) return;
+          if (this.dataset.mode === 'converse' && !this.locked) {
+            const other = k === 'p' ? this.a.q : this.a.p;
+            if (Math.abs(d - other) <= 2) d = other; // snap to parallel
+          }
+          if (this.locked) this.a.p = this.a.q = d;
+          else this.a[k] = d;
+        }
+        this.render();
+      });
+      this.render();
+    }
+
+    point(k: 'p' | 'q'): P {
+      return polar(C, k === 'p' ? GAP : -GAP, this.t);
+    }
+
+    /** m∠2 (between the transversal's up ray and the line's "right" ray) at a crossing. */
+    x(a: number): { x: number; R: number } {
+      let R = norm(a);
+      const diff = norm(this.t - R);
+      if (!(diff > 0 && diff < 180)) R = norm(R + 180);
+      return { x: norm(this.t - R), R };
+    }
+
+    render() {
+      const t = this.t;
+      const P1 = this.point('p');
+      const P2 = this.point('q');
+      const s1 = this.x(this.a.p);
+      const s2 = this.x(this.a.q);
+      const parallel = this.a.p === this.a.q;
+
+      // measures of angles 1..8
+      const m = [0, 180 - s1.x, s1.x, s1.x, 180 - s1.x, 180 - s2.x, s2.x, s2.x, 180 - s2.x];
+      const wedge = (n: number): [P, number, number] => {
+        const [P0, R] = n <= 4 ? [P1, s1.R] : [P2, s2.R];
+        const k = ((n - 1) % 4) + 1;
+        if (k === 1) return [P0, t, R + 180];
+        if (k === 2) return [P0, R, t];
+        if (k === 3) return [P0, R + 180, t + 180];
+        return [P0, t + 180, R + 360];
+      };
+
+      const [i, j] = PAIRS[this.type][this.idx];
+
+      // shade the region between the lines lightly (the "interior")
+      const interior = this.querySelector('.interior')!;
+      interior.replaceChildren();
+      const far = 400;
+      const q1 = polar(P1, far, s1.R);
+      const q2 = polar(P1, far, s1.R + 180);
+      const q3 = polar(P2, far, s2.R + 180);
+      const q4 = polar(P2, far, s2.R);
+      interior.appendChild(el('polygon', { points: `${q1.x},${q1.y} ${q2.x},${q2.y} ${q3.x},${q3.y} ${q4.x},${q4.y}` }, 'int'));
+
+      const wedges = this.querySelector('.wedges')!;
+      wedges.replaceChildren();
+      for (let n = 1; n <= 8; n++) {
+        const [P0, a1, a2] = wedge(n);
+        const on = n === i || n === j;
+        const r = on ? 30 : 22;
+        wedges.appendChild(el('path', { d: arcPath(P0, r, norm(a1), norm(a2), true) }, `w ${on ? (n === i ? 'on1' : 'on2') : 'off'}`));
+        const mid = a1 + norm(a2 - a1) / 2;
+        const lp = polar(P0, on ? 44 : 34, mid);
+        wedges.appendChild(text(lp.x, lp.y + 4, String(n), `wl ${on ? 'on' : ''}`));
+      }
+
+      const lines = this.querySelector('.lines')!;
+      lines.replaceChildren();
+      const line = (P0: P, d: number, cls: string, label: string) => {
+        const e1 = polar(P0, 280, d);
+        const e2 = polar(P0, 280, d + 180);
+        lines.appendChild(el('line', { x1: e1.x, y1: e1.y, x2: e2.x, y2: e2.y }, cls));
+        const lp = polar(P0, 150, d + 180);
+        lines.appendChild(text(lp.x - 4, lp.y - 8, label, `ll ${cls}`));
+      };
+      line(P1, s1.R, 'ln p', 'p');
+      line(P2, s2.R, 'ln q', 'q');
+      const te1 = polar(C, 200, t);
+      const te2 = polar(C, 200, t + 180);
+      lines.appendChild(el('line', { x1: te1.x, y1: te1.y, x2: te2.x, y2: te2.y }, 'ln t'));
+      const tl = polar(C, 140, t + 180);
+      lines.appendChild(text(tl.x + 8, tl.y, 't', 'll t'));
+      if (parallel) {
+        for (const P0 of [P1, P2]) {
+          const tip = polar(P0, 105, s1.R);
+          const b1 = polar(tip, 9, s1.R + 180 + 35);
+          const b2 = polar(tip, 9, s1.R + 180 - 35);
+          lines.appendChild(el('polyline', { points: `${b1.x},${b1.y} ${tip.x},${tip.y} ${b2.x},${b2.y}` }, 'par'));
+        }
+      }
+
+      const pts = this.querySelector('.pts')!;
+      pts.replaceChildren();
+      const handle = (k: K, p: P) => {
+        const g = el('g', {}, 'pt');
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 15 }, 'hit'));
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 6.5 }, 'dot'));
+        g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
+        pts.appendChild(g);
+      };
+      handle('p', polar(P1, 130, s1.R + 180));
+      handle('q', polar(P2, 130, s2.R + 180));
+      handle('t', polar(C, 125, t));
+
+      const mi = m[i];
+      const mj = m[j];
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      const eqType = this.type !== 'consec';
+      const holds = eqType ? mi === mj : mi + mj === 180;
+      calc.innerHTML = eqType
+        ? `<div>m∠${i} = ${mi}° , m∠${j} = ${mj}°</div><div class="big ${holds ? 'ok' : 'no'}">m∠${i} ${holds ? '=' : '≠'} m∠${j}</div>`
+        : `<div>m∠${i} = ${mi}° , m∠${j} = ${mj}°</div><div class="big ${holds ? 'ok' : 'no'}">m∠${i} + m∠${j} = ${mi + mj}°</div>`;
+
+      const mode = this.dataset.mode;
+      let msg = DESC[this.type];
+      if (mode === 'parallel' || (mode === 'name' && parallel)) {
+        msg += parallel
+          ? eqType
+            ? ' المستقيمان متوازيان، لذلك الزاويتان متطابقتان دائمًا مهما أملت القاطع.'
+            : ' المستقيمان متوازيان، لذلك الزاويتان متكاملتان دائمًا.'
+          : ' المستقيمان غير متوازيين الآن، فلا ضمان للعلاقة.';
+      } else if (mode === 'converse') {
+        msg = parallel
+          ? `الزاويتان ${eqType ? 'متطابقتان' : 'متكاملتان'}، والمستقيمان متوازيان. هذا هو العكس: تحقق العلاقة يجعل المستقيمين متوازيين.`
+          : `الزاويتان ${eqType ? 'غير متطابقتين' : 'غير متكاملتين'}، والمستقيمان سيتقاطعان في مكان ما. حرّك p أو q حتى تتحقق العلاقة.`;
+      }
+      note.textContent = msg;
+      note.className = `note ${mode !== 'name' ? (holds ? 'yes' : 'no') : ''}`;
+    }
+  }
+  customElements.define('transversal-lab', TransversalLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .lock {
+    font-size: 0.92rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+  }
+  .lock input {
+    accent-color: var(--brand);
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+  .types {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+  }
+  .types button {
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.9rem;
+  }
+  .types button.on {
+    border-color: var(--brand);
+    background: var(--def-bg);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 460px;
+    margin: 0.4rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.int) {
+    fill: var(--accent);
+    fill-opacity: 0.07;
+  }
+  .stage :global(.ln) {
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .stage :global(.ln.p),
+  .stage :global(.ln.q) {
+    stroke: var(--brand);
+  }
+  .stage :global(.ln.t) {
+    stroke: var(--ink-2);
+  }
+  .stage :global(.par) {
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 2.5;
+  }
+  .stage :global(.ll) {
+    font-family: var(--font-head);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 16px;
+    fill: var(--brand);
+  }
+  .stage :global(.ll.t) {
+    fill: var(--ink-2);
+  }
+  .stage :global(.w) {
+    stroke: none;
+  }
+  .stage :global(.w.off) {
+    fill: var(--ink-3);
+    fill-opacity: 0.12;
+  }
+  .stage :global(.w.on1) {
+    fill: var(--accent);
+    fill-opacity: 0.6;
+  }
+  .stage :global(.w.on2) {
+    fill: var(--thm);
+    fill-opacity: 0.5;
+  }
+  .stage :global(.wl) {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 600;
+    text-anchor: middle;
+    fill: var(--ink-3);
+  }
+  .stage :global(.wl.on) {
+    fill: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .bar {
+    display: flex;
+    justify-content: center;
+  }
+  .bar .btn {
+    font-size: 0.88rem;
+    padding: 0.25rem 0.8rem;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.95rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    margin-top: 0.5rem;
+    line-height: 1.7;
+    text-align: left;
+  }
+  .calc :global(.big) {
+    font-weight: 700;
+  }
+  .calc :global(.ok) {
+    color: var(--good);
+  }
+  .calc :global(.no) {
+    color: var(--bad);
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+  .note.yes {
+    background: var(--thm-bg);
+  }
+  .note.no {
+    background: var(--warn-bg);
+  }
+</style>

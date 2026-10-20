@@ -38,6 +38,13 @@ const R = {
   congSupp: { r: 'نظرية المكملات المتطابقة', ref: 'thm-congruent-supplements' },
   defBisector: { r: 'تعريف منصف الزاوية', ref: 'def-angle-bisector' },
   vertical: { r: 'نظرية الزاويتين المتقابلتين بالرأس', ref: 'thm-vertical-angles' },
+  angTrans: { r: 'خاصية التعدي لتطابق الزوايا', ref: 'thm-angle-congruence' },
+  rightCong: { r: 'نظرية تطابق الزوايا القائمة', ref: 'thm-right-angles' },
+  defPerp: { r: 'تعريف المستقيمين المتعامدين', ref: 'def-perpendicular' },
+  perpFour: { r: 'نظرية الزوايا القائمة الأربع', ref: 'thm-perp-four-right' },
+  corr: { r: 'مسلّمة الزوايا المتناظرة', ref: 'post-corresponding' },
+  corrConv: { r: 'عكس مسلّمة الزوايا المتناظرة', ref: 'post-corresponding-converse' },
+  altInt: { r: 'نظرية الزوايا المتبادلة داخليًا', ref: 'thm-alt-interior' },
 };
 
 export const proofs: Record<string, Proof> = {
@@ -166,5 +173,119 @@ export const proofs: Record<string, Proof> = {
       { s: '$m\\angle ABC = 2 \\cdot m\\angle ABD$', ...R.sym },
     ],
     distractors: [R.segAdd.r, R.trans.r],
+  },
+  perpFourRight: {
+    title: 'المتعامدان يكوّنان أربع زوايا قائمة',
+    given: '$\\ell \\perp m$، والزوايا $\\angle 1$ إلى $\\angle 4$ حول نقطة التقاطع',
+    prove: 'الزوايا الأربع قائمة',
+    steps: [
+      { s: '$\\ell \\perp m$', ...R.given },
+      { s: '$\\angle 1$ قائمة', ...R.defPerp },
+      { s: '$m\\angle 1 = 90^\\circ$', ...R.defRight },
+      { s: '$\\angle 1 \\cong \\angle 3$، إذن $m\\angle 3 = 90^\\circ$', ...R.vertical },
+      { s: '$m\\angle 1 + m\\angle 2 = 180^\\circ$', ...R.linearPair },
+      { s: '$90^\\circ + m\\angle 2 = 180^\\circ$', ...R.subst },
+      { s: '$m\\angle 2 = 90^\\circ$', ...R.sub },
+      { s: '$\\angle 2 \\cong \\angle 4$، إذن $m\\angle 4 = 90^\\circ$', ...R.vertical },
+    ],
+  },
+  altInterior: {
+    title: 'نظرية الزوايا المتبادلة داخليًا',
+    given: '$p \\parallel q$',
+    prove: '$\\angle 3 \\cong \\angle 6$',
+    steps: [
+      { s: '$p \\parallel q$', ...R.given },
+      { s: '$\\angle 3 \\cong \\angle 7$', ...R.corr },
+      { s: '$\\angle 7 \\cong \\angle 6$', ...R.vertical },
+      { s: '$\\angle 3 \\cong \\angle 6$', ...R.angTrans },
+    ],
+  },
+  consecutiveInterior: {
+    title: 'نظرية الزوايا المتحالفة',
+    given: '$p \\parallel q$',
+    prove: '$\\angle 4$ و $\\angle 6$ متكاملتان',
+    steps: [
+      { s: '$p \\parallel q$', ...R.given },
+      { s: '$\\angle 2 \\cong \\angle 6$', ...R.corr },
+      { s: '$m\\angle 2 = m\\angle 6$', ...R.defCongAng },
+      { s: '$m\\angle 2 + m\\angle 4 = 180^\\circ$', ...R.linearPair },
+      { s: '$m\\angle 6 + m\\angle 4 = 180^\\circ$', ...R.subst },
+      { s: '$\\angle 4$ و $\\angle 6$ متكاملتان', ...R.defSupp },
+    ],
+    distractors: [R.vertical.r, R.altInt.r, R.add.r],
+  },
+  altInteriorConverse: {
+    title: 'عكس نظرية الزوايا المتبادلة داخليًا',
+    given: '$\\angle 3 \\cong \\angle 6$',
+    prove: '$p \\parallel q$',
+    steps: [
+      { s: '$\\angle 3 \\cong \\angle 6$', ...R.given },
+      { s: '$\\angle 6 \\cong \\angle 7$', ...R.vertical },
+      { s: '$\\angle 3 \\cong \\angle 7$', ...R.angTrans },
+      { s: '$p \\parallel q$', ...R.corrConv },
+    ],
+    distractors: [R.corr.r, R.altInt.r, R.linearPair.r],
+  },
+  perpSameLine: {
+    title: 'عمودان على مستقيم واحد',
+    given: '$p \\perp t$ و $q \\perp t$',
+    prove: '$p \\parallel q$',
+    steps: [
+      { s: '$p \\perp t$ و $q \\perp t$', ...R.given },
+      { s: '$\\angle 2$ و $\\angle 6$ قائمتان', ...R.perpFour },
+      { s: '$\\angle 2 \\cong \\angle 6$', ...R.rightCong },
+      { s: '$p \\parallel q$', ...R.corrConv },
+    ],
+    distractors: [R.corr.r, R.defPerp.r, R.vertical.r],
+  },
+};
+
+/** Flow proofs: rows of boxes, each row following from the rows above. */
+export interface FlowNode {
+  s: string;
+  r: string;
+  ref?: string;
+}
+export interface Flow {
+  title: string;
+  given: string;
+  prove: string;
+  rows: FlowNode[][];
+}
+
+export const flows: Record<string, Flow> = {
+  linearPairPerp: {
+    title: 'نظرية الزوج الخطي المتطابق',
+    given: '$\\angle 1$ و $\\angle 2$ زوج خطي، و $\\angle 1 \\cong \\angle 2$',
+    prove: '$g \\perp h$',
+    rows: [
+      [
+        { s: '$\\angle 1 \\cong \\angle 2$', ...R.given },
+        { s: '$\\angle 1, \\angle 2$ زوج خطي', ...R.given },
+      ],
+      [
+        { s: '$m\\angle 1 = m\\angle 2$', ...R.defCongAng },
+        { s: '$m\\angle 1 + m\\angle 2 = 180^\\circ$', ...R.linearPair },
+      ],
+      [{ s: '$m\\angle 1 + m\\angle 1 = 180^\\circ$', ...R.subst }],
+      [{ s: '$m\\angle 1 = 90^\\circ$', r: 'التبسيط ثم خاصية القسمة', ref: 'prop-div' }],
+      [{ s: '$\\angle 1$ قائمة', ...R.defRight }],
+      [{ s: '$g \\perp h$', ...R.defPerp }],
+    ],
+  },
+  adjacentComplementary: {
+    title: 'نظرية الزاويتين الحادتين المتجاورتين',
+    given: '$\\overrightarrow{BA} \\perp \\overrightarrow{BC}$، و $\\angle 1$ و $\\angle 2$ تكوّنان معًا $\\angle ABC$',
+    prove: '$\\angle 1$ و $\\angle 2$ متتامتان',
+    rows: [
+      [{ s: '$\\overrightarrow{BA} \\perp \\overrightarrow{BC}$', ...R.given }],
+      [{ s: '$\\angle ABC$ قائمة', ...R.defPerp }],
+      [
+        { s: '$m\\angle ABC = 90^\\circ$', ...R.defRight },
+        { s: '$m\\angle 1 + m\\angle 2 = m\\angle ABC$', ...R.angAdd },
+      ],
+      [{ s: '$m\\angle 1 + m\\angle 2 = 90^\\circ$', ...R.subst }],
+      [{ s: '$\\angle 1$ و $\\angle 2$ متتامتان', ...R.defComp }],
+    ],
   },
 };

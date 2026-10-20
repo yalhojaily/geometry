@@ -1,0 +1,109 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '3.4'
+why: 'في الدرس السابق انطلقنا من التوازي ووصلنا إلى الزوايا. هنا نسير في الاتجاه المعاكس: من الزوايا نثبت أن المستقيمين متوازيان. هكذا يتحقق النجار من أن رفوفه متوازية.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import TransversalLab from '../../components/TransversalLab.astro';
+import FigTransversal from '../../components/FigTransversal.astro';
+import { proofs } from '../../data/proofs';
+
+## العكس
+
+تذكّر من الدرس 2.1 أن عكس العبارة الصحيحة قد لا يكون صحيحًا. لكن في حالة التوازي، العكوس كلها صحيحة.
+
+<Term id="post-corresponding-converse" />
+
+في المختبر التالي المستقيمان غير متوازيين. اختر نوع زوج، ثم حرّك $p$ أو $q$ حتى تتطابق الزاويتان (أو تتكاملا للمتحالفتين). في اللحظة نفسها يصبح المستقيمان متوازيين، وتظهر علامتا التوازي.
+
+<TransversalLab mode="converse" />
+
+## ثلاث نظريات عكسية
+
+<Term id="thm-alt-interior-converse" />
+<Term id="thm-consecutive-interior-converse" />
+<Term id="thm-alt-exterior-converse" />
+
+أكمل برهان أولها. لاحظ أنه برهان النظرية الأصلية من الدرس 3.3 نفسه، لكن معكوس الاتجاه.
+
+<ProofTable {...proofs.altInteriorConverse} mode="fill">
+  <FigTransversal>المعطى ∠3 ≅ ∠6، والمطلوب إثبات p ∥ q.</FigTransversal>
+</ProofTable>
+
+<Callout type="warning" title="النظرية أم عكسها؟">
+
+اسأل: ما المعطى؟ إذا كان **التوازي** معطى وتريد زوايا، فالسبب هو النظرية (الدرس 3.3). وإذا كانت **الزوايا** معطاة وتريد إثبات التوازي، فالسبب هو العكس (هذا الدرس). الخلط بينهما خطأ شائع في البراهين.
+
+</Callout>
+
+<Example title="مثال 1: أي المستقيمات متوازية؟">
+
+في الترقيم المعتاد، أي معطى يكفي لإثبات $p \parallel q$؟
+
+1. **$\angle 2 \cong \angle 6$:** متناظرتان متطابقتان، يكفي (عكس مسلّمة المتناظرة).
+2. **$\angle 3 \cong \angle 6$:** متبادلتان داخليًا متطابقتان، يكفي.
+3. **$m\angle 4 + m\angle 6 = 180^\circ$:** متحالفتان متكاملتان، يكفي.
+4. **$\angle 1 \cong \angle 4$:** متقابلتان بالرأس عند $p$ نفسه. هذا صحيح دائمًا ولا يخبرنا شيئًا عن $q$، فلا يكفي.
+
+</Example>
+
+<Prereq id="alg-linear-eq" />
+
+<Example title="مثال 2: ما قيمة x التي تجعلهما متوازيين؟">
+
+$m\angle 2 = (2x + 15)^\circ$ و $m\angle 6 = (3x - 20)^\circ$. أوجد $x$ التي تجعل $p \parallel q$.
+
+1. $\angle 2$ و $\angle 6$ متناظرتان. ليتوازى المستقيمان يجب أن تتطابقا.
+2. $2x + 15 = 3x - 20$، إذن $x = 35$.
+3. عندها كل زاوية $85^\circ$، وبعكس مسلّمة المتناظرة $p \parallel q$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={0} options={['نعم، بعكس نظرية المتبادلة خارجيًا', 'لا، المتبادلتان خارجيًا لا تكفيان', 'لا يمكن الحكم']}>
+
+$\angle 1 \cong \angle 8$. هل $p \parallel q$؟
+
+<div slot="explain">$\angle 1$ و $\angle 8$ متبادلتان خارجيًا ومتطابقتان، فالمستقيمان متوازيان.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={1} options={['نعم، لأن المتحالفتين متطابقتان', 'لا، المتحالفتان يجب أن تتكاملا', 'نعم، دائمًا']} hint="ما مجموع 70 و 70؟">
+
+$m\angle 3 = 70^\circ$ و $m\angle 5 = 70^\circ$. هل $p \parallel q$؟
+
+<div slot="explain">$\angle 3$ و $\angle 5$ متحالفتان، ومجموعهما $140^\circ$ لا $180^\circ$. فالمستقيمان ليسا متوازيين.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={20} hint="المتبادلتان داخليًا يجب أن تتطابقا.">
+
+$m\angle 4 = (6x - 10)^\circ$ و $m\angle 5 = (4x + 30)^\circ$. ما قيمة $x$ التي تجعل $p \parallel q$؟
+
+<div slot="explain">$\angle 4$ و $\angle 5$ متبادلتان داخليًا: $6x - 10 = 4x + 30$، إذن $x = 20$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={30} hint="المتحالفتان يجب أن يكون مجموعهما 180.">
+
+$m\angle 4 = (4x)^\circ$ و $m\angle 6 = (2x)^\circ$. ما قيمة $x$ التي تجعل $p \parallel q$؟
+
+<div slot="explain">$4x + 2x = 180$، إذن $x = 30$: الزاويتان $120^\circ$ و $60^\circ$.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={2} options={['مسلّمة الزوايا المتناظرة', 'نظرية الزوايا المتبادلة داخليًا', 'عكس مسلّمة الزوايا المتناظرة', 'نظرية المتقابلتين بالرأس']}>
+
+في برهان، السطر السابق «$\angle 2 \cong \angle 6$» والسطر الحالي «$p \parallel q$». ما السبب؟
+
+<div slot="explain">انتقلنا من الزوايا إلى التوازي، فالسبب هو العكس.</div>
+</Quiz>
+
+## الخلاصة
+
+- **عكس مسلّمة المتناظرة:** متناظرتان متطابقتان تعني أن المستقيمين متوازيان.
+- العكوس الثلاثة: **متبادلتان داخليًا** أو **خارجيًا** متطابقتان، أو **متحالفتان** متكاملتان، كلها تثبت التوازي.
+- التوازي معطى ← استخدم النظرية. الزوايا معطاة ← استخدم العكس.
