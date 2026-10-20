@@ -245,7 +245,8 @@ svg text {
 }
 
 /* Markdown tables written directly in a lesson */
-.body > table {
+.body > table,
+.body .tscroll > table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.2rem 0;
@@ -256,14 +257,31 @@ svg text {
   box-shadow: var(--shadow);
 }
 .body > table th,
-.body > table td {
+.body > table td,
+.body .tscroll th,
+.body .tscroll td {
   border: 1px solid var(--line);
   padding: 0.5rem 0.7rem;
   text-align: start;
   vertical-align: top;
 }
-.body > table th {
+.body > table th,
+.body .tscroll th {
   background: var(--paper-2);
   font-family: var(--font-head);
   font-weight: 600;
+}
+
+/* Wide tables scroll sideways on small screens */
+.body .tscroll {
+  overflow-x: auto;
+  margin: 1.2rem 0;
+}
+.body .tscroll > table {
+  margin: 0;
+  min-width: 560px;
+  font-size: 0.88rem;
+}
+.body .tscroll td:not(:first-child) {
+  text-align: center;
 }

@@ -1,0 +1,188 @@
+---
+// Interactive quadrilateral with four draggable vertices.
+//  mode="angles": interior angles always add to 360°, convex vs concave.
+//  mode="tests":  checklist of the parallelogram tests (they all switch on together).
+import '../styles/qlab.css';
+interface Props {
+  mode?: 'angles' | 'tests';
+}
+const { mode = 'angles' } = Astro.props;
+---
+
+<quad-lab class="panel lab qlab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{mode === 'angles' ? 'زوايا الشكل الرباعي' : 'هل هو متوازي أضلاع؟'}</span>
+    <span class="hint-small">اسحب الرؤوس</span>
+  </div>
+  <svg viewBox="0 0 360 260" class="stage" role="img" aria-label="شكل رباعي ABCD قابل للتحريك"></svg>
+  {
+    mode === 'tests' && (
+      <div class="presets">
+        <button type="button" class="mk-pg">اجعله متوازي أضلاع</button>
+        <button type="button" class="mk-any">شكل رباعي عام</button>
+      </div>
+    )
+  }
+  <div class="calc"></div>
+  {mode === 'tests' && <ul class="checks"></ul>}
+  <p class="note"></p>
+</quad-lab>
+
+<script>
+  import { el, text, makeDraggable, polar, type P } from '../scripts/svg';
+  import { len, mid, pts, interiorAngles, isSimple, centroid, clamp, handle, ticks } from '../scripts/quad';
+
+  type K = 0 | 1 | 2 | 3;
+  const NAMES = ['A', 'B', 'C', 'D'];
+  const U = 40;
+  const SNAP = 9;
+
+  class QuadLab extends HTMLElement {
+    v: P[] = [];
+    mode = 'angles';
+    drag!: { start: (k: string, e: PointerEvent) => void };
+
+    connectedCallback() {
+      this.mode = this.dataset.mode ?? 'angles';
+      this.v =
+        this.mode === 'angles'
+          ? [{ x: 60, y: 200 }, { x: 110, y: 50 }, { x: 290, y: 80 }, { x: 260, y: 220 }]
+          : [{ x: 50, y: 210 }, { x: 110, y: 60 }, { x: 300, y: 70 }, { x: 250, y: 215 }];
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<string>(svg, (k, p) => {
+        const i = Number(k) as K;
+        let q = clamp(p, 18, 342, 18, 242);
+        if (this.mode === 'tests') {
+          // snap to the position that completes a parallelogram
+          const a = this.v[(i + 1) % 4];
+          const c = this.v[(i + 3) % 4];
+          const o = this.v[(i + 2) % 4];
+          const target = { x: a.x + c.x - o.x, y: a.y + c.y - o.y };
+          if (len(q, target) < SNAP) q = target;
+        }
+        const next = this.v.slice();
+        next[i] = q;
+        if (!isSimple(next)) return;
+        this.v = next;
+        this.render();
+      });
+      this.querySelector('.mk-pg')?.addEventListener('click', () => {
+        const [A, B, , D] = this.v;
+        const C = { x: B.x + D.x - A.x, y: B.y + D.y - A.y };
+        const next = [A, B, C, D];
+        if (C.x < 18 || C.x > 342 || C.y < 18 || C.y > 242 || !isSimple(next)) {
+          this.v = [{ x: 50, y: 200 }, { x: 110, y: 60 }, { x: 300, y: 60 }, { x: 240, y: 200 }];
+        } else this.v = next;
+        this.render();
+      });
+      this.querySelector('.mk-any')?.addEventListener('click', () => {
+        this.v = [{ x: 50, y: 210 }, { x: 110, y: 60 }, { x: 300, y: 70 }, { x: 250, y: 215 }];
+        this.render();
+      });
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const v = this.v;
+      const ang = interiorAngles(v);
+      const reflex = ang.findIndex((a) => a.m > 180);
+      const cen = centroid(v);
+
+      svg.appendChild(el('polygon', { points: pts(v) }, 'poly'));
+
+      if (this.mode === 'angles') {
+        // the diagonal that splits the quadrilateral into two triangles
+        const d0 = reflex >= 0 ? reflex : 0;
+        const a = v[d0];
+        const b = v[(d0 + 2) % 4];
+        svg.appendChild(el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y }, 'diag'));
+        ang.forEach((g, i) => {
+          const cls = g.m > 180 ? 'wedge wr' : `wedge w${i}`;
+          const { g: w, midA } = wedgeAt(v[i], g.a1, g.a2, 22, cls);
+          svg.appendChild(w);
+          const lp = polar(v[i], g.m > 150 ? 30 : 38, midA);
+          svg.appendChild(text(lp.x, lp.y, `${Math.round(g.m)}°`, 'val'));
+        });
+      } else {
+        const [A, B, C, D] = v;
+        const E1 = mid(A, C);
+        const E2 = mid(B, D);
+        svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: C.x, y2: C.y }, 'diag'));
+        svg.appendChild(el('line', { x1: B.x, y1: B.y, x2: D.x, y2: D.y }, 'diag'));
+        svg.appendChild(el('circle', { cx: E1.x, cy: E1.y, r: 4 }, 'mk'));
+        svg.appendChild(el('circle', { cx: E2.x, cy: E2.y, r: 4 }, 'mk'));
+        const sides = [len(A, B), len(B, C), len(C, D), len(D, A)].map((s) => s / U);
+        const close = (x: number, y: number) => Math.abs(x - y) < 0.03;
+        if (close(sides[0], sides[2])) {
+          ticks(svg, A, B, 1);
+          ticks(svg, C, D, 1);
+        }
+        if (close(sides[1], sides[3])) {
+          ticks(svg, B, C, 2);
+          ticks(svg, D, A, 2);
+        }
+        ang.forEach((g, i) => {
+          const { g: w, midA } = wedgeAt(v[i], g.a1, g.a2, 18, `wedge w${i % 2}`);
+          svg.appendChild(w);
+          const lp = polar(v[i], 34, midA);
+          svg.appendChild(text(lp.x, lp.y, `${Math.round(g.m)}°`, 'val'));
+        });
+      }
+
+      v.forEach((p, i) => handle(svg, p, NAMES[i], cen, (e) => this.drag.start(String(i), e)));
+
+      const total = ang.reduce((s, a) => s + a.m, 0);
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      if (this.mode === 'angles') {
+        calc.innerHTML =
+          `<div>${ang.slice(0, 2).map((a, i) => `m∠${NAMES[i]} = ${Math.round(a.m)}°`).join(' , ')}</div>` +
+          `<div>${ang.slice(2).map((a, i) => `m∠${NAMES[i + 2]} = ${Math.round(a.m)}°`).join(' , ')}</div>` +
+          `<div class="big">${ang.map((a) => Math.round(a.m)).join(' + ')} = ${Math.round(total)}°</div>`;
+        note.textContent =
+          reflex >= 0
+            ? `الشكل مقعّر: الزاوية عند ${NAMES[reflex]} أكبر من °180. ومع ذلك يبقى المجموع °360، لأن القطر من ${NAMES[reflex]} يقسمه إلى مثلثين.`
+            : 'الشكل محدّب. القطر المتقطع يقسمه إلى مثلثين، مجموع زوايا كل منهما °180، فالمجموع °360 دائمًا.';
+      } else {
+        const [A, B, C, D] = v;
+        const s = [len(A, B), len(B, C), len(C, D), len(D, A)].map((x) => x / U);
+        const m = ang.map((a) => a.m);
+        const close = (x: number, y: number, t = 0.03) => Math.abs(x - y) < t;
+        const par = (p: P, q: P, r: P, t: P) => {
+          const u = { x: q.x - p.x, y: q.y - p.y };
+          const w = { x: t.x - r.x, y: t.y - r.y };
+          return Math.abs(u.x * w.y - u.y * w.x) / ((Math.hypot(u.x, u.y) * Math.hypot(w.x, w.y)) || 1) < 0.004;
+        };
+        const tests = [
+          { t: 'كل ضلعين متقابلين متوازيان (التعريف)', ok: par(A, B, D, C) && par(B, C, A, D) },
+          { t: 'كل ضلعين متقابلين متطابقان', ok: close(s[0], s[2]) && close(s[1], s[3]) },
+          { t: 'كل زاويتين متقابلتين متطابقتان', ok: close(m[0], m[2], 0.6) && close(m[1], m[3], 0.6) },
+          { t: 'القطران ينصف كل منهما الآخر', ok: len(mid(A, C), mid(B, D)) < 1 },
+          { t: 'الضلعان AB و DC متوازيان ومتطابقان', ok: par(A, B, D, C) && close(s[0], s[2]) },
+        ];
+        this.querySelector('.checks')!.innerHTML = tests
+          .map((x) => `<li class="${x.ok ? 'ok' : ''}">${x.t}</li>`)
+          .join('');
+        calc.innerHTML =
+          `<div>AB = ${s[0].toFixed(2)} , CD = ${s[2].toFixed(2)}</div><div>BC = ${s[1].toFixed(2)} , DA = ${s[3].toFixed(2)}</div>`;
+        const all = tests.every((x) => x.ok);
+        note.textContent = all
+          ? 'متوازي أضلاع: الشروط كلها تحققت معًا. يكفي إثبات أي واحد منها لتتحقق البقية.'
+          : 'اسحب رأسًا قرب الموضع الذي يكمل متوازي أضلاع وسيلتصق به، أو اضغط الزر. لاحظ أن الشروط تتحقق كلها في اللحظة نفسها.';
+      }
+    }
+  }
+
+  function wedgeAt(v: P, a1: number, a2: number, r: number, cls: string) {
+    const sweep = (a2 - a1 + 360) % 360;
+    const p1 = polar(v, r, a1);
+    const p2 = polar(v, r, a1 + sweep);
+    const large = sweep > 180 ? 1 : 0;
+    const g = el('path', { d: `M ${v.x} ${v.y} L ${p1.x} ${p1.y} A ${r} ${r} 0 ${large} 0 ${p2.x} ${p2.y} Z` }, cls);
+    return { g, midA: a1 + sweep / 2 };
+  }
+
+  customElements.define('quad-lab', QuadLab);
+</script>

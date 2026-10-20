@@ -77,13 +77,13 @@ export const chapters: Chapter[] = [
   {
     n: 6, en: 'Quadrilaterals', ar: 'الأشكال الرباعية',
     lessons: [
-      { id: '6.1', en: 'Polygons', ar: 'المضلعات' },
-      { id: '6.2', en: 'Properties of Parallelograms', ar: 'خصائص متوازي الأضلاع' },
-      { id: '6.3', en: 'Proving Quadrilaterals are Parallelograms', ar: 'إثبات أن الشكل الرباعي متوازي أضلاع' },
-      { id: '6.4', en: 'Rhombuses, Rectangles, and Squares', ar: 'المعين والمستطيل والمربع' },
-      { id: '6.5', en: 'Trapezoids and Kites', ar: 'شبه المنحرف والطائرة الورقية' },
-      { id: '6.6', en: 'Special Quadrilaterals', ar: 'أشكال رباعية خاصة' },
-      { id: '6.7', en: 'Areas of Triangles and Quadrilaterals', ar: 'مساحات المثلثات والأشكال الرباعية' },
+      { id: '6.1', en: 'Polygons', ar: 'المضلعات', ready: true },
+      { id: '6.2', en: 'Properties of Parallelograms', ar: 'خصائص متوازي الأضلاع', ready: true },
+      { id: '6.3', en: 'Proving Quadrilaterals are Parallelograms', ar: 'إثبات أن الشكل الرباعي متوازي أضلاع', ready: true },
+      { id: '6.4', en: 'Rhombuses, Rectangles, and Squares', ar: 'المعين والمستطيل والمربع', ready: true },
+      { id: '6.5', en: 'Trapezoids and Kites', ar: 'شبه المنحرف والطائرة الورقية', ready: true },
+      { id: '6.6', en: 'Special Quadrilaterals', ar: 'أشكال رباعية خاصة', ready: true },
+      { id: '6.7', en: 'Areas of Triangles and Quadrilaterals', ar: 'مساحات المثلثات والأشكال الرباعية', ready: true },
     ],
   },
   {

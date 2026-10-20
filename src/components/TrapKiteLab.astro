@@ -1,0 +1,205 @@
+---
+// Interactive trapezoid (bases stay parallel; midsegment = average of bases)
+// or kite (stays symmetric; diagonals perpendicular).
+import '../styles/qlab.css';
+interface Props {
+  mode?: 'trapezoid' | 'kite';
+}
+const { mode = 'trapezoid' } = Astro.props;
+---
+
+<trapkite-lab class="panel lab qlab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{mode === 'trapezoid' ? 'شبه المنحرف' : 'الطائرة الورقية'}</span>
+    <span class="hint-small">اسحب الرؤوس</span>
+  </div>
+  <svg viewBox="0 0 360 250" class="stage" role="img" aria-label={mode === 'trapezoid' ? 'شبه منحرف وقطعته المتوسطة' : 'طائرة ورقية وقطراها'}></svg>
+  {
+    mode === 'trapezoid' && (
+      <div class="presets">
+        <button type="button" class="iso">اجعله متطابق الساقين</button>
+      </div>
+    )
+  }
+  <div class="calc"></div>
+  <p class="note"></p>
+</trapkite-lab>
+
+<script>
+  import { el, text, makeDraggable, polar } from '../scripts/svg';
+  import { len, mid, pts, interiorAngles, centroid, handle, ticks, chevron, rightMark } from '../scripts/quad';
+
+  const U = 40;
+  const SNAP = 6;
+
+  class TrapKiteLab extends HTMLElement {
+    mode = 'trapezoid';
+    // trapezoid: A, D on the bottom base; B, C on the top base
+    A = { x: 40, y: 200 };
+    D = { x: 320, y: 200 };
+    B = { x: 110, y: 70 };
+    C = { x: 230, y: 70 };
+    // kite: axis x = 180; top T, bottom S, right vertex R (left vertex mirrored)
+    T = { x: 180, y: 30 };
+    S = { x: 180, y: 215 };
+    R = { x: 260, y: 90 };
+    drag!: { start: (k: string, e: PointerEvent) => void };
+
+    connectedCallback() {
+      this.mode = this.dataset.mode ?? 'trapezoid';
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<string>(svg, (k, p) => {
+        const x = Math.max(18, Math.min(342, p.x));
+        const y = Math.max(18, Math.min(232, p.y));
+        if (this.mode === 'trapezoid') {
+          if (k === 'A') {
+            if (x > this.D.x - 60) return;
+            this.A = { x, y: this.A.y };
+          } else if (k === 'D') {
+            if (x < this.A.x + 60) return;
+            this.D = { x, y: this.D.y };
+          } else {
+            if (y > this.A.y - 40) return;
+            const other = k === 'B' ? this.C : this.B;
+            let nx = x;
+            if (k === 'B' && nx > this.C.x - 30) return;
+            if (k === 'C' && nx < this.B.x + 30) return;
+            // snap to the isosceles position (mirror of the other top vertex)
+            const axis = (this.A.x + this.D.x) / 2;
+            const mirror = 2 * axis - other.x;
+            if (Math.abs(nx - mirror) < SNAP) nx = mirror;
+            this.B = { x: k === 'B' ? nx : this.B.x, y };
+            this.C = { x: k === 'C' ? nx : this.C.x, y };
+          }
+        } else {
+          if (k === 'T') {
+            if (y > this.R.y - 25) return;
+            this.T = { x: 180, y };
+          } else if (k === 'S') {
+            if (y < this.R.y + 25 || y > 220) return;
+            this.S = { x: 180, y };
+          } else {
+            if (x < 215 || y < this.T.y + 25 || y > this.S.y - 25) return;
+            this.R = { x, y };
+          }
+        }
+        this.render();
+      });
+      this.querySelector('.iso')?.addEventListener('click', () => {
+        const axis = (this.A.x + this.D.x) / 2;
+        const half = Math.min(Math.abs(axis - this.B.x), axis - 30);
+        this.B = { x: axis - half, y: this.B.y };
+        this.C = { x: axis + half, y: this.B.y };
+        this.render();
+      });
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      if (this.mode === 'trapezoid') this.trap(svg);
+      else this.kite(svg);
+    }
+
+    trap(svg: Element) {
+      const { A, B, C, D } = this;
+      const v = [A, B, C, D];
+      const cen = centroid(v);
+      const M = mid(A, B);
+      const N = mid(D, C);
+      svg.appendChild(el('polygon', { points: pts(v) }, 'poly'));
+      svg.appendChild(el('line', { x1: M.x, y1: M.y, x2: N.x, y2: N.y }, 'hl'));
+      chevron(svg, A, D, 1);
+      chevron(svg, B, C, 1);
+      chevron(svg, M, N, 1);
+      const legL = len(A, B) / U;
+      const legR = len(D, C) / U;
+      const iso = Math.abs(legL - legR) < 0.01;
+      const ang = interiorAngles(v);
+      if (iso) {
+        ticks(svg, A, B, 1);
+        ticks(svg, D, C, 1);
+        ang.forEach((g, i) => {
+          const r = 20;
+          const sweep = (g.a2 - g.a1 + 360) % 360;
+          const p1 = polar(v[i], r, g.a1);
+          const p2 = polar(v[i], r, g.a1 + sweep);
+          const cls = i === 0 || i === 3 ? 'wedge w0' : 'wedge w1';
+          svg.appendChild(el('path', { d: `M ${v[i].x} ${v[i].y} L ${p1.x} ${p1.y} A ${r} ${r} 0 0 0 ${p2.x} ${p2.y} Z` }, cls));
+          const lp = polar(v[i], 36, g.a1 + sweep / 2);
+          svg.appendChild(text(lp.x, lp.y, `${Math.round(g.m)}°`, 'val'));
+        });
+        svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: C.x, y2: C.y }, 'diag'));
+        svg.appendChild(el('line', { x1: B.x, y1: B.y, x2: D.x, y2: D.y }, 'diag'));
+      }
+      svg.appendChild(el('circle', { cx: M.x, cy: M.y, r: 4 }, 'mk'));
+      svg.appendChild(el('circle', { cx: N.x, cy: N.y, r: 4 }, 'mk'));
+      svg.appendChild(text(M.x - 14, M.y, 'M', 'mlbl'));
+      svg.appendChild(text(N.x + 14, N.y, 'N', 'mlbl'));
+      (['A', 'B', 'C', 'D'] as const).forEach((k) => handle(svg, this[k], k, cen, (e) => this.drag.start(k, e)));
+
+      const b1 = len(A, D) / U;
+      const b2 = len(B, C) / U;
+      const mn = len(M, N) / U;
+      this.querySelector('.calc')!.innerHTML =
+        `<div>AD = ${b1.toFixed(2)} , BC = ${b2.toFixed(2)} , MN = ${mn.toFixed(2)}</div>` +
+        `<div class="big">(AD + BC) ÷ 2 = (${b1.toFixed(2)} + ${b2.toFixed(2)}) ÷ 2 = ${((b1 + b2) / 2).toFixed(2)}</div>` +
+        (iso ? `<div>AC = ${(len(A, C) / U).toFixed(2)} , BD = ${(len(B, D) / U).toFixed(2)}</div>` : '');
+      this.querySelector('.note')!.textContent = iso
+        ? 'متطابق الساقين: زاويتا كل قاعدة متطابقتان (بلون واحد)، والقطران متطابقان.'
+        : 'القاعدتان AD و BC متوازيتان دائمًا. القطعة المتوسطة MN توازيهما، وطولها متوسط طوليهما. حرّك B أو C حتى يتطابق الساقان.';
+    }
+
+    kite(svg: Element) {
+      const { T, S, R } = this;
+      const L = { x: 360 - R.x, y: R.y };
+      const v = [T, R, S, L];
+      const cen = centroid(v);
+      const X = { x: 180, y: R.y };
+      svg.appendChild(el('polygon', { points: pts(v) }, 'poly'));
+      svg.appendChild(el('line', { x1: T.x, y1: T.y, x2: S.x, y2: S.y }, 'diag'));
+      svg.appendChild(el('line', { x1: L.x, y1: L.y, x2: R.x, y2: R.y }, 'diag'));
+      rightMark(svg, X, R, T, 10);
+      ticks(svg, T, R, 1);
+      ticks(svg, T, L, 1);
+      ticks(svg, S, R, 2);
+      ticks(svg, S, L, 2);
+      const ang = interiorAngles(v);
+      [1, 3].forEach((i) => {
+        const g = ang[i];
+        const r = 20;
+        const sweep = (g.a2 - g.a1 + 360) % 360;
+        const p1 = polar(v[i], r, g.a1);
+        const p2 = polar(v[i], r, g.a1 + sweep);
+        const large = sweep > 180 ? 1 : 0;
+        svg.appendChild(el('path', { d: `M ${v[i].x} ${v[i].y} L ${p1.x} ${p1.y} A ${r} ${r} 0 ${large} 0 ${p2.x} ${p2.y} Z` }, 'wedge w0'));
+        const lp = polar(v[i], 36, g.a1 + sweep / 2);
+        svg.appendChild(text(lp.x, lp.y, `${Math.round(g.m)}°`, 'val'));
+      });
+      svg.appendChild(text(R.x + 22, R.y + 0, 'Q', 'lbl'));
+      svg.appendChild(text(L.x - 22, L.y, 'P', 'lbl'));
+      svg.appendChild(el('circle', { cx: L.x, cy: L.y, r: 3.5 }, 'mk'));
+      handle(svg, T, 'T', cen, (e) => this.drag.start('T', e));
+      handle(svg, S, 'S', cen, (e) => this.drag.start('S', e));
+      // R handle with label drawn above (Q)
+      const g = el('g', {}, 'pt');
+      g.appendChild(el('circle', { cx: R.x, cy: R.y, r: 15 }, 'hit'));
+      g.appendChild(el('circle', { cx: R.x, cy: R.y, r: 6 }, 'dot'));
+      g.addEventListener('pointerdown', (e) => this.drag.start('R', e as PointerEvent));
+      svg.appendChild(g);
+
+      const tq = len(T, R) / U;
+      const sq = len(S, R) / U;
+      const rh = Math.abs(tq - sq) < 0.01;
+      this.querySelector('.calc')!.innerHTML =
+        `<div>TQ = TP = ${tq.toFixed(2)} , SQ = SP = ${sq.toFixed(2)}</div>` +
+        `<div class="big">m∠P = m∠Q = ${Math.round(ang[1].m)}°</div>` +
+        `<div>m∠T = ${Math.round(ang[0].m)}° , m∠S = ${Math.round(ang[2].m)}°</div>`;
+      this.querySelector('.note')!.textContent = rh
+        ? 'الأضلاع الأربعة صارت متساوية: هذا معين، لا طائرة ورقية. الطائرة تشترط ألا يتطابق ضلعان متقابلان.'
+        : 'القطران متعامدان دائمًا. والزاويتان P و Q (بين الضلعين غير المتطابقين) متطابقتان، أما T و S فمختلفتان.';
+    }
+  }
+  customElements.define('trapkite-lab', TrapKiteLab);
+</script>

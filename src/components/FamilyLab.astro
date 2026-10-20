@@ -1,0 +1,135 @@
+---
+// Interactive: a parallelogram controlled by two side lengths and an angle.
+// Shows which special parallelogram it is and which diagonal properties hold.
+import '../styles/qlab.css';
+---
+
+<family-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">المعين والمستطيل والمربع</span>
+    <span class="kind badge-k"></span>
+  </div>
+  <svg viewBox="0 0 360 230" class="stage" role="img" aria-label="متوازي أضلاع وقطراه"></svg>
+  <div class="sliders">
+    <label><span class="ltr">AB = <b class="av">5</b></span><input type="range" class="a" min="2" max="6" step="0.5" value="5" dir="ltr" aria-label="AB" /></label>
+    <label><span class="ltr">AD = <b class="bv">3</b></span><input type="range" class="b" min="2" max="6" step="0.5" value="3" dir="ltr" aria-label="AD" /></label>
+    <label><span class="ltr">∠A = <b class="tv">65</b>°</span><input type="range" class="t" min="40" max="140" step="5" value="65" dir="ltr" aria-label="الزاوية A" /></label>
+  </div>
+  <div class="presets">
+    <button type="button" data-p="rh">معين</button>
+    <button type="button" data-p="re">مستطيل</button>
+    <button type="button" data-p="sq">مربع</button>
+    <button type="button" data-p="pg">متوازي أضلاع عام</button>
+  </div>
+  <ul class="checks"></ul>
+  <p class="note"></p>
+</family-lab>
+
+<script>
+  import { el, polar, type P } from '../scripts/svg';
+  import { len, mid, pts, centroid, vlabel, ticks, rightMark } from '../scripts/quad';
+
+  const U = 30;
+  const PRE: Record<string, [number, number, number]> = {
+    rh: [4, 4, 60],
+    re: [5.5, 3, 90],
+    sq: [4, 4, 90],
+    pg: [5, 3, 65],
+  };
+
+  class FamilyLab extends HTMLElement {
+    a = 5;
+    b = 3;
+    t = 65;
+
+    connectedCallback() {
+      (['a', 'b', 't'] as const).forEach((c) => {
+        const inp = this.querySelector<HTMLInputElement>(`input.${c}`)!;
+        inp.addEventListener('input', () => {
+          this[c] = Number(inp.value);
+          this.render();
+        });
+      });
+      this.querySelectorAll<HTMLButtonElement>('.presets button').forEach((btn) =>
+        btn.addEventListener('click', () => {
+          [this.a, this.b, this.t] = PRE[btn.dataset.p!];
+          (['a', 'b', 't'] as const).forEach((c) => (this.querySelector<HTMLInputElement>(`input.${c}`)!.value = String(this[c])));
+          this.render();
+        }),
+      );
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const { a, b, t } = this;
+      // build at origin then centre in the stage
+      const A0 = { x: 0, y: 0 };
+      const B0 = { x: a * U, y: 0 };
+      const D0 = polar(A0, b * U, t);
+      const C0 = { x: B0.x + D0.x, y: D0.y };
+      const raw = [A0, B0, C0, D0];
+      const xs = raw.map((p) => p.x);
+      const ys = raw.map((p) => p.y);
+      const dx = 180 - (Math.min(...xs) + Math.max(...xs)) / 2;
+      const dy = 115 - (Math.min(...ys) + Math.max(...ys)) / 2;
+      const [A, B, C, D] = raw.map((p) => ({ x: p.x + dx, y: p.y + dy }));
+      const v = [A, B, C, D];
+      const cen = centroid(v);
+      const E = mid(A, C);
+
+      svg.appendChild(el('polygon', { points: pts(v) }, 'poly'));
+      svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: C.x, y2: C.y }, 'diag'));
+      svg.appendChild(el('line', { x1: B.x, y1: B.y, x2: D.x, y2: D.y }, 'diag'));
+
+      const rhombus = a === b;
+      const rect = t === 90;
+      if (rhombus) {
+        [[A, B], [B, C], [C, D], [D, A]].forEach(([p, q]) => ticks(svg, p, q, 1));
+        rightMark(svg, E, A, B, 9);
+      } else {
+        ticks(svg, A, B, 1);
+        ticks(svg, C, D, 1);
+        ticks(svg, B, C, 2);
+        ticks(svg, D, A, 2);
+      }
+      if (rect) v.forEach((p, i) => rightMark(svg, p, v[(i + 1) % 4], v[(i + 3) % 4], 11));
+      svg.appendChild(el('circle', { cx: E.x, cy: E.y, r: 3.5 }, 'mk'));
+      v.forEach((p, i) => vlabel(svg, p, 'ABCD'[i], cen));
+
+      const ac = len(A, C) / U;
+      const bd = len(B, D) / U;
+      const angleBetween = (p: P, q: P, r: P, s: P) => {
+        const u = { x: q.x - p.x, y: q.y - p.y };
+        const w = { x: s.x - r.x, y: s.y - r.y };
+        return (Math.acos(Math.abs(u.x * w.x + u.y * w.y) / (Math.hypot(u.x, u.y) * Math.hypot(w.x, w.y))) * 180) / Math.PI;
+      };
+      const diagAng = angleBetween(A, C, B, D);
+      const name = rhombus && rect ? 'مربع' : rhombus ? 'معين' : rect ? 'مستطيل' : 'متوازي أضلاع';
+      this.querySelector('.kind')!.textContent = name;
+      this.querySelector('.av')!.textContent = String(a);
+      this.querySelector('.bv')!.textContent = String(b);
+      this.querySelector('.tv')!.textContent = String(t);
+
+      const checks = [
+        { t: 'القطران ينصف كل منهما الآخر', ok: true },
+        { t: `الأضلاع الأربعة متطابقة`, ok: rhombus },
+        { t: 'الزوايا الأربع قائمة', ok: rect },
+        { t: `القطران متطابقان <span class="ltr">(AC = ${ac.toFixed(2)} , BD = ${bd.toFixed(2)})</span>`, ok: rect },
+        { t: `القطران متعامدان <span class="ltr">(${diagAng.toFixed(0)}°)</span>`, ok: rhombus },
+        { t: 'كل قطر ينصف زاويتين متقابلتين', ok: rhombus },
+      ];
+      this.querySelector('.checks')!.innerHTML = checks.map((c) => `<li class="${c.ok ? 'ok' : ''}">${c.t}</li>`).join('');
+      this.querySelector('.note')!.textContent =
+        name === 'مربع'
+          ? 'المربع معين ومستطيل معًا، فيرث خصائصهما كلها: قطران متطابقان ومتعامدان، وكل منهما ينصف زاويتين.'
+          : name === 'معين'
+            ? 'المعين: أضلاع متساوية. قطراه متعامدان وينصفان الزوايا، لكنهما غير متطابقين إلا إذا صارت الزاوية °90.'
+            : name === 'مستطيل'
+              ? 'المستطيل: زوايا قائمة. قطراه متطابقان، لكنهما غير متعامدين إلا إذا تساوى الضلعان.'
+              : 'جرّب: ساوِ الضلعين لتحصل على معين، أو اجعل الزاوية °90 لتحصل على مستطيل، أو افعل الأمرين معًا.';
+    }
+  }
+  customElements.define('family-lab', FamilyLab);
+</script>

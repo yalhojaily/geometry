@@ -1,0 +1,248 @@
+/* Shared styles for the chapter 6 labs (quadrilaterals and areas).
+   Every lab root carries class "qlab"; elements are created by script. */
+
+.qlab {
+  display: block;
+}
+.qlab .lab-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+.qlab .tag {
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+.qlab .hint-small {
+  font-size: 0.85rem;
+  color: var(--ink-3);
+}
+.qlab .modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+.qlab .modes button,
+.qlab .presets button {
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.qlab .modes button.on {
+  border-color: var(--brand);
+  background: var(--def-bg);
+}
+.qlab .presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+.qlab .stage {
+  display: block;
+  width: 100%;
+  max-width: 460px;
+  margin: 0.4rem auto;
+  touch-action: none;
+  background: var(--paper);
+  border-radius: 10px;
+}
+.qlab .stage .poly {
+  fill: var(--brand);
+  fill-opacity: 0.08;
+  stroke: var(--brand);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+.qlab .stage .ghost {
+  fill: var(--accent);
+  fill-opacity: 0.18;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-dasharray: 6 4;
+}
+.qlab .stage .diag {
+  stroke: var(--ink-2);
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+}
+.qlab .stage .hl {
+  stroke: var(--accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.qlab .stage .hl2 {
+  stroke: var(--thm);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.qlab .stage .hgt {
+  stroke: var(--post);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+.qlab .stage .grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.qlab .stage .wedge {
+  stroke: none;
+  fill-opacity: 0.35;
+}
+.qlab .stage .w0 { fill: var(--accent); }
+.qlab .stage .w1 { fill: var(--thm); }
+.qlab .stage .w2 { fill: var(--post); }
+.qlab .stage .w3 { fill: var(--warn); }
+.qlab .stage .wr {
+  fill: var(--warn);
+  fill-opacity: 0.45;
+}
+.qlab .stage .tick {
+  stroke: var(--warn);
+  stroke-width: 2.2;
+}
+.qlab .stage .rmark {
+  fill: none;
+  stroke: var(--thm);
+  stroke-width: 1.8;
+}
+.qlab .stage .par {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.qlab .stage .val {
+  font-family: var(--font-head);
+  font-size: 11.5px;
+  font-weight: 700;
+  fill: var(--ink);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3px;
+}
+.qlab .stage .lbl {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 15px;
+  fill: var(--ink);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.qlab .stage .mlbl {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 13px;
+  fill: var(--accent);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3px;
+}
+.qlab .stage .mk {
+  fill: var(--accent);
+}
+.qlab .stage .pt {
+  cursor: grab;
+}
+.qlab .stage .hit {
+  fill: transparent;
+}
+.qlab .stage .dot {
+  fill: var(--card);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+.qlab .sliders {
+  display: grid;
+  gap: 0.25rem;
+}
+.qlab .sliders label {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.qlab .sliders span {
+  flex: none;
+  width: 5.2rem;
+  font-family: var(--font-head);
+}
+.qlab .sliders input {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--brand);
+}
+.qlab .calc {
+  font-family: var(--font-head);
+  font-size: 0.9rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 0.8rem;
+  margin-top: 0.4rem;
+  line-height: 1.7;
+  direction: ltr;
+  text-align: left;
+  overflow-x: auto;
+}
+.qlab .calc div {
+  white-space: nowrap;
+}
+.qlab .calc .big {
+  font-weight: 700;
+  color: var(--brand);
+}
+.qlab .checks {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.93rem;
+}
+.qlab .checks li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  color: var(--ink-3);
+}
+.qlab .checks li::before {
+  content: '✗';
+  font-weight: 700;
+  width: 1rem;
+  flex: none;
+  color: var(--ink-3);
+}
+.qlab .checks li.ok {
+  color: var(--ink);
+}
+.qlab .checks li.ok::before {
+  content: '✓';
+  color: var(--thm);
+}
+.qlab .badge-k {
+  display: inline-block;
+  font-family: var(--font-head);
+  font-weight: 700;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  background: var(--thm-bg);
+  color: var(--thm);
+}
+.qlab .note {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  background: var(--paper-2);
+  font-size: 0.95rem;
+}

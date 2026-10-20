@@ -1,0 +1,123 @@
+---
+// Interactive parallelogram: drag any vertex, the shape stays a parallelogram.
+// Tabs show the properties: opposite sides, angles, diagonals.
+import '../styles/qlab.css';
+---
+
+<pgram-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">خصائص متوازي الأضلاع</span>
+    <span class="hint-small">اسحب الرؤوس</span>
+  </div>
+  <div class="modes" role="tablist">
+    <button type="button" data-m="sides" class="on">الأضلاع</button>
+    <button type="button" data-m="angles">الزوايا</button>
+    <button type="button" data-m="diag">القطران</button>
+  </div>
+  <svg viewBox="0 0 360 250" class="stage" role="img" aria-label="متوازي الأضلاع ABCD قابل للتحريك"></svg>
+  <div class="calc"></div>
+  <p class="note"></p>
+</pgram-lab>
+
+<script>
+  import { el, text, makeDraggable, polar, type P } from '../scripts/svg';
+  import { len, mid, pts, interiorAngles, isSimple, centroid, handle, ticks, chevron } from '../scripts/quad';
+
+  const NAMES = ['A', 'B', 'C', 'D'];
+  const U = 40;
+  const inside = (p: P) => p.x >= 16 && p.x <= 344 && p.y >= 16 && p.y <= 234;
+
+  class PgramLab extends HTMLElement {
+    v: P[] = [{ x: 50, y: 195 }, { x: 115, y: 55 }, { x: 305, y: 55 }, { x: 240, y: 195 }];
+    m = 'sides';
+    drag!: { start: (k: string, e: PointerEvent) => void };
+
+    connectedCallback() {
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.m = b.dataset.m!;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<string>(svg, (k, p) => {
+        const i = Number(k);
+        // moving vertex i drags its neighbour (i+1) along so the opposite vertex stays put
+        const next = this.v.slice();
+        const opp = (i + 2) % 4;
+        const nb = (i + 1) % 4;
+        next[i] = p;
+        next[nb] = { x: p.x + this.v[opp].x - this.v[(i + 3) % 4].x, y: p.y + this.v[opp].y - this.v[(i + 3) % 4].y };
+        if (!next.every(inside) || !isSimple(next, 20)) return;
+        this.v = next;
+        this.render();
+      });
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const v = this.v;
+      const [A, B, C, D] = v;
+      const cen = centroid(v);
+      const ang = interiorAngles(v);
+      const s = [len(A, B), len(B, C), len(C, D), len(D, A)].map((x) => x / U);
+      svg.appendChild(el('polygon', { points: pts(v) }, 'poly'));
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+
+      if (this.m === 'sides') {
+        svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y }, 'hl'));
+        svg.appendChild(el('line', { x1: D.x, y1: D.y, x2: C.x, y2: C.y }, 'hl'));
+        svg.appendChild(el('line', { x1: B.x, y1: B.y, x2: C.x, y2: C.y }, 'hl2'));
+        svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: D.x, y2: D.y }, 'hl2'));
+        chevron(svg, A, B, 1);
+        chevron(svg, D, C, 1);
+        chevron(svg, B, C, 2);
+        chevron(svg, A, D, 2);
+        calc.innerHTML =
+          `<div>AB = ${s[0].toFixed(2)} , CD = ${s[2].toFixed(2)}</div>` +
+          `<div>BC = ${s[1].toFixed(2)} , DA = ${s[3].toFixed(2)}</div>`;
+        note.textContent = 'الضلعان المتقابلان بلون واحد: متوازيان (الأسهم) ومتطابقان دائمًا، مهما غيّرت الشكل.';
+      } else if (this.m === 'angles') {
+        ang.forEach((g, i) => {
+          const r = 22;
+          const sweep = (g.a2 - g.a1 + 360) % 360;
+          const p1 = polar(v[i], r, g.a1);
+          const p2 = polar(v[i], r, g.a1 + sweep);
+          svg.appendChild(
+            el('path', { d: `M ${v[i].x} ${v[i].y} L ${p1.x} ${p1.y} A ${r} ${r} 0 0 0 ${p2.x} ${p2.y} Z` }, `wedge w${i % 2}`),
+          );
+          const lp = polar(v[i], 40, g.a1 + sweep / 2);
+          svg.appendChild(text(lp.x, lp.y, `${Math.round(g.m)}°`, 'val'));
+        });
+        const r = ang.map((a) => Math.round(a.m));
+        calc.innerHTML =
+          `<div>m∠A = ${r[0]}° , m∠C = ${r[2]}°</div><div>m∠B = ${r[1]}° , m∠D = ${r[3]}°</div>` +
+          `<div class="big">m∠A + m∠B = ${r[0]}° + ${r[1]}° = ${r[0] + r[1]}°</div>`;
+        note.textContent = 'الزاويتان المتقابلتان بلون واحد ومتطابقتان. وكل زاويتين متتاليتين متكاملتان: مجموعهما °180.';
+      } else {
+        const E = mid(A, C);
+        svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: C.x, y2: C.y }, 'hl'));
+        svg.appendChild(el('line', { x1: B.x, y1: B.y, x2: D.x, y2: D.y }, 'hl2'));
+        ticks(svg, A, E, 1);
+        ticks(svg, E, C, 1);
+        ticks(svg, B, E, 2);
+        ticks(svg, E, D, 2);
+        svg.appendChild(el('circle', { cx: E.x, cy: E.y, r: 4.5 }, 'mk'));
+        svg.appendChild(text(E.x, E.y - 14, 'E', 'mlbl'));
+        const ae = len(A, E) / U;
+        const be = len(B, E) / U;
+        calc.innerHTML =
+          `<div>AE = ${ae.toFixed(2)} , EC = ${ae.toFixed(2)}</div>` + `<div>BE = ${be.toFixed(2)} , ED = ${be.toFixed(2)}</div>`;
+        note.textContent =
+          'القطران ينصف كل منهما الآخر: E منتصف كليهما. لكنهما ليسا متطابقين ولا متعامدين في العادة، إلا في أشكال خاصة (الدرس 6.4).';
+      }
+
+      v.forEach((p, i) => handle(svg, p, NAMES[i], cen, (e) => this.drag.start(String(i), e)));
+    }
+  }
+  customElements.define('pgram-lab', PgramLab);
+</script>

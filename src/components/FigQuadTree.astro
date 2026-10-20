@@ -1,0 +1,88 @@
+---
+// Static figure: the family tree of quadrilaterals. Each shape below a line
+// is a special case of the one above it.
+type Node = { id: string; x: number; y: number; w: number; t: string; c: string };
+const nodes: Node[] = [
+  { id: 'q', x: 180, y: 25, w: 110, t: 'الشكل الرباعي', c: 'n0' },
+  { id: 'pg', x: 68, y: 100, w: 112, t: 'متوازي الأضلاع', c: 'n1' },
+  { id: 'tr', x: 190, y: 100, w: 104, t: 'شبه المنحرف', c: 'n2' },
+  { id: 'ki', x: 302, y: 100, w: 104, t: 'الطائرة الورقية', c: 'n3' },
+  { id: 'rh', x: 52, y: 175, w: 86, t: 'المعين', c: 'n1' },
+  { id: 're', x: 152, y: 175, w: 86, t: 'المستطيل', c: 'n1' },
+  { id: 'it', x: 272, y: 175, w: 124, t: 'متطابق الساقين', c: 'n2' },
+  { id: 'sq', x: 102, y: 245, w: 86, t: 'المربع', c: 'n1' },
+];
+const edges: [string, string][] = [
+  ['q', 'pg'], ['q', 'tr'], ['q', 'ki'], ['pg', 'rh'], ['pg', 're'], ['tr', 'it'], ['rh', 'sq'], ['re', 'sq'],
+];
+const at = Object.fromEntries(nodes.map((n) => [n.id, n]));
+const H = 30;
+---
+
+<figure class="fig">
+  <svg viewBox="0 0 360 265" role="img" aria-label="شجرة الأشكال الرباعية: متوازي الأضلاع وشبه المنحرف والطائرة الورقية، ثم المعين والمستطيل والمربع وشبه المنحرف المتطابق الساقين">
+    {
+      edges.map(([a, b]) => (
+        <line x1={at[a].x} y1={at[a].y + H / 2} x2={at[b].x} y2={at[b].y - H / 2} class="edge" />
+      ))
+    }
+    {
+      nodes.map((n) => (
+        <g class={n.c}>
+          <rect x={n.x - n.w / 2} y={n.y - H / 2} width={n.w} height={H} rx="9" />
+          <text x={n.x} y={n.y + 1}>{n.t}</text>
+        </g>
+      ))
+    }
+  </svg>
+  <figcaption><slot /></figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 0.8rem 0;
+    text-align: center;
+  }
+  svg {
+    width: 100%;
+    max-width: 400px;
+    display: block;
+    margin: 0 auto;
+  }
+  .edge {
+    stroke: var(--ink-3);
+    stroke-width: 1.8;
+  }
+  rect {
+    stroke-width: 1.8;
+  }
+  text {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    fill: var(--ink);
+    direction: rtl;
+  }
+  .n0 rect {
+    fill: var(--paper-2);
+    stroke: var(--ink-2);
+  }
+  .n1 rect {
+    fill: var(--def-bg);
+    stroke: var(--def);
+  }
+  .n2 rect {
+    fill: var(--thm-bg);
+    stroke: var(--thm);
+  }
+  .n3 rect {
+    fill: var(--post-bg);
+    stroke: var(--post);
+  }
+  figcaption {
+    font-size: 0.88rem;
+    color: var(--ink-3);
+  }
+</style>

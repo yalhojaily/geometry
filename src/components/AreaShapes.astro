@@ -1,0 +1,203 @@
+---
+// Interactive: why the area formulas work.
+//  parallelogram → rectangle (move a triangle), triangle → half a parallelogram,
+//  trapezoid → half a parallelogram with base b1 + b2, kite → half a rectangle d1 × d2.
+import '../styles/qlab.css';
+---
+
+<area-shapes class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">من أين تأتي صيغ المساحة؟</span>
+  </div>
+  <div class="modes two" role="tablist">
+    <button type="button" data-m="pg" class="on">متوازي الأضلاع</button>
+    <button type="button" data-m="tri">المثلث</button>
+    <button type="button" data-m="trap">شبه المنحرف</button>
+    <button type="button" data-m="kite">الطائرة والمعين</button>
+  </div>
+  <svg viewBox="0 0 360 230" class="stage" role="img" aria-label="شكل على شبكة وحدات ومساحته"></svg>
+  <div class="sliders"></div>
+  <label class="show"><input type="checkbox" class="ghostbox" checked /> أظهر إعادة الترتيب</label>
+  <div class="calc"></div>
+  <p class="note"></p>
+</area-shapes>
+
+<script>
+  import { el, text, type P } from '../scripts/svg';
+  import { pts, rightMark } from '../scripts/quad';
+
+  const U = 24;
+  const X0 = 36;
+  const Y0 = 200;
+  type Mode = 'pg' | 'tri' | 'trap' | 'kite';
+  const SL: Record<Mode, { k: string; label: string; min: number; max: number }[]> = {
+    pg: [
+      { k: 'b', label: 'b', min: 2, max: 7 },
+      { k: 'h', label: 'h', min: 1, max: 6 },
+      { k: 's', label: 'ميل', min: 0, max: 4 },
+    ],
+    tri: [
+      { k: 'b', label: 'b', min: 2, max: 6 },
+      { k: 'h', label: 'h', min: 1, max: 6 },
+      { k: 's', label: 'الرأس', min: 0, max: 5 },
+    ],
+    trap: [
+      { k: 'b1', label: 'b₁', min: 2, max: 6 },
+      { k: 'b2', label: 'b₂', min: 1, max: 5 },
+      { k: 'h', label: 'h', min: 1, max: 6 },
+    ],
+    kite: [
+      { k: 'd1', label: 'd₁', min: 2, max: 8 },
+      { k: 'd2', label: 'd₂', min: 2, max: 10 },
+      { k: 'c', label: 'التقاطع', min: 1, max: 7 },
+    ],
+  };
+
+  class AreaShapes extends HTMLElement {
+    m: Mode = 'pg';
+    val: Record<string, number> = { b: 5, h: 4, s: 2, b1: 6, b2: 3, d1: 7, d2: 6, c: 2 };
+    ghost = true;
+
+    connectedCallback() {
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.m = b.dataset.m as Mode;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.buildSliders();
+          this.render();
+        }),
+      );
+      this.querySelector<HTMLInputElement>('.ghostbox')!.addEventListener('change', (e) => {
+        this.ghost = (e.target as HTMLInputElement).checked;
+        this.render();
+      });
+      this.buildSliders();
+      this.render();
+    }
+
+    buildSliders() {
+      for (const s of SL[this.m]) this.val[s.k] = Math.max(s.min, Math.min(s.max, this.val[s.k]));
+      if (this.m === 'kite' && this.val.c >= this.val.d1) this.val.c = this.val.d1 - 1;
+      const box = this.querySelector('.sliders')!;
+      box.innerHTML = SL[this.m]
+        .map(
+          (s) =>
+            `<label><span class="ltr">${s.label} = <b data-v="${s.k}">${this.val[s.k]}</b></span>` +
+            `<input type="range" data-k="${s.k}" min="${s.min}" max="${s.max}" step="1" value="${this.val[s.k]}" dir="ltr" aria-label="${s.label}" /></label>`,
+        )
+        .join('');
+      box.querySelectorAll<HTMLInputElement>('input').forEach((inp) =>
+        inp.addEventListener('input', () => {
+          this.val[inp.dataset.k!] = Number(inp.value);
+          if (this.m === 'kite' && this.val.c >= this.val.d1) {
+            this.val.c = this.val.d1 - 1;
+            const ci = box.querySelector<HTMLInputElement>('input[data-k=c]');
+            if (ci) ci.value = String(this.val.c);
+          }
+          this.render();
+        }),
+      );
+    }
+
+    g = (x: number, y: number): P => ({ x: X0 + x * U, y: Y0 - y * U });
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      for (let i = 0; i <= 12; i++) svg.appendChild(el('line', { x1: X0 + i * U, y1: 8, x2: X0 + i * U, y2: 224 }, 'grid'));
+      for (let j = -1; j <= 8; j++) svg.appendChild(el('line', { x1: 12, y1: Y0 - j * U, x2: 348, y2: Y0 - j * U }, 'grid'));
+      this.querySelectorAll<HTMLElement>('[data-v]').forEach((b) => (b.textContent = String(this.val[b.dataset.v!])));
+      const { b, h, s, b1, b2, d1, d2, c } = this.val;
+      const g = this.g;
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      const poly = (ps: P[], cls: string) => svg.appendChild(el('polygon', { points: pts(ps) }, cls));
+      const hgt = (p: P, q: P) => svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, 'hgt'));
+      const lab = (p: P, t: string) => svg.appendChild(text(p.x, p.y, t, 'mlbl'));
+
+      if (this.m === 'pg') {
+        const ps = [g(0, 0), g(b, 0), g(b + s, h), g(s, h)];
+        if (this.ghost && s > 0) {
+          // cut the left triangle and slide it to the right
+          poly([g(0, 0), g(s, 0), g(s, h)], 'ghost');
+          poly([g(b, 0), g(b + s, 0), g(b + s, h)], 'ghost');
+        }
+        poly(ps, 'poly');
+        hgt(g(s, 0), g(s, h));
+        if (s > 0) rightMark(svg, g(s, 0), g(s + 1, 0), g(s, 1), 8);
+        lab(g(b / 2, -0.45), `b = ${b}`);
+        lab({ x: g(s, h / 2).x + 22, y: g(s, h / 2).y }, `h = ${h}`);
+        calc.innerHTML = `<div class="big">A = bh = ${b} × ${h} = ${b * h}</div>`;
+        note.textContent =
+          'قصّ المثلث المظلل من اليسار وانقله إلى اليمين: يصير الشكل مستطيلًا قاعدته b وارتفاعه h. غيّر الميل وستبقى المساحة كما هي.';
+      } else if (this.m === 'tri') {
+        const A = g(0, 0);
+        const B = g(b, 0);
+        const C = g(s, h);
+        if (this.ghost) poly([B, g(b + s, h), C], 'ghost');
+        poly([A, B, C], 'poly');
+        const foot = g(s, 0);
+        if (s > b || s < 0) svg.appendChild(el('line', { x1: B.x, y1: B.y, x2: foot.x, y2: foot.y }, 'hgt'));
+        hgt(foot, C);
+        rightMark(svg, foot, g(s - 1, 0), g(s, 1), 8);
+        lab(g(b / 2, -0.45), `b = ${b}`);
+        lab({ x: g(s, h / 2).x + (s >= b ? -22 : 22), y: g(s, h / 2).y }, `h = ${h}`);
+        calc.innerHTML = `<div class="big">A = ½bh = ½ × ${b} × ${h} = ${(b * h) / 2}</div>`;
+        note.textContent =
+          'نسخة ثانية من المثلث (المظللة) تكمله متوازي أضلاع مساحته bh. فالمثلث نصفه. حرّك الرأس: المساحة لا تتغير ما دامت القاعدة والارتفاع ثابتين.';
+      } else if (this.m === 'trap') {
+        const off = Math.max(0, (b1 - b2) / 2);
+        const ps = [g(0, 0), g(b1, 0), g(off + b2, h), g(off, h)];
+        if (this.ghost) {
+          // rotated copy attached on the right forms a parallelogram with base b1 + b2
+          poly([g(b1, 0), g(b1 + b2, 0), g(b1 + b2 + off, h), g(off + b2, h)], 'ghost');
+        }
+        poly(ps, 'poly');
+        hgt(g(off, 0), g(off, h));
+        lab(g(b1 / 2, -0.45), `b₁ = ${b1}`);
+        lab(g(off + b2 / 2, h + 0.45), `b₂ = ${b2}`);
+        lab({ x: g(off, h / 2).x + 22, y: g(off, h / 2).y }, `h = ${h}`);
+        calc.innerHTML = `<div class="big">A = ½h(b₁ + b₂) = ½ × ${h} × (${b1} + ${b2}) = ${(h * (b1 + b2)) / 2}</div>`;
+        note.textContent =
+          'نسخة مقلوبة من شبه المنحرف بجانبه تكوّن متوازي أضلاع قاعدته b₁ + b₂ وارتفاعه h. وشبه المنحرف نصفه.';
+      } else {
+        const cx = 6;
+        const Ty = d1;
+        const yBot = 0;
+        const Xy = d1 - c;
+        const Tq = g(cx, Ty);
+        const Sq = g(cx, yBot);
+        const Lq = g(cx - d2 / 2, Xy);
+        const Rq = g(cx + d2 / 2, Xy);
+        if (this.ghost) poly([g(cx - d2 / 2, Ty), g(cx + d2 / 2, Ty), g(cx + d2 / 2, yBot), g(cx - d2 / 2, yBot)], 'ghost');
+        poly([Tq, Rq, Sq, Lq], 'poly');
+        svg.appendChild(el('line', { x1: Tq.x, y1: Tq.y, x2: Sq.x, y2: Sq.y }, 'diag'));
+        svg.appendChild(el('line', { x1: Lq.x, y1: Lq.y, x2: Rq.x, y2: Rq.y }, 'diag'));
+        rightMark(svg, g(cx, Xy), Rq, Tq, 8);
+        lab({ x: Sq.x + 30, y: Sq.y - 8 }, `d₁ = ${d1}`);
+        lab({ x: (Lq.x + Tq.x) / 2, y: Lq.y + 13 }, `d₂ = ${d2}`);
+        const kind = c * 2 === d1 ? 'معين' : 'طائرة ورقية';
+        calc.innerHTML = `<div class="big">A = ½d₁d₂ = ½ × ${d1} × ${d2} = ${(d1 * d2) / 2}</div>`;
+        note.textContent = `الشكل الآن ${kind}. المستطيل المظلل أبعاده d₁ × d₂، والقطران يقسمانه إلى ثمانية مثلثات، أربعة منها داخل الشكل. فالمساحة نصف المستطيل.`;
+      }
+    }
+  }
+  customElements.define('area-shapes', AreaShapes);
+</script>
+
+<style>
+  .show {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+    cursor: pointer;
+  }
+  .modes.two {
+    grid-template-columns: 1fr 1fr;
+  }
+  .show input {
+    accent-color: var(--brand);
+  }
+</style>

@@ -2,7 +2,7 @@
 // Static triangle figures used in chapter 4 proofs.
 //  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso'
 interface Props {
-  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso' | 'perpbis';
+  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso' | 'perpbis' | 'pgram' | 'pgramdiag';
   marks?: boolean;
 }
 const { kind, marks = true } = Astro.props;
@@ -104,6 +104,22 @@ if (kind === 'kite') {
   if (marks) tickList = [...ticks(A, P), ...ticks(P, B)];
   arcs = [{ d: `M ${P.x} ${P.y - 12} L ${P.x + 12} ${P.y - 12} L ${P.x + 12} ${P.y}`, cls: 'a2' }];
   aria = 'المستقيم CP عمود منصف للقطعة AB عند P';
+} else if (kind === 'pgram' || kind === 'pgramdiag') {
+  const A = { x: 40, y: 170 }, B = { x: 110, y: 40 }, C = { x: 290, y: 40 }, D = { x: 220, y: 170 };
+  const E = { x: 165, y: 105 };
+  segs = [[A, B], [B, C], [C, D], [D, A], [A, C, 'diag']];
+  if (kind === 'pgramdiag') segs.push([B, D, 'diag']);
+  labels = [
+    { p: { x: A.x - 16, y: A.y + 6 }, t: 'A' }, { p: { x: B.x - 8, y: B.y - 8 }, t: 'B' },
+    { p: { x: C.x + 6, y: C.y - 6 }, t: 'C' }, { p: { x: D.x + 6, y: D.y + 14 }, t: 'D' },
+  ];
+  if (kind === 'pgramdiag') labels.push({ p: { x: E.x - 5, y: E.y - 10 }, t: 'E' });
+  arcs = kind === 'pgram'
+    ? [{ d: arc(A, C, B, 26), cls: 'a1' }, { d: arc(C, A, D, 26), cls: 'a1' }, { d: arc(A, D, C, 34), cls: 'a2' }, { d: arc(C, B, A, 34), cls: 'a2' }]
+    : [];
+  if (kind === 'pgramdiag' && marks) tickList = [...ticks(A, E), ...ticks(E, C), ...ticks(B, E, 2), ...ticks(E, D, 2)];
+  aria = kind === 'pgram' ? 'متوازي الأضلاع ABCD وقطره AC' : 'متوازي الأضلاع ABCD وقطراه يتقاطعان في E';
+  vb = '0 15 330 185';
 } else {
   const A = { x: 160, y: 25 }, B = { x: 70, y: 175 }, C = { x: 250, y: 175 }, M = { x: 160, y: 175 };
   segs = [[A, B], [A, C], [B, C], [A, M, 'aux']];

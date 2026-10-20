@@ -54,6 +54,9 @@ const R = {
   aas: { r: 'نظرية AAS', ref: 'thm-aas' },
   cpctc: { r: 'الأجزاء المتناظرة في مثلثين متطابقين', ref: 'def-cpctc' },
   straight: { r: 'تعريف الزاوية المستقيمة', ref: 'def-angle-types' },
+  defPgram: { r: 'تعريف متوازي الأضلاع', ref: 'def-parallelogram' },
+  pgramSides: { r: 'نظرية الأضلاع المتقابلة في متوازي الأضلاع', ref: 'thm-pgram-sides' },
+  altIntConv: { r: 'عكس نظرية الزوايا المتبادلة داخليًا', ref: 'thm-alt-interior-converse' },
 };
 
 export const proofs: Record<string, Proof> = {
@@ -399,6 +402,48 @@ export const proofs: Record<string, Proof> = {
       { s: '$\\triangle ABD \\cong \\triangle ACD$', ...R.aas },
       { s: '$\\overline{DB} \\cong \\overline{DC}$، أي $DB = DC$', ...R.cpctc },
     ],
+  },
+  pgramSides: {
+    title: 'الأضلاع المتقابلة في متوازي الأضلاع',
+    given: '$ABCD$ متوازي أضلاع',
+    prove: '$\\overline{AB} \\cong \\overline{CD}$ و $\\overline{AD} \\cong \\overline{CB}$',
+    steps: [
+      { s: '$ABCD$ متوازي أضلاع', ...R.given },
+      { s: '$\\overline{AB} \\parallel \\overline{DC}$ و $\\overline{AD} \\parallel \\overline{BC}$', ...R.defPgram },
+      { s: '$\\angle BAC \\cong \\angle DCA$ و $\\angle BCA \\cong \\angle DAC$', ...R.altInt },
+      { s: '$\\overline{AC} \\cong \\overline{AC}$', ...R.segRefl },
+      { s: '$\\triangle ABC \\cong \\triangle CDA$', ...R.asa },
+      { s: '$\\overline{AB} \\cong \\overline{CD}$ و $\\overline{AD} \\cong \\overline{CB}$', ...R.cpctc },
+    ],
+    distractors: [R.sss.r, R.vertical.r, R.corr.r],
+  },
+  pgramDiagonals: {
+    title: 'قطرا متوازي الأضلاع',
+    given: '$ABCD$ متوازي أضلاع، وقطراه يتقاطعان في $E$',
+    prove: '$E$ منتصف $\\overline{AC}$ و $\\overline{BD}$',
+    steps: [
+      { s: '$\\overline{AB} \\parallel \\overline{DC}$', ...R.defPgram },
+      { s: '$\\angle ABE \\cong \\angle CDE$ و $\\angle BAE \\cong \\angle DCE$', ...R.altInt },
+      { s: '$\\overline{AB} \\cong \\overline{CD}$', ...R.pgramSides },
+      { s: '$\\triangle ABE \\cong \\triangle CDE$', ...R.asa },
+      { s: '$\\overline{AE} \\cong \\overline{CE}$ و $\\overline{BE} \\cong \\overline{DE}$', ...R.cpctc },
+      { s: '$E$ منتصف $\\overline{AC}$ و $\\overline{BD}$', ...R.defMid },
+    ],
+  },
+  onePair: {
+    title: 'ضلعان متقابلان متطابقان ومتوازيان',
+    given: '$\\overline{BC} \\parallel \\overline{DA}$ و $\\overline{BC} \\cong \\overline{DA}$',
+    prove: '$ABCD$ متوازي أضلاع',
+    steps: [
+      { s: '$\\overline{BC} \\parallel \\overline{DA}$ و $\\overline{BC} \\cong \\overline{DA}$', ...R.given },
+      { s: '$\\angle BCA \\cong \\angle DAC$', ...R.altInt },
+      { s: '$\\overline{AC} \\cong \\overline{AC}$', ...R.segRefl },
+      { s: '$\\triangle BCA \\cong \\triangle DAC$', ...R.sas },
+      { s: '$\\angle BAC \\cong \\angle DCA$', ...R.cpctc },
+      { s: '$\\overline{AB} \\parallel \\overline{CD}$', ...R.altIntConv },
+      { s: '$ABCD$ متوازي أضلاع', ...R.defPgram },
+    ],
+    distractors: [R.asa.r, R.sss.r, R.corrConv.r],
   },
 };
 

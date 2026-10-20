@@ -1,0 +1,130 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '6.2'
+why: 'متوازي الأضلاع يُعرَّف بشرط واحد: كل ضلعين متقابلين متوازيان. لكن هذا الشرط وحده يجرّ معه خصائص كثيرة في الأضلاع والزوايا والقطرين. سنكتشفها ونبرهنها بأدوات الفصلين الثالث والرابع.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import FigTri from '../../components/FigTri.astro';
+import PgramLab from '../../components/PgramLab.astro';
+import { proofs } from '../../data/proofs';
+
+## التعريف
+
+<Term id="def-parallelogram" />
+
+<PgramLab />
+
+جرّب التبويبات الثلاثة. ما تلاحظه هو أربع نظريات:
+
+## الأضلاع المتقابلة
+
+<Term id="thm-pgram-sides" />
+
+البرهان يرسم قطرًا ويقسم الشكل إلى مثلثين. القطر قاطع لكل زوج من الأضلاع المتوازية، فيعطي زاويتين متبادلتين داخليًا من كل زوج:
+
+<ProofTable {...proofs.pgramSides} mode="fill">
+  <FigTri kind="pgram">القطر AC قاطع للمستقيمين المتوازيين، فيصنع زاويتين متبادلتين من كل زوج.</FigTri>
+</ProofTable>
+
+## الزوايا
+
+<Term id="thm-pgram-angles" />
+<Term id="thm-pgram-consecutive" />
+
+الزاويتان المتتاليتان، مثل $\angle A$ و $\angle B$، زاويتان داخليتان في جهة واحدة من القاطع $\overline{AB}$ بين المتوازيين $\overline{AD}$ و $\overline{BC}$، فهما متكاملتان (الدرس 3.3).
+
+## القطران
+
+<Term id="thm-pgram-diagonals" />
+
+<ProofTable {...proofs.pgramDiagonals}>
+  <FigTri kind="pgramdiag">القطران يتقاطعان في E.</FigTri>
+</ProofTable>
+
+<Callout type="warning" title="القطران ليسا متطابقين">
+
+القطران **ينصف** كل منهما الآخر، لكن هذا لا يعني أنهما **متساويان**. انظر إلى تبويب «القطران»: $AE = EC$ و $BE = ED$، لكن $AC \neq BD$ عادة.
+
+</Callout>
+
+<Prereq id="alg-linear-eq" />
+
+<Example title="مثال 1: الأضلاع والزوايا">
+
+في $\square PQRS$: $PQ = 9$ و $QR = 5$ و $m\angle P = 70^\circ$. أوجد $RS$ و $SP$ وبقية الزوايا.
+
+1. الأضلاع المتقابلة متطابقة: $RS = PQ = 9$ و $SP = QR = 5$.
+2. الزاوية المقابلة لـ $\angle P$ هي $\angle R$: $m\angle R = 70^\circ$.
+3. $\angle Q$ متتالية مع $\angle P$: $m\angle Q = 180 - 70 = 110^\circ$، ومثلها $m\angle S = 110^\circ$.
+
+</Example>
+
+<Example title="مثال 2: الجبر مع القطرين">
+
+قطرا $\square ABCD$ يتقاطعان في $E$. $AE = 3x + 1$ و $EC = 5x - 7$، و $BE = 2y$ و $ED = y + 6$. أوجد $AC$ و $BD$.
+
+1. القطران ينصف كل منهما الآخر: $AE = EC$، أي $3x + 1 = 5x - 7$، فيكون $x = 4$ و $AE = 13$ و $AC = 26$.
+2. $BE = ED$: $2y = y + 6$، فيكون $y = 6$ و $BE = 12$ و $BD = 24$.
+
+</Example>
+
+<Example title="مثال 3: الزوايا بالجبر">
+
+في متوازي أضلاع، زاويتان متتاليتان $(4x + 10)^\circ$ و $(2x + 50)^\circ$. أوجدهما.
+
+1. المتتاليتان متكاملتان: $(4x + 10) + (2x + 50) = 180$.
+2. $6x + 60 = 180$، إذن $x = 20$.
+3. الزاويتان $90^\circ$ و $90^\circ$. الشكل إذن مستطيل!
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={12}>
+
+في $\square JKLM$: $JK = 12$. ما $LM$؟
+
+<div slot="explain">$\overline{LM}$ يقابل $\overline{JK}$، فهما متطابقان: $12$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={65}>
+
+في متوازي أضلاع، إحدى الزوايا $115^\circ$. ما قياس الزاوية المجاورة لها؟
+
+<div slot="explain">المتتاليتان متكاملتان: $180 - 115 = 65$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={7} hint="القطران ينصف كل منهما الآخر.">
+
+قطرا متوازي أضلاع يتقاطعان في $E$. $AE = x + 5$ و $EC = 2x - 2$. ما قيمة $x$؟
+
+<div slot="explain">$x + 5 = 2x - 2$، إذن $x = 7$.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={3} options={['الأضلاع المتقابلة متطابقة', 'الزوايا المتقابلة متطابقة', 'القطران ينصف كل منهما الآخر', 'القطران متطابقان']}>
+
+أي عبارة **ليست** صحيحة دائمًا في متوازي الأضلاع؟
+
+<div slot="explain">القطران متطابقان فقط في المستطيل (الدرس 6.4).</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={0} options={['ASA', 'SSS', 'SAS', 'HL']}>
+
+في برهان الأضلاع المتقابلة، بأي مسلّمة تطابق المثلثان $ABC$ و $CDA$؟
+
+<div slot="explain">زاويتان متبادلتان من كل زوج متوازٍ، والقطر المشترك بينهما: ASA.</div>
+</Quiz>
+
+## الخلاصة
+
+في متوازي الأضلاع:
+
+- كل ضلعين متقابلين **متوازيان** (التعريف) و**متطابقان**.
+- كل زاويتين متقابلتين **متطابقتان**، وكل زاويتين متتاليتين **متكاملتان**.
+- القطران **ينصف كل منهما الآخر**، لكنهما غير متطابقين عمومًا.
