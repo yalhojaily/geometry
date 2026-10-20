@@ -1,0 +1,109 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '7.4'
+why: 'الانسحاب أبسط حركة: كل شيء ينزلق المسافة نفسها في الاتجاه نفسه. ولوصفه بدقة نحتاج أداة جديدة هي المتجه، وهي أداة سترافقك في الفيزياء والبرمجة والرسوم الحاسوبية.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import TransformLab from '../../components/TransformLab.astro';
+
+## تعريف الانسحاب
+
+<Term id="def-translation" />
+<Term id="thm-translation-isometry" />
+
+لماذا يحفظ الأطوال؟ $PP'$ و $QQ'$ متوازيتان ومتطابقتان، فالشكل $PP'Q'Q$ متوازي أضلاع (الدرس 6.3)، وضلعاه المتقابلان $\overline{PQ}$ و $\overline{P'Q'}$ متطابقان.
+
+## المتجهات
+
+<Term id="def-vector" />
+
+<TransformLab modes={['translate']} />
+
+<Callout type="warning" title="المتجه ليس نقطة">
+
+$\langle 3, -2 \rangle$ (بأقواس زاوية) **حركة**: ثلاث وحدات يمينًا ووحدتان أسفل، من أي نقطة تبدأ. أما $(3, -2)$ (بأقواس عادية) فهو **موضع** محدد في المستوى.
+
+</Callout>
+
+<Example title="مثال 1: الصورة المركّبة لمتجه">
+
+أوجد الصورة المركّبة للمتجه $\overrightarrow{PQ}$ حيث $P(2, 5)$ و $Q(7, 1)$.
+
+1. الحركة الأفقية: $7 - 2 = 5$.
+2. الحركة الرأسية: $1 - 5 = -4$.
+3. $\overrightarrow{PQ} = \langle 5, -4 \rangle$.
+
+</Example>
+
+<Example title="مثال 2: انسحاب مثلث">
+
+انقل $\triangle ABC$ حيث $A(-3, 1)$ و $B(0, 3)$ و $C(-1, -2)$ بالمتجه $\langle 4, -1 \rangle$.
+
+1. القاعدة: $(x, y) \to (x + 4, y - 1)$.
+2. $A'(1, 0)$ و $B'(4, 2)$ و $C'(3, -3)$.
+
+</Example>
+
+## انعكاسان يصنعان انسحابًا
+
+<Term id="thm-reflect-parallel" />
+
+<TransformLab modes={['compose']} sub="par" />
+
+<Example title="مثال 3: المسافة">
+
+المستقيمان $x = 1$ و $x = 4$ متوازيان. ما الانسحاب الذي يساوي الانعكاس في الأول ثم في الثاني؟
+
+1. المسافة بين المستقيمين $3$.
+2. الانسحاب مسافته ضعفها: $6$، في الاتجاه من الأول إلى الثاني (يمينًا).
+3. القاعدة: $(x, y) \to (x + 6, y)$. جرّبها: النقطة $(0, 2)$ تنعكس في $x = 1$ إلى $(2, 2)$، ثم في $x = 4$ إلى $(6, 2)$ ✓
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={0} options={['⟨−6, 3⟩', '⟨6, −3⟩', '⟨−2, 7⟩', '⟨6, 3⟩']}>
+
+ما الصورة المركّبة لـ $\overrightarrow{AB}$ حيث $A(4, 2)$ و $B(-2, 5)$؟
+
+<div slot="explain">$\langle -2 - 4, 5 - 2 \rangle = \langle -6, 3 \rangle$.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={2} options={['(3, 6)', '(−7, 2)', '(7, −2)', '(2, 7)']}>
+
+ما صورة $(5, 2)$ بالانسحاب $\langle 2, -4 \rangle$؟
+
+<div slot="explain">$(5 + 2, 2 - 4) = (7, -2)$.</div>
+</Quiz>
+
+<Quiz n={3} type="choice" answer={1} options={['(x, y) → (x + 3, y − 1)', '(x, y) → (x − 3, y + 1)', '(x, y) → (x + 1, y − 3)']}>
+
+انسحاب ينقل $(4, 1)$ إلى $(1, 2)$. ما قاعدته؟
+
+<div slot="explain">السين نقص $3$ والصاد زاد $1$: $(x - 3, y + 1)$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={10}>
+
+مستقيمان متوازيان المسافة بينهما $5$. ما مسافة الانسحاب المساوي للانعكاس فيهما على التوالي؟
+
+<div slot="explain">ضعف المسافة: $10$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={5} hint="المسافة بين نقطة البداية والنهاية.">
+
+ما طول المتجه $\langle 3, 4 \rangle$؟
+
+<div slot="explain">بصيغة المسافة: $\sqrt{3^2 + 4^2} = 5$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **الانسحاب** ينقل كل النقاط المسافة نفسها في الاتجاه نفسه، وهو حركة صلبة لا تقلب الشكل.
+- **المتجه** $\langle a, b \rangle$ يصف الحركة: $(x, y) \to (x + a, y + b)$.
+- الصورة المركّبة لـ $\overrightarrow{PQ}$: النهاية ناقص البداية.
+- انعكاسان في مستقيمين **متوازيين** = انسحاب مسافته **ضعف** المسافة بينهما.

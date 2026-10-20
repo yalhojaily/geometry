@@ -246,3 +246,7 @@
   background: var(--paper-2);
   font-size: 0.95rem;
 }
+.qlab .calc div[dir='rtl'] {
+  text-align: right;
+  font-family: var(--font-body);
+}

@@ -89,12 +89,12 @@ export const chapters: Chapter[] = [
   {
     n: 7, en: 'Transformations', ar: 'التحويلات الهندسية',
     lessons: [
-      { id: '7.1', en: 'Rigid Motion in a Plane', ar: 'الحركة الصلبة في المستوى' },
-      { id: '7.2', en: 'Reflections', ar: 'الانعكاسات' },
-      { id: '7.3', en: 'Rotations', ar: 'الدورانات' },
-      { id: '7.4', en: 'Translations and Vectors', ar: 'الانسحابات والمتجهات' },
-      { id: '7.5', en: 'Glide Reflections and Compositions', ar: 'الانعكاس الانزلاقي وتركيب التحويلات' },
-      { id: '7.6', en: 'Frieze Patterns', ar: 'أنماط الأفاريز' },
+      { id: '7.1', en: 'Rigid Motion in a Plane', ar: 'الحركة الصلبة في المستوى', ready: true },
+      { id: '7.2', en: 'Reflections', ar: 'الانعكاسات', ready: true },
+      { id: '7.3', en: 'Rotations', ar: 'الدورانات', ready: true },
+      { id: '7.4', en: 'Translations and Vectors', ar: 'الانسحابات والمتجهات', ready: true },
+      { id: '7.5', en: 'Glide Reflections and Compositions', ar: 'الانعكاس الانزلاقي وتركيب التحويلات', ready: true },
+      { id: '7.6', en: 'Frieze Patterns', ar: 'أنماط الأفاريز', ready: true },
     ],
   },
   {

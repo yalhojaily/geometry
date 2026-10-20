@@ -1,0 +1,125 @@
+---
+// Interactive: the seven frieze pattern types, built from one asymmetric motif.
+import '../styles/qlab.css';
+const TYPES = ['T', 'TR', 'TG', 'TV', 'THG', 'TRVG', 'TRHVG'];
+---
+
+<frieze-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">الأنواع السبعة للإفريز</span>
+  </div>
+  <div class="modes ftypes" role="tablist">
+    {TYPES.map((t, i) => <button type="button" data-t={t} class:list={{ on: i === 0 }}><span class="ltr">{t}</span></button>)}
+  </div>
+  <svg viewBox="0 0 360 130" class="stage" role="img" aria-label="شريط إفريز متكرر"></svg>
+  <ul class="checks"></ul>
+  <p class="note"></p>
+</frieze-lab>
+
+<script>
+  import { el } from '../scripts/svg';
+
+  type Tf = 'I' | 'H' | 'V' | 'R';
+  const W = 40;
+  const CY = 65;
+  // asymmetric boot-like motif above the centre line, in cell coordinates
+  const MOTIF: [number, number][] = [
+    [9, -4],
+    [9, -54],
+    [17, -54],
+    [17, -30],
+    [33, -24],
+    [33, -4],
+  ];
+  // each cell lists the copies of the motif it contains; the list repeats
+  const PAT: Record<string, Tf[][]> = {
+    T: [['I']],
+    TR: [['I'], ['R']],
+    TG: [['I'], ['H']],
+    TV: [['I'], ['V']],
+    THG: [['I', 'H']],
+    TRVG: [['I'], ['V'], ['H'], ['R']],
+    TRHVG: [['I', 'H'], ['V', 'R']],
+  };
+  const SYM: Record<string, string> = { T: 'T', TR: 'TR', TG: 'TG', TV: 'TV', THG: 'THG', TRVG: 'TRVG', TRHVG: 'TRHVG' };
+  const ITEMS: [string, string][] = [
+    ['T', 'انسحاب أفقي (كل إفريز)'],
+    ['R', 'دوران °180'],
+    ['H', 'انعكاس في الخط الأفقي الأوسط'],
+    ['V', 'انعكاس في خط رأسي'],
+    ['G', 'انعكاس انزلاقي'],
+  ];
+  const NOTES: Record<string, string> = {
+    T: 'انسحاب فقط: الشكل يتكرر كما هو، بلا قلب ولا دوران.',
+    TR: 'كل شكل يتبعه نسخة مدوّرة °180 (مقلوبة رأسًا على عقب ومعكوسة الجانب).',
+    TG: 'كل شكل يتبعه انعكاسه في الخط الأوسط بعد انزلاق، كآثار الأقدام.',
+    TV: 'كل شكل يتبعه انعكاسه في خط رأسي بينهما، كالمرآة.',
+    THG: 'كل شكل فوقه وتحته نسخة معكوسة في الخط الأوسط. وجود H يعطي G تلقائيًا (انسحاب ثم انعكاس).',
+    TRVG: 'محاور رأسية ومراكز دوران وانعكاس انزلاقي، لكن لا يوجد انعكاس في الخط الأوسط.',
+    TRHVG: 'كل التماثلات معًا: الإفريز الأكثر تماثلًا.',
+  };
+
+  function place(t: Tf, x0: number) {
+    return MOTIF.map(([u, v]) => {
+      const uu = t === 'V' || t === 'R' ? W - u : u;
+      const vv = t === 'H' || t === 'R' ? -v : v;
+      return `${x0 + uu},${CY + vv}`;
+    }).join(' ');
+  }
+
+  class FriezeLab extends HTMLElement {
+    t = 'T';
+    connectedCallback() {
+      this.querySelectorAll<HTMLButtonElement>('.ftypes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.t = b.dataset.t!;
+          this.querySelectorAll('.ftypes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      this.render();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      svg.appendChild(el('rect', { x: 0, y: 4, width: 360, height: 122 }, 'strip'));
+      svg.appendChild(el('line', { x1: 0, y1: CY, x2: 360, y2: CY }, 'cline'));
+      const p = PAT[this.t];
+      for (let i = 0; i < 9; i++) {
+        const cell = p[i % p.length];
+        for (const tf of cell) svg.appendChild(el('polygon', { points: place(tf, i * W) }, i === 0 && tf === 'I' ? 'mot first' : 'mot'));
+      }
+      const code = SYM[this.t];
+      this.querySelector('.checks')!.innerHTML = ITEMS.map(
+        ([k, label]) => `<li class="${code.includes(k) ? 'ok' : ''}"><span class="ltr">${k}</span> ${label}</li>`,
+      ).join('');
+      this.querySelector('.note')!.textContent = NOTES[this.t];
+    }
+  }
+  customElements.define('frieze-lab', FriezeLab);
+</script>
+
+<style is:global>
+  frieze-lab .ftypes {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  frieze-lab .stage .strip {
+    fill: var(--card);
+  }
+  frieze-lab .stage .cline {
+    stroke: var(--ink-3);
+    stroke-width: 1;
+    stroke-dasharray: 3 4;
+  }
+  frieze-lab .stage .mot {
+    fill: var(--brand);
+    fill-opacity: 0.75;
+    stroke: var(--brand);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  frieze-lab .stage .mot.first {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+</style>

@@ -1,0 +1,132 @@
+---
+// Interactive: lines of symmetry and rotational symmetry of a regular n-gon.
+import '../styles/qlab.css';
+---
+
+<sym-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">تماثل المضلع المنتظم</span>
+    <label class="tg"><input type="checkbox" class="lines" checked /> محاور التماثل</label>
+  </div>
+  <svg viewBox="0 0 300 260" class="stage" role="img" aria-label="مضلع منتظم ومحاور تماثله"></svg>
+  <div class="sliders">
+    <label><span class="ltr">n = <b class="nv">5</b></span><input type="range" class="n" min="3" max="8" value="5" dir="ltr" aria-label="عدد الأضلاع" /></label>
+  </div>
+  <div class="presets"><button type="button" class="spin">دوّر بأصغر زاوية</button><button type="button" class="reset">أعد</button></div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</sym-lab>
+
+<script>
+  import { el, type P } from '../scripts/svg';
+  import { pts } from '../scripts/quad';
+
+  const C: P = { x: 150, y: 130 };
+  const R = 95;
+
+  class SymLab extends HTMLElement {
+    n = 5;
+    turns = 0;
+
+    connectedCallback() {
+      const n = this.querySelector<HTMLInputElement>('input.n')!;
+      n.addEventListener('input', () => {
+        this.n = Number(n.value);
+        this.turns = 0;
+        this.render();
+      });
+      this.querySelector('.lines')!.addEventListener('change', () => this.render());
+      this.querySelector('.spin')!.addEventListener('click', () => {
+        this.turns++;
+        this.spin();
+      });
+      this.querySelector('.reset')!.addEventListener('click', () => {
+        this.turns = 0;
+        this.spin();
+      });
+      this.render();
+    }
+
+    spin() {
+      const g = this.querySelector<SVGGElement>('g.shape');
+      if (g) g.style.transform = `rotate(${(-360 / this.n) * this.turns}deg)`;
+      this.querySelector('.calc')!.innerHTML = this.calcHtml();
+    }
+
+    calcHtml() {
+      const a = 360 / this.n;
+      const list = [];
+      for (let k = 1; k * a <= 180 + 1e-9; k++) list.push(`${+(k * a).toFixed(1)}°`);
+      return (
+        `<div dir="rtl">عدد محاور التماثل: <span class="ltr">${this.n}</span></div>` +
+        `<div class="big">360° ÷ ${this.n} = ${+a.toFixed(1)}°</div>` +
+        `<div dir="rtl">زوايا التماثل الدوراني حتى °180: <span class="ltr">${list.join(' , ')}</span></div>` +
+        `<div dir="rtl">مقدار الدوران الآن: <span class="ltr">${+((a * this.turns) % 360).toFixed(1)}°</span></div>`
+      );
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const n = this.n;
+      const vs: P[] = Array.from({ length: n }, (_, i) => {
+        const t = (-90 + (360 / n) * i) * (Math.PI / 180);
+        return { x: C.x + R * Math.cos(t), y: C.y + R * Math.sin(t) };
+      });
+      if (this.querySelector<HTMLInputElement>('.lines')!.checked) {
+        for (let i = 0; i < n; i++) {
+          const t = (-90 + (180 / n) * i) * (Math.PI / 180);
+          const d = { x: Math.cos(t) * (R + 22), y: Math.sin(t) * (R + 22) };
+          svg.appendChild(el('line', { x1: C.x - d.x, y1: C.y - d.y, x2: C.x + d.x, y2: C.y + d.y }, 'symline'));
+        }
+      }
+      const g = el('g', {}, 'shape');
+      g.appendChild(el('polygon', { points: pts(vs) }, 'poly'));
+      g.appendChild(el('circle', { cx: vs[0].x, cy: vs[0].y, r: 7 }, 'flag'));
+      svg.appendChild(g);
+      svg.appendChild(el('circle', { cx: vs[0].x, cy: vs[0].y, r: 10 }, 'home'));
+      svg.appendChild(el('circle', { cx: C.x, cy: C.y, r: 3.5 }, 'mk'));
+      this.querySelector('.nv')!.textContent = String(n);
+      this.querySelector('.calc')!.innerHTML = this.calcHtml();
+      this.querySelector('.note')!.textContent = `المضلع المنتظم ذو ${n} أضلاع له ${n} محاور تماثل، وينطبق على نفسه بدوران ${+(360 / n).toFixed(1)}° حول مركزه. النقطة البرتقالية تبيّن أن الرؤوس تبدلت أماكنها، أما الشكل فبقي كما هو.`;
+      requestAnimationFrame(() => this.spin());
+    }
+  }
+  customElements.define('sym-lab', SymLab);
+</script>
+
+<style is:global>
+  sym-lab .stage .symline {
+    stroke: var(--thm);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+  }
+  sym-lab .stage .shape {
+    transform-origin: 150px 130px;
+    transition: transform 0.7s ease;
+  }
+  sym-lab .stage .flag {
+    fill: var(--accent);
+  }
+  sym-lab .stage .home {
+    fill: none;
+    stroke: var(--ink-3);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+  sym-lab .tg {
+    font-size: 0.9rem;
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+    cursor: pointer;
+  }
+  sym-lab .tg input {
+    accent-color: var(--brand);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    sym-lab .stage .shape {
+      transition: none;
+    }
+  }
+</style>

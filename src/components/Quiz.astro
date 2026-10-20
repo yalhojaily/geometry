@@ -23,7 +23,7 @@ const { n, type, options = [], answer, hint } = Astro.props;
     type === 'choice' ? (
       <div class="options" role="radiogroup">
         {options.map((o, i) => (
-          <button type="button" class="opt" data-i={i} role="radio" aria-checked="false">
+          <button type="button" class="opt" data-i={i} role="radio" aria-checked="false" dir="auto">
             {o}
           </button>
         ))}
@@ -145,7 +145,7 @@ const { n, type, options = [], answer, hint } = Astro.props;
     color: var(--ink);
     border-radius: 10px;
     padding: 0.5rem 0.7rem;
-    text-align: start;
+    text-align: right;
     transition: border-color 0.15s;
   }
   .opt:hover {
