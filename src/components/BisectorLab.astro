@@ -1,0 +1,219 @@
+---
+// Interactive: drag P and compare distances.
+//  mode="segment": PA and PB; equal exactly on the perpendicular bisector.
+//  mode="angle":   distances to the two sides; equal exactly on the angle bisector.
+interface Props {
+  mode: 'segment' | 'angle';
+}
+const { mode } = Astro.props;
+---
+
+<bisector-lab class="panel lab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{mode === 'segment' ? 'العمود المنصف' : 'منصف الزاوية'}</span>
+    <span class="hint-small">اسحب النقطة P</span>
+  </div>
+  <svg viewBox="0 0 360 250" class="stage" role="img" aria-label={mode === 'segment' ? 'قطعة AB وعمودها المنصف والنقطة P' : 'زاوية ومنصفها والنقطة P'}></svg>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</bisector-lab>
+
+<script>
+  import { el, text, polar, makeDraggable, type P } from '../scripts/svg';
+
+  const A: P = { x: 80, y: 190 };
+  const B: P = { x: 280, y: 190 };
+  const MIDX = 180;
+  const V: P = { x: 50, y: 215 };
+  const HALF = 28; // half of the angle (degrees)
+  const SNAP = 7;
+
+  const dist = (p: P, q: P) => Math.hypot(p.x - q.x, p.y - q.y);
+  /** Foot of the perpendicular from p onto the ray from V in direction deg. */
+  function foot(p: P, deg: number): P {
+    const t = (deg * Math.PI) / 180;
+    const d = { x: Math.cos(t), y: -Math.sin(t) };
+    const k = Math.max(0, (p.x - V.x) * d.x + (p.y - V.y) * d.y);
+    return { x: V.x + k * d.x, y: V.y + k * d.y };
+  }
+
+  class BisectorLab extends HTMLElement {
+    p: P = { x: 210, y: 70 };
+    drag!: { start: (k: 'P', e: PointerEvent) => void };
+
+    connectedCallback() {
+      if (this.dataset.mode === 'angle') this.p = { x: 230, y: 120 };
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<'P'>(svg, (_, q) => {
+        let x = Math.max(12, Math.min(348, q.x));
+        let y = Math.max(12, Math.min(238, q.y));
+        if (this.dataset.mode === 'segment') {
+          if (Math.abs(x - MIDX) < SNAP) x = MIDX;
+        } else {
+          // snap onto the bisector ray
+          const f = foot({ x, y }, HALF);
+          if (dist(f, { x, y }) < SNAP) ({ x, y } = f);
+        }
+        this.p = { x, y };
+        this.render();
+      });
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const p = this.p;
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      const S = 40; // px per unit for the readout
+
+      if (this.dataset.mode === 'segment') {
+        svg.appendChild(el('line', { x1: MIDX, y1: 8, x2: MIDX, y2: 242 }, 'bis'));
+        svg.appendChild(el('polyline', { points: `${MIDX},${A.y - 11} ${MIDX + 11},${A.y - 11} ${MIDX + 11},${A.y}` }, 'sq'));
+        svg.appendChild(el('line', { x1: A.x, y1: A.y, x2: B.x, y2: B.y }, 'seg'));
+        for (const q of [A, B]) svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, 'd'));
+        for (const [q, n, dx] of [
+          [A, 'A', -18],
+          [B, 'B', 8],
+        ] as [P, string, number][]) {
+          svg.appendChild(el('circle', { cx: q.x, cy: q.y, r: 4.5 }, 'vx'));
+          svg.appendChild(text(q.x + dx, q.y + 6, n, 'lbl'));
+        }
+        const pa = dist(p, A) / S;
+        const pb = dist(p, B) / S;
+        const on = p.x === MIDX;
+        calc.innerHTML = `<div class="${on ? 'ok' : ''}">PA = ${pa.toFixed(2)} , PB = ${pb.toFixed(2)}</div>`;
+        note.textContent = on
+          ? 'P على العمود المنصف، فهي على بعدين متساويين من A و B. حرّكها للأعلى والأسفل على الخط: يبقى PA = PB.'
+          : 'P ليست على العمود المنصف، فهي أقرب إلى أحد الطرفين. كل نقطة على بعدين متساويين من A و B تقع على الخط المتقطع.';
+      } else {
+        const r1 = polar(V, 330, 0);
+        const r2 = polar(V, 330, 2 * HALF);
+        const rb = polar(V, 330, HALF);
+        svg.appendChild(el('line', { x1: V.x, y1: V.y, x2: rb.x, y2: rb.y }, 'bis'));
+        svg.appendChild(el('line', { x1: V.x, y1: V.y, x2: r1.x, y2: r1.y }, 'seg'));
+        svg.appendChild(el('line', { x1: V.x, y1: V.y, x2: r2.x, y2: r2.y }, 'seg'));
+        const f1 = foot(p, 0);
+        const f2 = foot(p, 2 * HALF);
+        for (const f of [f1, f2]) {
+          svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: f.x, y2: f.y }, 'd'));
+          svg.appendChild(el('circle', { cx: f.x, cy: f.y, r: 3.5 }, 'ft'));
+        }
+        svg.appendChild(el('circle', { cx: V.x, cy: V.y, r: 4.5 }, 'vx'));
+        svg.appendChild(text(V.x - 16, V.y + 6, 'A', 'lbl'));
+        const d1 = dist(p, f1) / S;
+        const d2 = dist(p, f2) / S;
+        const fb = foot(p, HALF);
+        const on = dist(fb, p) < 0.01;
+        calc.innerHTML = `<div dir="rtl" class="rt ${on ? 'ok' : ''}">بُعد P عن الضلع الأفقي <span class="ltr">${d1.toFixed(2)}</span>، وعن الضلع المائل <span class="ltr">${d2.toFixed(2)}</span></div>`;
+        note.textContent = on
+          ? 'P على منصف الزاوية، فبُعداها العموديان عن الضلعين متساويان.'
+          : 'المسافة من نقطة إلى ضلع تقاس بالقطعة العمودية. البعدان يتساويان فقط حين تقع P على المنصف المتقطع.';
+      }
+
+      const g = el('g', {}, 'pt');
+      g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 16 }, 'hit'));
+      g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 6.5 }, 'dot'));
+      g.appendChild(text(p.x + 10, p.y - 10, 'P', 'lbl'));
+      g.addEventListener('pointerdown', (e) => this.drag.start('P', e as PointerEvent));
+      svg.appendChild(g);
+    }
+  }
+  customElements.define('bisector-lab', BisectorLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 440px;
+    margin: 0.4rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.seg) {
+    stroke: var(--brand);
+    stroke-width: 3;
+  }
+  .stage :global(.bis) {
+    stroke: var(--thm);
+    stroke-width: 2;
+    stroke-dasharray: 7 5;
+  }
+  .stage :global(.sq) {
+    fill: none;
+    stroke: var(--thm);
+    stroke-width: 1.5;
+  }
+  .stage :global(.d) {
+    stroke: var(--accent);
+    stroke-width: 2.2;
+  }
+  .stage :global(.ft) {
+    fill: var(--accent);
+  }
+  .stage :global(.vx) {
+    fill: var(--ink);
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    fill: var(--ink);
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.92rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    text-align: left;
+  }
+  .calc :global(.rt) {
+    text-align: right;
+    font-family: var(--font-body);
+  }
+  .calc :global(.ok) {
+    color: var(--good);
+    font-weight: 700;
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

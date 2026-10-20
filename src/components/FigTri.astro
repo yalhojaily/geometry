@@ -2,7 +2,7 @@
 // Static triangle figures used in chapter 4 proofs.
 //  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso'
 interface Props {
-  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso';
+  kind: 'kite' | 'bowtie' | 'sum' | 'exterior' | 'iso' | 'perpbis';
   marks?: boolean;
 }
 const { kind, marks = true } = Astro.props;
@@ -94,6 +94,16 @@ if (kind === 'kite') {
   ];
   arcs = [{ d: arc(C, X, A, 20), cls: 'a2' }, { d: arc(A, B, C, 18), cls: 'a1' }, { d: arc(B, C, A, 18), cls: 'a1' }];
   aria = 'المثلث ABC ممدودًا ضلعه BC بعد C، والزاوية الخارجية 1 عند C';
+} else if (kind === 'perpbis') {
+  const A = { x: 50, y: 175 }, B = { x: 270, y: 175 }, P = { x: 160, y: 175 }, C = { x: 160, y: 40 };
+  segs = [[A, B], [C, A, 'aux'], [C, B, 'aux'], [{ x: 160, y: 15 }, { x: 160, y: 195 }]];
+  labels = [
+    { p: { x: A.x - 16, y: A.y + 6 }, t: 'A' }, { p: { x: B.x + 8, y: B.y + 6 }, t: 'B' },
+    { p: { x: P.x + 6, y: P.y + 18 }, t: 'P' }, { p: { x: C.x + 8, y: C.y - 4 }, t: 'C' },
+  ];
+  if (marks) tickList = [...ticks(A, P), ...ticks(P, B)];
+  arcs = [{ d: `M ${P.x} ${P.y - 12} L ${P.x + 12} ${P.y - 12} L ${P.x + 12} ${P.y}`, cls: 'a2' }];
+  aria = 'المستقيم CP عمود منصف للقطعة AB عند P';
 } else {
   const A = { x: 160, y: 25 }, B = { x: 70, y: 175 }, C = { x: 250, y: 175 }, M = { x: 160, y: 175 };
   segs = [[A, B], [A, C], [B, C], [A, M, 'aux']];

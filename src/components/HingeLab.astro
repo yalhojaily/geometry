@@ -1,0 +1,168 @@
+---
+// Interactive: the Hinge Theorem. Two triangles share two side lengths;
+// open each "hinge" (the included angle) and compare the third sides.
+---
+
+<hinge-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">نظرية المفصل</span>
+  </div>
+  <svg viewBox="0 82 360 103" class="stage" role="img" aria-label="مثلثان لهما ضلعان متطابقان وزاويتان محصورتان مختلفتان"></svg>
+  <div class="sliders">
+    <label><span class="ltr">∠1 = <b class="v1">40</b>°</span><input type="range" class="t1" min="10" max="170" value="40" dir="ltr" aria-label="الزاوية الأولى" /></label>
+    <label><span class="ltr">∠2 = <b class="v2">95</b>°</span><input type="range" class="t2" min="10" max="170" value="95" dir="ltr" aria-label="الزاوية الثانية" /></label>
+  </div>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</hinge-lab>
+
+<script>
+  import { el, text, polar, arcPath, type P } from '../scripts/svg';
+
+  const S1 = 4; // the two fixed sides (units)
+  const S2 = 3;
+  const U = 22;
+
+  class HingeLab extends HTMLElement {
+    t = [40, 95];
+
+    connectedCallback() {
+      (['t1', 't2'] as const).forEach((c, i) => {
+        const inp = this.querySelector<HTMLInputElement>(`.${c}`)!;
+        inp.addEventListener('input', () => {
+          this.t[i] = Number(inp.value);
+          this.render();
+        });
+      });
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const third = this.t.map((t) => Math.sqrt(S1 * S1 + S2 * S2 - 2 * S1 * S2 * Math.cos((t * Math.PI) / 180)));
+      const origins: P[] = [
+        { x: 88, y: 165 },
+        { x: 256, y: 165 },
+      ];
+      this.t.forEach((t, i) => {
+        const O = origins[i];
+        const P1 = polar(O, S1 * U, 0);
+        const P2 = polar(O, S2 * U, t);
+        svg.appendChild(el('path', { d: arcPath(O, 20, 0, t, true) }, `w w${i}`));
+        svg.appendChild(el('line', { x1: O.x, y1: O.y, x2: P1.x, y2: P1.y }, 'arm'));
+        svg.appendChild(el('line', { x1: O.x, y1: O.y, x2: P2.x, y2: P2.y }, 'arm'));
+        svg.appendChild(el('line', { x1: P1.x, y1: P1.y, x2: P2.x, y2: P2.y }, `third th${i}`));
+        svg.appendChild(el('circle', { cx: O.x, cy: O.y, r: 5 }, 'hinge'));
+        const lp = polar(O, 34, t / 2);
+        svg.appendChild(text(lp.x, lp.y + 4, String(i + 1), 'wl'));
+      });
+      this.querySelector('.v1')!.textContent = String(this.t[0]);
+      this.querySelector('.v2')!.textContent = String(this.t[1]);
+      const [a, b] = third;
+      const rel = Math.abs(a - b) < 0.005 ? '=' : a > b ? '>' : '<';
+      const relA = this.t[0] === this.t[1] ? '=' : this.t[0] > this.t[1] ? '>' : '<';
+      this.querySelector('.calc')!.innerHTML =
+        `<div>m∠1 ${relA} m∠2</div><div class="big">x₁ = ${a.toFixed(2)} ${rel} x₂ = ${b.toFixed(2)}</div>`;
+      this.querySelector('.note')!.textContent =
+        'الضلعان الثابتان (4 و 3) متطابقان في المثلثين، كذراعي فرجار. كلما فتحت المفصل أكثر، طال الضلع الثالث. فالزاوية الأكبر تقابل الضلع الثالث الأطول، والعكس.';
+    }
+  }
+  customElements.define('hinge-lab', HingeLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 460px;
+    margin: 0.4rem auto;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.arm) {
+    stroke: var(--brand);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+  .stage :global(.third) {
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-dasharray: 8 5;
+  }
+  .stage :global(.th0) {
+    stroke: var(--accent);
+  }
+  .stage :global(.th1) {
+    stroke: var(--thm);
+  }
+  .stage :global(.w) {
+    stroke: none;
+    fill-opacity: 0.4;
+  }
+  .stage :global(.w0) {
+    fill: var(--accent);
+  }
+  .stage :global(.w1) {
+    fill: var(--thm);
+  }
+  .stage :global(.hinge) {
+    fill: var(--ink);
+  }
+  .stage :global(.wl) {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 700;
+    text-anchor: middle;
+    fill: var(--ink);
+  }
+  .sliders {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .sliders label {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .sliders span {
+    flex: none;
+    width: 5.5rem;
+    font-family: var(--font-head);
+  }
+  .sliders input {
+    flex: 1;
+    accent-color: var(--brand);
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.95rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    margin-top: 0.4rem;
+    line-height: 1.7;
+    text-align: left;
+  }
+  .calc :global(.big) {
+    font-weight: 700;
+    color: var(--brand);
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

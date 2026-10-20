@@ -66,12 +66,12 @@ export const chapters: Chapter[] = [
   {
     n: 5, en: 'Properties of Triangles', ar: 'خصائص المثلثات',
     lessons: [
-      { id: '5.1', en: 'Perpendiculars and Bisectors', ar: 'الأعمدة والمنصفات' },
-      { id: '5.2', en: 'Bisectors of a Triangle', ar: 'منصفات المثلث' },
-      { id: '5.3', en: 'Medians and Altitudes of a Triangle', ar: 'المتوسطات والارتفاعات في المثلث' },
-      { id: '5.4', en: 'Midsegment Theorem', ar: 'نظرية القطعة المنصفة' },
-      { id: '5.5', en: 'Inequalities in One Triangle', ar: 'المتباينات في مثلث واحد' },
-      { id: '5.6', en: 'Indirect Proof and Inequalities in Two Triangles', ar: 'البرهان غير المباشر والمتباينات في مثلثين' },
+      { id: '5.1', en: 'Perpendiculars and Bisectors', ar: 'الأعمدة والمنصفات', ready: true },
+      { id: '5.2', en: 'Bisectors of a Triangle', ar: 'منصفات المثلث', ready: true },
+      { id: '5.3', en: 'Medians and Altitudes of a Triangle', ar: 'المتوسطات والارتفاعات في المثلث', ready: true },
+      { id: '5.4', en: 'Midsegment Theorem', ar: 'نظرية القطعة المنصفة', ready: true },
+      { id: '5.5', en: 'Inequalities in One Triangle', ar: 'المتباينات في مثلث واحد', ready: true },
+      { id: '5.6', en: 'Indirect Proof and Inequalities in Two Triangles', ar: 'البرهان غير المباشر والمتباينات في مثلثين', ready: true },
     ],
   },
   {

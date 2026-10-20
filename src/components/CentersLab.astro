@@ -1,0 +1,385 @@
+---
+// Interactive: the four classic points of concurrency of a triangle.
+//  circum: perpendicular bisectors → circumcenter, circumscribed circle
+//  in:     angle bisectors → incenter, inscribed circle
+//  centroid: medians → centroid (2 : 1)
+//  ortho:  altitudes → orthocenter
+interface Props {
+  modes: ('circum' | 'in' | 'centroid' | 'ortho')[];
+}
+const { modes } = Astro.props;
+const names = { circum: 'الأعمدة المنصفة', in: 'منصفات الزوايا', centroid: 'المتوسطات', ortho: 'الارتفاعات' };
+---
+
+<centers-lab class="panel lab" data-modes={modes.join(',')}>
+  <div class="lab-head">
+    <span class="tag">نقاط التلاقي</span>
+    <span class="hint-small">اسحب الرؤوس</span>
+  </div>
+  {
+    modes.length > 1 && (
+      <div class="modes" role="tablist">
+        {modes.map((m, i) => (
+          <button type="button" data-m={m} class:list={{ on: i === 0 }}>
+            {names[m]}
+          </button>
+        ))}
+      </div>
+    )
+  }
+  <svg viewBox="0 0 360 300" class="stage" role="img" aria-label="مثلث ونقطة تلاقي"></svg>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</centers-lab>
+
+<script>
+  import { el, text, makeDraggable, type P } from '../scripts/svg';
+
+  type Mode = 'circum' | 'in' | 'centroid' | 'ortho';
+  type K = 'A' | 'B' | 'C';
+  const U = 40; // px per unit in readouts
+
+  const sub = (a: P, b: P): P => ({ x: a.x - b.x, y: a.y - b.y });
+  const add = (a: P, b: P): P => ({ x: a.x + b.x, y: a.y + b.y });
+  const mul = (a: P, k: number): P => ({ x: a.x * k, y: a.y * k });
+  const len = (a: P) => Math.hypot(a.x, a.y);
+  const mid = (a: P, b: P): P => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  const dot = (a: P, b: P) => a.x * b.x + a.y * b.y;
+
+  function circumcenter(A: P, B: P, C: P): P {
+    const d = 2 * (A.x * (B.y - C.y) + B.x * (C.y - A.y) + C.x * (A.y - B.y));
+    const a2 = A.x * A.x + A.y * A.y;
+    const b2 = B.x * B.x + B.y * B.y;
+    const c2 = C.x * C.x + C.y * C.y;
+    return {
+      x: (a2 * (B.y - C.y) + b2 * (C.y - A.y) + c2 * (A.y - B.y)) / d,
+      y: (a2 * (C.x - B.x) + b2 * (A.x - C.x) + c2 * (B.x - A.x)) / d,
+    };
+  }
+  /** Foot of the perpendicular from p onto line ab. */
+  function footOn(p: P, a: P, b: P): P {
+    const d = sub(b, a);
+    const t = dot(sub(p, a), d) / dot(d, d);
+    return add(a, mul(d, t));
+  }
+  /** Intersection of line (p, p + d) with line ab. */
+  function meet(p: P, d: P, a: P, b: P): P {
+    const e = sub(b, a);
+    const den = d.x * e.y - d.y * e.x;
+    const t = ((a.x - p.x) * e.y - (a.y - p.y) * e.x) / den;
+    return add(p, mul(d, t));
+  }
+
+  class CentersLab extends HTMLElement {
+    v: Record<K, P> = { A: { x: 120, y: 60 }, B: { x: 55, y: 245 }, C: { x: 300, y: 225 } };
+    mode: Mode = 'circum';
+    drag!: { start: (k: K, e: PointerEvent) => void };
+
+    connectedCallback() {
+      this.mode = (this.dataset.modes ?? 'circum').split(',')[0] as Mode;
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.mode = b.dataset.m as Mode;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<K>(svg, (k, p) => {
+        const q = { x: Math.max(15, Math.min(345, p.x)), y: Math.max(15, Math.min(285, p.y)) };
+        const o = (['A', 'B', 'C'] as K[]).filter((x) => x !== k).map((x) => this.v[x]);
+        const area = Math.abs((o[0].x - q.x) * (o[1].y - q.y) - (o[0].y - q.y) * (o[1].x - q.x)) / 2;
+        if (area < 900) return; // keep the triangle from collapsing
+        this.v[k] = q;
+        this.render();
+      });
+      this.render();
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const { A, B, C } = this.v;
+      const V = [A, B, C];
+      const opp: [P, P][] = [
+        [B, C],
+        [C, A],
+        [A, B],
+      ];
+      const line = (p: P, q: P, cls: string) => svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, cls));
+      const longLine = (p: P, d: P, cls: string) => {
+        const u = mul(d, 900 / (len(d) || 1));
+        line(sub(p, u), add(p, u), cls);
+      };
+      const dotAt = (p: P, cls: string, label?: string) => {
+        svg.appendChild(el('circle', { cx: p.x, cy: p.y, r: 5 }, cls));
+        if (label) svg.appendChild(text(p.x + 8, p.y - 8, label, 'clbl'));
+      };
+
+      // triangle type
+      const cosines = V.map((P0, i) => {
+        const u = sub(opp[i][0], P0);
+        const w = sub(opp[i][1], P0);
+        return dot(u, w) / (len(u) * len(w));
+      });
+      const right = cosines.some((x) => Math.abs(x) < 0.026); // within ~1.5° of 90°
+      const obtuse = !right && cosines.some((x) => x < 0);
+
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+
+      svg.appendChild(el('polygon', { points: V.map((p) => `${p.x},${p.y}`).join(' ') }, 'tri'));
+
+      if (this.mode === 'circum') {
+        const O = circumcenter(A, B, C);
+        const R = len(sub(A, O));
+        svg.appendChild(el('circle', { cx: O.x, cy: O.y, r: R }, 'circ'));
+        for (const [p, q] of opp) {
+          const m = mid(p, q);
+          const d = sub(q, p);
+          longLine(m, { x: -d.y, y: d.x }, 'cline');
+          svg.appendChild(el('circle', { cx: m.x, cy: m.y, r: 3 }, 'mk'));
+        }
+        for (const p of V) line(O, p, 'rad');
+        dotAt(O, 'center', 'O');
+        calc.innerHTML = `<div>OA = ${(len(sub(A, O)) / U).toFixed(2)} , OB = ${(len(sub(B, O)) / U).toFixed(2)} , OC = ${(len(sub(C, O)) / U).toFixed(2)}</div>`;
+        note.textContent = obtuse
+          ? 'المثلث منفرج، فمركز الدائرة المحيطة خارجه. لكنه ما زال على بعدين متساويين من الرؤوس الثلاثة.'
+          : right
+            ? 'المثلث قائم، فمركز الدائرة المحيطة هو منتصف الوتر بالضبط.'
+            : 'المثلث حاد، فمركز الدائرة المحيطة داخله. الأعمدة المنصفة الثلاثة تلتقي فيه، وبعده عن كل رأس واحد.';
+      } else if (this.mode === 'in') {
+        const a = len(sub(B, C));
+        const b = len(sub(C, A));
+        const c = len(sub(A, B));
+        const I = mul(add(add(mul(A, a), mul(B, b)), mul(C, c)), 1 / (a + b + c));
+        const area = Math.abs((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) / 2;
+        const r = (2 * area) / (a + b + c);
+        svg.appendChild(el('circle', { cx: I.x, cy: I.y, r }, 'circ'));
+        V.forEach((p, i) => {
+          const end = meet(p, sub(I, p), opp[i][0], opp[i][1]);
+          line(p, end, 'cline');
+        });
+        const feet = opp.map(([p, q]) => footOn(I, p, q));
+        for (const f of feet) {
+          line(I, f, 'rad');
+          svg.appendChild(el('circle', { cx: f.x, cy: f.y, r: 3 }, 'mk'));
+        }
+        dotAt(I, 'center', 'I');
+        calc.innerHTML = `<div>r₁ , r₂ , r₃ = ${feet.map((f) => (len(sub(f, I)) / U).toFixed(2)).join(' , ')}</div>`;
+        note.textContent = 'منصفات الزوايا تلتقي دائمًا داخل المثلث، في نقطة على بعدين متساويين من الأضلاع الثلاثة. الدائرة التي مركزها هذه النقطة تمس الأضلاع من الداخل.';
+      } else if (this.mode === 'centroid') {
+        const G = mul(add(add(A, B), C), 1 / 3);
+        V.forEach((p, i) => {
+          const m = mid(opp[i][0], opp[i][1]);
+          line(p, m, 'cline solid');
+          svg.appendChild(el('circle', { cx: m.x, cy: m.y, r: 3.5 }, 'mk'));
+        });
+        const MA = mid(B, C);
+        line(A, G, 'seg2');
+        line(G, MA, 'seg1');
+        dotAt(G, 'center', 'G');
+        svg.appendChild(text(MA.x + 6, MA.y + 16, 'M', 'clbl'));
+        const ag = len(sub(G, A)) / U;
+        const gm = len(sub(MA, G)) / U;
+        calc.innerHTML = `<div>AG = ${ag.toFixed(2)} , GM = ${gm.toFixed(2)} , AG ÷ GM = ${(ag / gm).toFixed(2)}</div>`;
+        note.textContent = 'المتوسطات تلتقي في المركز G، وهو يقسم كل متوسط بنسبة 2 : 1 من جهة الرأس. لو قصصت المثلث من ورق مقوى لتوازن على رأس قلم عند G.';
+      } else {
+        const O = circumcenter(A, B, C);
+        const H = sub(add(add(A, B), C), mul(O, 2));
+        V.forEach((p, i) => {
+          const [q, r] = opp[i];
+          const f = footOn(p, q, r);
+          const d = sub(r, q);
+          longLine(p, { x: -d.y, y: d.x }, 'cline');
+          // extend the side if the foot falls outside it
+          const t = dot(sub(f, q), d) / dot(d, d);
+          if (t < 0 || t > 1) longLine(q, d, 'ext');
+          svg.appendChild(el('polyline', { points: this.square(f, p, q, r) }, 'sq'));
+        });
+        dotAt(H, 'center', 'H');
+        calc.innerHTML = '';
+        note.textContent = obtuse
+          ? 'المثلث منفرج: ارتفاعان يقعان خارجه، فنمدّ الضلعين. المستقيمات الثلاثة تلتقي خارج المثلث.'
+          : right
+            ? 'المثلث قائم: الساقان هما ارتفاعان، فملتقى الارتفاعات هو رأس الزاوية القائمة.'
+            : 'المثلث حاد: الارتفاعات الثلاثة داخله، وتلتقي في نقطة داخله.';
+      }
+
+      (['A', 'B', 'C'] as K[]).forEach((k) => {
+        const p = this.v[k];
+        const g = el('g', {}, 'pt');
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 15 }, 'hit'));
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 6 }, 'dot'));
+        const cx = (A.x + B.x + C.x) / 3;
+        const cy = (A.y + B.y + C.y) / 3;
+        const d = Math.hypot(p.x - cx, p.y - cy) || 1;
+        g.appendChild(text(p.x + ((p.x - cx) / d) * 17 - 5, p.y + ((p.y - cy) / d) * 17 + 5, k, 'lbl'));
+        g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
+        svg.appendChild(g);
+      });
+    }
+
+    /** Right-angle mark at foot f, between the altitude toward p and the side qr. */
+    square(f: P, p: P, q: P, r: P): string {
+      const s = 9;
+      const u1 = sub(p, f);
+      const L1 = len(u1) || 1;
+      const a = mul(u1, s / L1);
+      const d = sub(r, q);
+      const b = mul(d, s / (len(d) || 1));
+      const p1 = add(f, a);
+      const p2 = add(add(f, a), b);
+      const p3 = add(f, b);
+      return `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`;
+    }
+  }
+  customElements.define('centers-lab', CentersLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .hint-small {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .modes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+  }
+  .modes button {
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.9rem;
+  }
+  .modes button.on {
+    border-color: var(--brand);
+    background: var(--def-bg);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 460px;
+    margin: 0.4rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.tri) {
+    fill: var(--brand);
+    fill-opacity: 0.08;
+    stroke: var(--brand);
+    stroke-width: 3;
+    stroke-linejoin: round;
+  }
+  .stage :global(.circ) {
+    fill: none;
+    stroke: var(--thm);
+    stroke-width: 2;
+  }
+  .stage :global(.cline) {
+    stroke: var(--post);
+    stroke-width: 1.6;
+    stroke-dasharray: 6 4;
+  }
+  .stage :global(.cline.solid) {
+    stroke-dasharray: none;
+  }
+  .stage :global(.ext) {
+    stroke: var(--ink-3);
+    stroke-width: 1.2;
+    stroke-dasharray: 2 4;
+  }
+  .stage :global(.rad) {
+    stroke: var(--accent);
+    stroke-width: 1.8;
+  }
+  .stage :global(.seg2) {
+    stroke: var(--accent);
+    stroke-width: 4;
+  }
+  .stage :global(.seg1) {
+    stroke: var(--thm);
+    stroke-width: 4;
+  }
+  .stage :global(.sq) {
+    fill: none;
+    stroke: var(--post);
+    stroke-width: 1.3;
+  }
+  .stage :global(.mk) {
+    fill: var(--post);
+  }
+  .stage :global(.center) {
+    fill: var(--accent);
+    stroke: var(--card);
+    stroke-width: 2;
+  }
+  .stage :global(.clbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    fill: var(--accent);
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    fill: var(--ink);
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    text-align: left;
+    overflow-x: auto;
+  }
+  .calc:empty {
+    display: none;
+  }
+  .calc :global(div) {
+    white-space: nowrap;
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

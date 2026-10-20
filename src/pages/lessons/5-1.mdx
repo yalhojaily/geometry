@@ -1,0 +1,126 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '5.1'
+why: 'أين تبني محطة إطفاء تبعد المسافة نفسها عن قريتين؟ وأين تقف لتكون على بعدين متساويين من جدارين؟ الجوابان في نظريتين عن العمود المنصف ومنصف الزاوية.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import BisectorLab from '../../components/BisectorLab.astro';
+import FigTri from '../../components/FigTri.astro';
+import { proofs } from '../../data/proofs';
+
+## العمود المنصف
+
+<Term id="def-equidistant" />
+
+تذكّر من الدرس 1.5 أن **العمود المنصف** مستقيم يمر بمنتصف القطعة ويعامدها. اسحب النقطة $P$ وقارن بُعديها عن $A$ و $B$.
+
+<BisectorLab mode="segment" />
+
+<Term id="thm-perp-bisector" />
+
+<ProofTable {...proofs.perpBisector} mode="fill">
+  <FigTri kind="perpbis">CP عمود منصف لـ AB.</FigTri>
+</ProofTable>
+
+<Term id="thm-perp-bisector-converse" />
+
+النظرية وعكسها معًا شرطية ثنائية: **النقطة على العمود المنصف إذا وفقط إذا كانت على بعدين متساويين من الطرفين**. لذلك العمود المنصف هو بالضبط مجموعة كل النقاط التي تبعد المسافة نفسها عن $A$ و $B$.
+
+<Prereq id="alg-linear-eq" />
+
+<Example title="مثال 1: العمود المنصف مع الجبر">
+
+$\overleftrightarrow{CD}$ العمود المنصف لـ $\overline{AB}$، والنقطة $C$ عليه، و $CA = 3x + 2$ و $CB = 5x - 8$. أوجد $CA$.
+
+1. $C$ على العمود المنصف، فبالنظرية $CA = CB$.
+2. $3x + 2 = 5x - 8$، إذن $x = 5$.
+3. $CA = 3(5) + 2 = 17$.
+
+</Example>
+
+## بُعد نقطة عن مستقيم ومنصف الزاوية
+
+<Term id="def-distance-point-line" />
+
+<Callout type="warning" title="المسافة إلى مستقيم تُقاس عموديًا">
+
+من نقطة إلى مستقيم هناك قطع كثيرة، لكن المسافة هي **أقصرها**، وهي العمودية. حين تقيس بُعد نقطة عن ضلع زاوية، ارسم العمود إليه، لا أي قطعة أخرى.
+
+</Callout>
+
+<BisectorLab mode="angle" />
+
+<Term id="thm-angle-bisector" />
+
+<ProofTable {...proofs.angleBisectorThm} />
+
+<Term id="thm-angle-bisector-converse" />
+
+<Example title="مثال 2: منصف الزاوية مع الجبر">
+
+النقطة $D$ داخل $\angle BAC$، وبُعدها عن $\overrightarrow{AB}$ يساوي $2y + 1$ وعن $\overrightarrow{AC}$ يساوي $y + 6$. ما قيمة $y$ التي تجعل $D$ على منصف الزاوية؟
+
+1. بعكس نظرية منصف الزاوية، تقع $D$ على المنصف إذا تساوى بُعداها.
+2. $2y + 1 = y + 6$، إذن $y = 5$، وكل من البعدين $11$.
+
+</Example>
+
+<Example title="مثال 3: محطة الإطفاء">
+
+قريتان $A$ و $B$. أين تُبنى محطة إطفاء على الطريق المستقيم $\ell$ بحيث تبعد المسافة نفسها عن القريتين؟
+
+1. كل النقاط التي تبعد المسافة نفسها عن $A$ و $B$ تقع على العمود المنصف لـ $\overline{AB}$.
+2. والمحطة يجب أن تكون على $\ell$ أيضًا.
+3. إذن الموقع هو تقاطع العمود المنصف مع الطريق $\ell$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={9}>
+
+$P$ على العمود المنصف لـ $\overline{AB}$، و $PA = 9$. ما $PB$؟
+
+<div slot="explain">بنظرية العمود المنصف $PB = PA = 9$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={4} hint="النقطة على العمود المنصف تبعد المسافة نفسها عن الطرفين.">
+
+$Q$ على العمود المنصف لـ $\overline{XY}$، و $QX = 4a + 1$ و $QY = 2a + 9$. ما قيمة $a$؟
+
+<div slot="explain">$4a + 1 = 2a + 9$، إذن $a = 4$، و $QX = QY = 17$.</div>
+</Quiz>
+
+<Quiz n={3} type="choice" answer={1} options={['نعم، دائمًا', 'نعم، بعكس نظرية العمود المنصف', 'لا يمكن الحكم']}>
+
+$RA = RB = 7$. هل $R$ على العمود المنصف لـ $\overline{AB}$؟
+
+<div slot="explain">نقطة على بعدين متساويين من الطرفين تقع على العمود المنصف: هذا عكس النظرية.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={2} options={['طول أي قطعة من النقطة إلى المستقيم', 'أطول قطعة', 'طول القطعة العمودية', 'المسافة إلى أقرب نقطة مرسومة']}>
+
+ما بُعد نقطة عن مستقيم؟
+
+<div slot="explain">المسافة إلى مستقيم هي طول القطعة العمودية، وهي أقصر قطعة ممكنة.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={6}>
+
+$P$ على منصف $\angle ABC$، وبُعدها عن $\overrightarrow{BA}$ يساوي $6$. ما بُعدها عن $\overrightarrow{BC}$؟
+
+<div slot="explain">بنظرية منصف الزاوية، البعدان متساويان: $6$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **العمود المنصف** لقطعة هو كل النقاط التي على بعدين متساويين من طرفيها (النظرية وعكسها).
+- **بُعد نقطة عن مستقيم** طول العمود منها إليه.
+- **منصف الزاوية** هو كل النقاط داخل الزاوية التي على بعدين متساويين من ضلعيها.
+- لحل مسائل «على بعدين متساويين»: اكتب معادلة تساوي البعدين.

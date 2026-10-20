@@ -1,0 +1,221 @@
+---
+// Interactive: the midsegment DE joining the midpoints of AB and AC is
+// parallel to BC and half as long. Optionally show all three midsegments.
+---
+
+<midsegment-lab class="panel lab">
+  <div class="lab-head">
+    <span class="tag">القطعة المنصفة</span>
+    <label class="all"><input type="checkbox" class="allbox" /> القطع الثلاث</label>
+  </div>
+  <svg viewBox="0 0 360 270" class="stage" role="img" aria-label="المثلث ABC والقطعة DE الواصلة بين منتصفي ضلعين"></svg>
+  <div class="calc ltr"></div>
+  <p class="note"></p>
+</midsegment-lab>
+
+<script>
+  import { el, text, makeDraggable, type P } from '../scripts/svg';
+
+  type K = 'A' | 'B' | 'C';
+  const U = 40;
+  const mid = (a: P, b: P): P => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  const len = (a: P, b: P) => Math.hypot(a.x - b.x, a.y - b.y);
+
+  class MidsegmentLab extends HTMLElement {
+    v: Record<K, P> = { A: { x: 140, y: 40 }, B: { x: 40, y: 240 }, C: { x: 320, y: 220 } };
+    all = false;
+    drag!: { start: (k: K, e: PointerEvent) => void };
+
+    connectedCallback() {
+      this.querySelector<HTMLInputElement>('.allbox')!.addEventListener('change', (e) => {
+        this.all = (e.target as HTMLInputElement).checked;
+        this.render();
+      });
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<K>(svg, (k, p) => {
+        const q = { x: Math.max(15, Math.min(345, p.x)), y: Math.max(15, Math.min(255, p.y)) };
+        const o = (['A', 'B', 'C'] as K[]).filter((x) => x !== k).map((x) => this.v[x]);
+        const area = Math.abs((o[0].x - q.x) * (o[1].y - q.y) - (o[0].y - q.y) * (o[1].x - q.x)) / 2;
+        if (area < 900) return;
+        this.v[k] = q;
+        this.render();
+      });
+      this.render();
+    }
+
+    arrow(svg: Element, a: P, b: P, cls: string) {
+      const m = mid(a, b);
+      const L = len(a, b) || 1;
+      const u = { x: (b.x - a.x) / L, y: (b.y - a.y) / L };
+      const n = { x: -u.y, y: u.x };
+      const tip = { x: m.x + u.x * 6, y: m.y + u.y * 6 };
+      const p1 = { x: tip.x - u.x * 9 + n.x * 6, y: tip.y - u.y * 9 + n.y * 6 };
+      const p2 = { x: tip.x - u.x * 9 - n.x * 6, y: tip.y - u.y * 9 - n.y * 6 };
+      svg.appendChild(el('polyline', { points: `${p1.x},${p1.y} ${tip.x},${tip.y} ${p2.x},${p2.y}` }, cls));
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const { A, B, C } = this.v;
+      const D = mid(A, B);
+      const E = mid(A, C);
+      const F = mid(B, C);
+
+      if (this.all) {
+        svg.appendChild(el('polygon', { points: `${D.x},${D.y} ${E.x},${E.y} ${F.x},${F.y}` }, 'medial'));
+      }
+      svg.appendChild(el('polygon', { points: `${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}` }, 'tri'));
+      svg.appendChild(el('line', { x1: D.x, y1: D.y, x2: E.x, y2: E.y }, 'ms'));
+      this.arrow(svg, D, E, 'par');
+      this.arrow(svg, B, C, 'par');
+      if (this.all) {
+        svg.appendChild(el('line', { x1: D.x, y1: D.y, x2: F.x, y2: F.y }, 'ms2'));
+        svg.appendChild(el('line', { x1: E.x, y1: E.y, x2: F.x, y2: F.y }, 'ms2'));
+      }
+      for (const [p, n] of [
+        [D, 'D'],
+        [E, 'E'],
+        ...(this.all ? [[F, 'F']] : []),
+      ] as [P, string][]) {
+        svg.appendChild(el('circle', { cx: p.x, cy: p.y, r: 4.5 }, 'mk'));
+        svg.appendChild(text(p.x + 7, p.y - 7, n, 'mlbl'));
+      }
+
+      (['A', 'B', 'C'] as K[]).forEach((k) => {
+        const p = this.v[k];
+        const g = el('g', {}, 'pt');
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 15 }, 'hit'));
+        g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 6 }, 'dot'));
+        const cx = (A.x + B.x + C.x) / 3;
+        const cy = (A.y + B.y + C.y) / 3;
+        const d = Math.hypot(p.x - cx, p.y - cy) || 1;
+        g.appendChild(text(p.x + ((p.x - cx) / d) * 17 - 5, p.y + ((p.y - cy) / d) * 17 + 5, k, 'lbl'));
+        g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
+        svg.appendChild(g);
+      });
+
+      const de = len(D, E) / U;
+      const bc = len(B, C) / U;
+      const slope = (p: P, q: P) => (Math.abs(q.x - p.x) < 1e-9 ? '∞' : (-(q.y - p.y) / (q.x - p.x)).toFixed(2));
+      this.querySelector('.calc')!.innerHTML =
+        `<div>DE = ${de.toFixed(2)} , BC = ${bc.toFixed(2)} , DE ÷ BC = ${(de / bc).toFixed(2)}</div>` +
+        `<div>slope(DE) = ${slope(D, E)} , slope(BC) = ${slope(B, C)}</div>`;
+      this.querySelector('.note')!.textContent = this.all
+        ? 'القطع المنصفة الثلاث تقسم المثلث إلى أربعة مثلثات متطابقة، كل منها بنصف أبعاد الأصلي.'
+        : 'مهما حرّكت الرؤوس: DE يوازي BC (الميلان متساويان، والسهمان)، وطوله نصف طول BC بالضبط.';
+    }
+  }
+  customElements.define('midsegment-lab', MidsegmentLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .all {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+  }
+  .all input {
+    accent-color: var(--brand);
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    max-width: 460px;
+    margin: 0.4rem auto;
+    touch-action: none;
+    background: var(--paper);
+    border-radius: 10px;
+  }
+  .stage :global(.tri) {
+    fill: var(--brand);
+    fill-opacity: 0.08;
+    stroke: var(--brand);
+    stroke-width: 3;
+    stroke-linejoin: round;
+  }
+  .stage :global(.medial) {
+    fill: var(--accent);
+    fill-opacity: 0.18;
+  }
+  .stage :global(.ms) {
+    stroke: var(--accent);
+    stroke-width: 3.5;
+  }
+  .stage :global(.ms2) {
+    stroke: var(--accent);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+  .stage :global(.par) {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2;
+  }
+  .stage :global(.mk) {
+    fill: var(--accent);
+  }
+  .stage :global(.mlbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 13px;
+    fill: var(--accent);
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+  }
+  .stage :global(.lbl) {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    fill: var(--ink);
+  }
+  .stage :global(.pt) {
+    cursor: grab;
+  }
+  .stage :global(.hit) {
+    fill: transparent;
+  }
+  .stage :global(.dot) {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+  .calc {
+    font-family: var(--font-head);
+    font-size: 0.9rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    line-height: 1.7;
+    text-align: left;
+    overflow-x: auto;
+  }
+  .calc :global(div) {
+    white-space: nowrap;
+  }
+  .note {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.8rem;
+    border-radius: 10px;
+    background: var(--paper-2);
+    font-size: 0.95rem;
+  }
+</style>

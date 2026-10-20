@@ -372,6 +372,34 @@ export const proofs: Record<string, Proof> = {
       { s: '$\\angle B \\cong \\angle C$', ...R.cpctc },
     ],
   },
+  perpBisector: {
+    title: 'نظرية العمود المنصف',
+    given: '$\\overleftrightarrow{CP}$ عمود منصف لـ $\\overline{AB}$',
+    prove: '$CA = CB$',
+    steps: [
+      { s: '$\\overleftrightarrow{CP} \\perp \\overline{AB}$ و $P$ منتصف $\\overline{AB}$', ...R.given },
+      { s: '$\\angle CPA$ و $\\angle CPB$ قائمتان', ...R.perpFour },
+      { s: '$\\angle CPA \\cong \\angle CPB$', ...R.rightCong },
+      { s: '$\\overline{AP} \\cong \\overline{BP}$', ...R.defMid },
+      { s: '$\\overline{CP} \\cong \\overline{CP}$', ...R.segRefl },
+      { s: '$\\triangle CPA \\cong \\triangle CPB$', ...R.sas },
+      { s: '$\\overline{CA} \\cong \\overline{CB}$، أي $CA = CB$', ...R.cpctc },
+    ],
+    distractors: [R.sss.r, R.vertical.r, R.asa.r],
+  },
+  angleBisectorThm: {
+    title: 'نظرية منصف الزاوية',
+    given: '$D$ على منصف $\\angle BAC$، و $\\overline{DB} \\perp \\overrightarrow{AB}$ و $\\overline{DC} \\perp \\overrightarrow{AC}$',
+    prove: '$DB = DC$',
+    steps: [
+      { s: '$\\angle BAD \\cong \\angle CAD$', ...R.defBisector },
+      { s: '$\\angle ABD$ و $\\angle ACD$ قائمتان', ...R.perpFour },
+      { s: '$\\angle ABD \\cong \\angle ACD$', ...R.rightCong },
+      { s: '$\\overline{AD} \\cong \\overline{AD}$', ...R.segRefl },
+      { s: '$\\triangle ABD \\cong \\triangle ACD$', ...R.aas },
+      { s: '$\\overline{DB} \\cong \\overline{DC}$، أي $DB = DC$', ...R.cpctc },
+    ],
+  },
 };
 
 /** Flow proofs: rows of boxes, each row following from the rows above. */
