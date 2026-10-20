@@ -1,0 +1,434 @@
+---
+// Interactive: a conditional, its converse, inverse and contrapositive.
+// The student judges each one; a Venn diagram shows why.
+//  set="conditional": everyday and math conditionals (lesson 2.1)
+//  set="definition":  definitions vs. non-definitions, adds the biconditional (lesson 2.2)
+interface Item {
+  label: string;
+  s: { cond: string; conv: string; inv: string; contra: string; bi?: string };
+  P: string; // Venn label for p
+  Q: string; // Venn label for q
+  rel: 'sub' | 'sup' | 'eq'; // p ⊂ q, q ⊂ p, p = q
+  why: { conv?: string; inv?: string; cond?: string; contra?: string };
+}
+interface Props {
+  set: 'conditional' | 'definition';
+}
+
+const sets: Record<string, Item[]> = {
+  conditional: [
+    {
+      label: 'القسمة على 4',
+      s: {
+        cond: 'إذا كان العدد يقبل القسمة على 4، فإنه عدد زوجي.',
+        conv: 'إذا كان العدد زوجيًا، فإنه يقبل القسمة على 4.',
+        inv: 'إذا كان العدد لا يقبل القسمة على 4، فإنه ليس زوجيًا.',
+        contra: 'إذا كان العدد ليس زوجيًا، فإنه لا يقبل القسمة على 4.',
+      },
+      P: 'مضاعفات 4',
+      Q: 'الأعداد الزوجية',
+      rel: 'sub',
+      why: { conv: 'مثال مضاد: 6 زوجي لكنه لا يقبل القسمة على 4.', inv: 'مثال مضاد: 6 لا يقبل القسمة على 4، ومع ذلك هو زوجي.' },
+    },
+    {
+      label: 'الصقر',
+      s: {
+        cond: 'إذا كان الحيوان صقرًا، فإنه طائر.',
+        conv: 'إذا كان الحيوان طائرًا، فإنه صقر.',
+        inv: 'إذا لم يكن الحيوان صقرًا، فإنه ليس طائرًا.',
+        contra: 'إذا لم يكن الحيوان طائرًا، فإنه ليس صقرًا.',
+      },
+      P: 'الصقور',
+      Q: 'الطيور',
+      rel: 'sub',
+      why: { conv: 'مثال مضاد: الحمامة طائر وليست صقرًا.', inv: 'مثال مضاد: الحمامة ليست صقرًا، ومع ذلك هي طائر.' },
+    },
+    {
+      label: 'x² = 25',
+      s: {
+        cond: 'إذا كان x² = 25، فإن x = 5.',
+        conv: 'إذا كان x = 5، فإن x² = 25.',
+        inv: 'إذا كان x² ≠ 25، فإن x ≠ 5.',
+        contra: 'إذا كان x ≠ 5، فإن x² ≠ 25.',
+      },
+      P: 'x² = 25',
+      Q: 'x = 5',
+      rel: 'sup',
+      why: { cond: 'مثال مضاد: x = −5 يحقق x² = 25، لكن x ≠ 5.', contra: 'مثال مضاد: x = −5 لا يساوي 5، ومع ذلك x² = 25.' },
+    },
+    {
+      label: 'المتقابلتان بالرأس',
+      s: {
+        cond: 'إذا كانت ∠1 و ∠2 متقابلتين بالرأس، فإنهما متطابقتان.',
+        conv: 'إذا كانت ∠1 و ∠2 متطابقتين، فإنهما متقابلتان بالرأس.',
+        inv: 'إذا لم تكن ∠1 و ∠2 متقابلتين بالرأس، فإنهما غير متطابقتين.',
+        contra: 'إذا لم تكن ∠1 و ∠2 متطابقتين، فإنهما ليستا متقابلتين بالرأس.',
+      },
+      P: 'متقابلتان بالرأس',
+      Q: 'متطابقتان',
+      rel: 'sub',
+      why: {
+        conv: 'مثال مضاد: زاويتان قائمتان في مكانين مختلفين متطابقتان، لكنهما ليستا متقابلتين بالرأس.',
+        inv: 'المثال نفسه: زاويتان قائمتان منفصلتان ليستا متقابلتين بالرأس، ومع ذلك متطابقتان.',
+      },
+    },
+  ],
+  definition: [
+    {
+      label: 'الزاوية القائمة',
+      s: {
+        cond: 'إذا كانت الزاوية قائمة، فإن قياسها 90°.',
+        conv: 'إذا كان قياس الزاوية 90°، فإنها قائمة.',
+        inv: 'إذا لم تكن الزاوية قائمة، فإن قياسها ليس 90°.',
+        contra: 'إذا لم يكن قياس الزاوية 90°، فإنها ليست قائمة.',
+        bi: 'تكون الزاوية قائمة إذا وفقط إذا كان قياسها 90°.',
+      },
+      P: 'زوايا قائمة',
+      Q: 'قياسها 90°',
+      rel: 'eq',
+      why: {},
+    },
+    {
+      label: 'المتعامدان',
+      s: {
+        cond: 'إذا كان ℓ ⊥ m، فإنهما يتقاطعان مكوّنين زاوية قائمة.',
+        conv: 'إذا تقاطع ℓ و m مكوّنين زاوية قائمة، فإن ℓ ⊥ m.',
+        inv: 'إذا لم يكن ℓ ⊥ m، فإنهما لا يكوّنان زاوية قائمة.',
+        contra: 'إذا لم يكوّن ℓ و m زاوية قائمة، فإنهما ليسا متعامدين.',
+        bi: 'يكون ℓ ⊥ m إذا وفقط إذا تقاطعا مكوّنين زاوية قائمة.',
+      },
+      P: 'ℓ ⊥ m',
+      Q: 'زاوية قائمة',
+      rel: 'eq',
+      why: {},
+    },
+    {
+      label: 'نقطة المنتصف',
+      s: {
+        cond: 'إذا كانت M منتصف AB، فإنها تقع على AB و AM = MB.',
+        conv: 'إذا وقعت M على AB و AM = MB، فإنها منتصف AB.',
+        inv: 'إذا لم تكن M منتصف AB، فإنها ليست على AB أو AM ≠ MB.',
+        contra: 'إذا لم تقع M على AB أو كان AM ≠ MB، فإنها ليست منتصف AB.',
+        bi: 'تكون M منتصف AB إذا وفقط إذا وقعت عليها و AM = MB.',
+      },
+      P: 'منتصف AB',
+      Q: 'على AB و AM = MB',
+      rel: 'eq',
+      why: {},
+    },
+    {
+      label: 'المربع (تعريف ناقص)',
+      s: {
+        cond: 'إذا كان الشكل مربعًا، فإن له أربعة أضلاع.',
+        conv: 'إذا كان للشكل أربعة أضلاع، فإنه مربع.',
+        inv: 'إذا لم يكن الشكل مربعًا، فليس له أربعة أضلاع.',
+        contra: 'إذا لم يكن للشكل أربعة أضلاع، فإنه ليس مربعًا.',
+        bi: 'يكون الشكل مربعًا إذا وفقط إذا كان له أربعة أضلاع.',
+      },
+      P: 'المربعات',
+      Q: 'أشكال رباعية',
+      rel: 'sub',
+      why: { conv: 'مثال مضاد: المستطيل له أربعة أضلاع وليس مربعًا.', inv: 'مثال مضاد: المستطيل ليس مربعًا، ومع ذلك له أربعة أضلاع.' },
+    },
+  ],
+};
+
+const { set } = Astro.props;
+const items = sets[set];
+---
+
+<conditional-lab class="panel lab" data-items={JSON.stringify(items)} data-set={set}>
+  <div class="lab-head">
+    <span class="tag">{set === 'definition' ? 'هل هو تعريف؟' : 'مختبر العبارات الشرطية'}</span>
+  </div>
+  <div class="chips" role="tablist">
+    {items.map((it, i) => <button type="button" data-i={i} class:list={{ on: i === 0 }}>{it.label}</button>)}
+  </div>
+  <svg viewBox="0 0 360 170" class="stage venn" role="img" aria-label="مخطط فن للفرض والنتيجة"></svg>
+  <p class="venn-cap"></p>
+  <div class="forms"></div>
+  <p class="score" aria-live="polite"></p>
+</conditional-lab>
+
+<script>
+  import { el, text } from '../scripts/svg';
+
+  type Item = {
+    label: string;
+    s: { cond: string; conv: string; inv: string; contra: string; bi?: string };
+    P: string;
+    Q: string;
+    rel: 'sub' | 'sup' | 'eq';
+    why: Record<string, string | undefined>;
+  };
+  type Form = { key: string; name: string; sym: string; text: string; truth: boolean };
+
+  class ConditionalLab extends HTMLElement {
+    items: Item[] = [];
+    cur = 0;
+
+    connectedCallback() {
+      this.items = JSON.parse(this.dataset.items ?? '[]');
+      this.querySelectorAll<HTMLButtonElement>('.chips button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.cur = Number(b.dataset.i);
+          this.querySelectorAll('.chips button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      this.render();
+    }
+
+    forms(it: Item): Form[] {
+      // p ⊂ q: cond & contra true; conv & inv true only if q ⊂ p as well.
+      const pq = it.rel !== 'sup';
+      const qp = it.rel !== 'sub';
+      const f: Form[] = [
+        { key: 'cond', name: 'الشرطية', sym: 'p → q', text: it.s.cond, truth: pq },
+        { key: 'conv', name: 'العكس', sym: 'q → p', text: it.s.conv, truth: qp },
+        { key: 'inv', name: 'المعكوس', sym: '~p → ~q', text: it.s.inv, truth: qp },
+        { key: 'contra', name: 'المعاكس الإيجابي', sym: '~q → ~p', text: it.s.contra, truth: pq },
+      ];
+      if (this.dataset.set === 'definition')
+        f.push({ key: 'bi', name: 'الشرطية الثنائية', sym: 'p ↔ q', text: it.s.bi ?? '', truth: pq && qp });
+      return f;
+    }
+
+    render() {
+      const it = this.items[this.cur];
+      this.drawVenn(it);
+
+      const box = this.querySelector('.forms')!;
+      box.replaceChildren();
+      const forms = this.forms(it);
+      let answered = 0;
+      let right = 0;
+      const score = () => {
+        const s = this.querySelector('.score')!;
+        if (answered < forms.length) s.textContent = `${answered} / ${forms.length}: قرر صحة كل عبارة.`;
+        else s.textContent = `أصبت في ${right} من ${forms.length}. لاحظ أن الشرطية ومعاكسها الإيجابي لهما الحكم نفسه دائمًا، وكذلك العكس والمعكوس.`;
+      };
+      for (const f of forms) {
+        const row = document.createElement('div');
+        row.className = `form f-${f.key}`;
+        row.innerHTML = `
+          <div class="fh"><span class="fname">${f.name}</span><span class="sym ltr">${f.sym}</span></div>
+          <div class="ftext"></div>
+          <div class="fbtns">
+            <button type="button" class="btn t">صحيحة</button>
+            <button type="button" class="btn f">خاطئة</button>
+            <span class="res"></span>
+          </div>
+          <div class="why" hidden></div>`;
+        row.querySelector('.ftext')!.textContent = f.text;
+        const res = row.querySelector<HTMLElement>('.res')!;
+        const why = row.querySelector<HTMLElement>('.why')!;
+        row.querySelectorAll<HTMLButtonElement>('.fbtns .btn').forEach((b) =>
+          b.addEventListener('click', () => {
+            if (row.classList.contains('done')) return;
+            const guess = b.classList.contains('t');
+            const ok = guess === f.truth;
+            row.classList.add('done', ok ? 'ok' : 'no');
+            b.classList.add('picked');
+            res.textContent = `${ok ? '✓' : '✗'} العبارة ${f.truth ? 'صحيحة' : 'خاطئة'}`;
+            const reason = it.why[f.key];
+            if (reason) {
+              why.textContent = reason;
+              why.hidden = false;
+            } else if (f.key === 'bi') {
+              why.textContent = f.truth
+                ? 'الشرطية وعكسها صحيحتان، فهذا تعريف جيد يُكتب شرطية ثنائية.'
+                : 'العكس خاطئ، فلا تصح الشرطية الثنائية. هذا ليس تعريفًا جيدًا للمربع: يصف أشكالًا أخرى أيضًا.';
+              why.hidden = false;
+            }
+            answered++;
+            if (ok) right++;
+            score();
+          }),
+        );
+        box.appendChild(row);
+      }
+      score();
+    }
+
+    drawVenn(it: Item) {
+      const svg = this.querySelector('svg.venn')!;
+      svg.replaceChildren();
+      const cap = this.querySelector('.venn-cap')!;
+      const big = { cx: 180, cy: 85, r: 78 };
+      const small = { cx: 160, cy: 95, r: 42 };
+      if (it.rel === 'eq') {
+        svg.appendChild(el('circle', { cx: 180, cy: 85, r: 70 }, 'c both'));
+        svg.appendChild(text(180, 80, it.P, 'vl'));
+        svg.appendChild(text(180, 100, `= ${it.Q}`, 'vl sub'));
+        cap.textContent = 'المجموعتان متطابقتان: كل ما يحقق p يحقق q، والعكس. لهذا تصح العبارات الأربع.';
+        return;
+      }
+      const outer = it.rel === 'sub' ? it.Q : it.P;
+      const inner = it.rel === 'sub' ? it.P : it.Q;
+      svg.appendChild(el('circle', big, `c outer ${it.rel === 'sub' ? 'q' : 'p'}`));
+      svg.appendChild(el('circle', small, `c inner ${it.rel === 'sub' ? 'p' : 'q'}`));
+      svg.appendChild(text(small.cx, small.cy + 4, inner, 'vl'));
+      svg.appendChild(text(big.cx + 38, big.cy - 46, outer, 'vl sub'));
+      svg.appendChild(el('circle', { cx: 232, cy: 108, r: 4.5 }, 'ce'));
+      svg.appendChild(text(232, 128, 'مثال مضاد', 'vl tiny'));
+      cap.textContent =
+        it.rel === 'sub'
+          ? `دائرة p (${inner}) داخل دائرة q (${outer}): كل ما يحقق p يحقق q، فالشرطية صحيحة. لكن في q نقاط خارج p، وهي أمثلة مضادة للعكس.`
+          : `دائرة q (${inner}) داخل دائرة p (${outer}): في p نقاط خارج q، وهي أمثلة مضادة للشرطية نفسها. أما العكس فصحيح.`;
+    }
+  }
+  customElements.define('conditional-lab', ConditionalLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0.5rem 0;
+  }
+  .chips button {
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 0.15rem 0.8rem;
+    font-size: 0.92rem;
+  }
+  .chips button.on {
+    border-color: var(--brand);
+    background: var(--def-bg);
+  }
+  .venn {
+    display: block;
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+  .venn :global(.c) {
+    stroke-width: 2.5;
+  }
+  .venn :global(.c.q) {
+    fill: var(--thm-bg);
+    stroke: var(--thm);
+  }
+  .venn :global(.c.p) {
+    fill: var(--def-bg);
+    stroke: var(--def);
+  }
+  .venn :global(.c.inner.p) {
+    fill: color-mix(in srgb, var(--def) 25%, var(--card));
+  }
+  .venn :global(.c.inner.q) {
+    fill: color-mix(in srgb, var(--thm) 25%, var(--card));
+  }
+  .venn :global(.c.both) {
+    fill: color-mix(in srgb, var(--def) 18%, var(--thm-bg));
+    stroke: var(--thm);
+  }
+  .venn :global(.ce) {
+    fill: var(--warn);
+  }
+  .venn :global(.vl) {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    text-anchor: middle;
+    fill: var(--ink);
+    direction: rtl;
+  }
+  .venn :global(.vl.sub) {
+    font-weight: 500;
+    fill: var(--ink-2);
+  }
+  .venn :global(.vl.tiny) {
+    font-size: 10px;
+    fill: var(--warn);
+  }
+  .venn-cap {
+    font-size: 0.92rem;
+    color: var(--ink-2);
+    margin: 0.2rem 0 0.7rem;
+  }
+  .forms {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .forms :global(.form) {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.55rem 0.8rem;
+    background: var(--paper);
+  }
+  .forms :global(.form.ok) {
+    border-color: color-mix(in srgb, var(--good) 50%, var(--line));
+  }
+  .forms :global(.form.no) {
+    border-color: color-mix(in srgb, var(--bad) 50%, var(--line));
+  }
+  .forms :global(.fh) {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .forms :global(.fname) {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--brand);
+  }
+  .forms :global(.sym) {
+    font-family: var(--font-head);
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .forms :global(.ftext) {
+    margin: 0.15rem 0 0.35rem;
+  }
+  .forms :global(.fbtns) {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .forms :global(.fbtns .btn) {
+    padding: 0.2rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  .forms :global(.form.done .btn:not(.picked)) {
+    opacity: 0.4;
+  }
+  .forms :global(.res) {
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .forms :global(.form.ok .res) {
+    color: var(--good);
+  }
+  .forms :global(.form.no .res) {
+    color: var(--bad);
+  }
+  .forms :global(.why) {
+    margin-top: 0.35rem;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+    background: var(--paper-2);
+    border-radius: 8px;
+    padding: 0.3rem 0.6rem;
+  }
+  .score {
+    margin: 0.6rem 0 0;
+    font-size: 0.93rem;
+    color: var(--ink-2);
+  }
+</style>

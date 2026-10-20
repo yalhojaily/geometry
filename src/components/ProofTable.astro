@@ -1,0 +1,296 @@
+---
+// Two-column proof (statement | reason).
+//  mode="show": rows are revealed one at a time.
+//  mode="fill": the student picks each reason from a list, then checks.
+// A step's `ref` (a term id) turns its reason into a link to that term's card.
+import { termHref } from '../data/terms';
+import { renderMath } from '../data/math';
+
+interface Step {
+  s: string;
+  r: string;
+  ref?: string;
+}
+interface Props {
+  title?: string;
+  given: string;
+  prove: string;
+  steps: Step[];
+  mode?: 'show' | 'fill';
+  distractors?: string[];
+}
+
+const { title, given, prove, steps, mode = 'show', distractors = [] } = Astro.props;
+const options = [...new Set([...steps.map((s) => s.r), ...distractors])].sort((a, b) => a.localeCompare(b, 'ar'));
+const rows = steps.map((st, i) => ({
+  n: i + 1,
+  s: renderMath(st.s),
+  r: renderMath(st.r),
+  raw: st.r,
+  href: st.ref ? termHref(st.ref) : undefined,
+}));
+---
+
+<proof-table class="proof" data-mode={mode}>
+  <div class="head">
+    <span class="badge">{mode === 'fill' ? 'أكمل البرهان' : 'برهان'}</span>
+    {title && <span class="title">{title}</span>}
+  </div>
+  <div class="gp">
+    <div><b>المعطى:</b> <span set:html={renderMath(given)} /></div>
+    <div><b>المطلوب:</b> <span set:html={renderMath(prove)} /></div>
+  </div>
+  <slot />
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th class="c-n">#</th><th>العبارة</th><th>السبب</th></tr>
+      </thead>
+      <tbody>
+        {
+          rows.map((row) => (
+            <tr data-answer={row.raw}>
+              <td class="c-n">{row.n}</td>
+              <td class="st" set:html={row.s} />
+              <td class="rs">
+                <span class="reason">
+                  {row.href ? <a href={row.href} set:html={row.r} /> : <span set:html={row.r} />}
+                </span>
+                {mode === 'fill' && (
+                  <select aria-label={`السبب في الخطوة ${row.n}`}>
+                    <option value="">اختر السبب…</option>
+                    {options.map((o) => (
+                      <option value={o}>{o.replace(/\$/g, '')}</option>
+                    ))}
+                  </select>
+                )}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="controls">
+    {
+      mode === 'fill' ? (
+        <>
+          <button type="button" class="btn btn-primary check">تحقّق</button>
+          <button type="button" class="btn reveal">اعرض الحل</button>
+        </>
+      ) : (
+        <>
+          <button type="button" class="btn btn-primary next">الخطوة التالية</button>
+          <button type="button" class="btn all">اعرض البرهان كاملًا</button>
+        </>
+      )
+    }
+    <span class="fb" aria-live="polite"></span>
+  </div>
+</proof-table>
+
+<script>
+  class ProofTable extends HTMLElement {
+    shown = 0;
+    rows: HTMLTableRowElement[] = [];
+
+    connectedCallback() {
+      this.rows = Array.from(this.querySelectorAll<HTMLTableRowElement>('tbody tr'));
+      if (this.dataset.mode === 'fill') {
+        this.querySelector('.check')?.addEventListener('click', () => this.check());
+        this.querySelector('.reveal')?.addEventListener('click', () => this.reveal());
+        this.rows.forEach((r) => r.querySelector('select')?.addEventListener('change', () => r.classList.remove('right', 'wrong')));
+      } else {
+        this.querySelector('.next')?.addEventListener('click', () => this.show(this.shown + 1));
+        this.querySelector('.all')?.addEventListener('click', () => this.show(this.rows.length));
+        this.show(1);
+      }
+    }
+
+    show(n: number) {
+      this.shown = Math.min(n, this.rows.length);
+      this.rows.forEach((r, i) => {
+        r.hidden = i >= this.shown;
+        r.classList.toggle('fresh', i === this.shown - 1);
+      });
+      const done = this.shown >= this.rows.length;
+      this.querySelectorAll<HTMLButtonElement>('.next, .all').forEach((b) => (b.hidden = done));
+      this.querySelector('.fb')!.textContent = done ? 'تم البرهان ∎' : `${this.shown} / ${this.rows.length}`;
+    }
+
+    check() {
+      let right = 0;
+      let empty = 0;
+      for (const r of this.rows) {
+        const sel = r.querySelector('select')!;
+        if (r.classList.contains('locked')) {
+          right++;
+          continue;
+        }
+        if (!sel.value) {
+          empty++;
+          r.classList.remove('right', 'wrong');
+          continue;
+        }
+        const ok = sel.value === r.dataset.answer;
+        r.classList.toggle('right', ok);
+        r.classList.toggle('wrong', !ok);
+        if (ok) {
+          right++;
+          r.classList.add('locked');
+        }
+      }
+      const fb = this.querySelector<HTMLElement>('.fb')!;
+      const total = this.rows.length;
+      if (right === total) {
+        fb.textContent = 'كل الأسباب صحيحة. تم البرهان ∎';
+        fb.className = 'fb ok';
+        this.querySelectorAll<HTMLButtonElement>('.check, .reveal').forEach((b) => (b.hidden = true));
+      } else {
+        fb.textContent = `${right} من ${total} صحيحة` + (empty ? `، و ${empty} بلا إجابة` : '') + '. صحّح الأحمر وحاول مجددًا.';
+        fb.className = 'fb';
+      }
+    }
+
+    reveal() {
+      this.rows.forEach((r) => {
+        r.classList.remove('wrong');
+        r.classList.add('locked', 'shown');
+      });
+      this.querySelectorAll<HTMLButtonElement>('.check, .reveal').forEach((b) => (b.hidden = true));
+      const fb = this.querySelector<HTMLElement>('.fb')!;
+      fb.textContent = 'هذا هو البرهان كاملًا. جرّب أن تعيده لاحقًا دون النظر.';
+      fb.className = 'fb';
+    }
+  }
+  customElements.define('proof-table', ProofTable);
+</script>
+
+<style>
+  .proof {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.1rem;
+    margin: 1.4rem 0;
+  }
+  .head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-family: var(--font-head);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--card);
+    background: var(--thm);
+    border-radius: 6px;
+    padding: 0.05rem 0.55rem;
+  }
+  .proof[data-mode='fill'] .badge {
+    background: var(--accent);
+    color: var(--ink);
+  }
+  .title {
+    font-family: var(--font-head);
+    font-weight: 600;
+  }
+  .gp {
+    margin: 0.6rem 0;
+    padding: 0.5rem 0.8rem;
+    background: var(--paper-2);
+    border-radius: 10px;
+    line-height: 1.9;
+  }
+  .tbl-wrap {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.97rem;
+  }
+  th {
+    font-family: var(--font-head);
+    font-weight: 600;
+    text-align: start;
+    padding: 0.35rem 0.5rem;
+    border-bottom: 2px solid var(--ink-2);
+  }
+  td {
+    padding: 0.45rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  .c-n {
+    width: 1.6rem;
+    color: var(--ink-3);
+    font-family: var(--font-head);
+    text-align: center;
+  }
+  .st {
+    width: 48%;
+  }
+  .rs a {
+    color: var(--brand);
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+  tr.fresh {
+    animation: fadein 0.35s ease;
+  }
+  .proof[data-mode='fill'] .reason {
+    display: none;
+  }
+  .proof[data-mode='fill'] tr.locked .reason {
+    display: inline;
+  }
+  .proof[data-mode='fill'] tr.locked select {
+    display: none;
+  }
+  select {
+    width: 100%;
+    font: inherit;
+    font-size: 0.92rem;
+    padding: 0.3rem 0.4rem;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  tr.wrong select {
+    border-color: var(--bad);
+    background: var(--warn-bg);
+  }
+  tr.right td.rs,
+  tr.locked:not(.shown) td.rs {
+    background: var(--thm-bg);
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+  }
+  .fb {
+    color: var(--ink-2);
+    font-size: 0.95rem;
+  }
+  .fb.ok {
+    color: var(--good);
+    font-weight: 600;
+  }
+  @keyframes fadein {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

@@ -1,0 +1,56 @@
+---
+// Static figure: two intersecting lines with angles numbered 1–4 around the vertex.
+const O = { x: 150, y: 80 };
+const pol = (r: number, d: number) => ({
+  x: O.x + r * Math.cos((d * Math.PI) / 180),
+  y: O.y - r * Math.sin((d * Math.PI) / 180),
+});
+const a = 20;
+const b = 125;
+const ends = [pol(130, a), pol(130, a + 180), pol(100, b), pol(100, b + 180)];
+const labels = [
+  { n: 1, p: pol(30, (a + b) / 2) },
+  { n: 2, p: pol(30, (b + a + 180) / 2) },
+  { n: 3, p: pol(30, (a + 180 + b + 180) / 2) },
+  { n: 4, p: pol(30, (b + 180 + a + 360) / 2) },
+];
+---
+
+<figure class="fig">
+  <svg viewBox="0 0 300 160" role="img" aria-label="مستقيمان متقاطعان يكوّنان الزوايا 1 و 2 و 3 و 4">
+    <line x1={ends[0].x} y1={ends[0].y} x2={ends[1].x} y2={ends[1].y}></line>
+    <line x1={ends[2].x} y1={ends[2].y} x2={ends[3].x} y2={ends[3].y} class="b"></line>
+    {labels.map((l) => <text x={l.p.x - 4} y={l.p.y + 5}>{l.n}</text>)}
+  </svg>
+  <figcaption><slot /></figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 0.8rem 0;
+    text-align: center;
+  }
+  svg {
+    width: 100%;
+    max-width: 300px;
+    display: block;
+    margin: 0 auto;
+  }
+  line {
+    stroke: var(--brand);
+    stroke-width: 2.5;
+  }
+  line.b {
+    stroke: var(--ink-2);
+  }
+  text {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    fill: var(--accent);
+  }
+  figcaption {
+    font-size: 0.88rem;
+    color: var(--ink-3);
+  }
+</style>

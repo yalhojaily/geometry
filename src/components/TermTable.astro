@@ -1,0 +1,89 @@
+---
+// Compact table of several terms (used for lists of properties).
+import { termById } from '../data/terms';
+import { renderMath } from '../data/math';
+
+interface Props {
+  ids: string[];
+  caption?: string;
+}
+const { ids, caption } = Astro.props;
+const rows = ids.map((id) => {
+  const t = termById[id];
+  if (!t) throw new Error(`Unknown term id: ${id}`);
+  return t;
+});
+---
+
+<div class="tt-wrap">
+  <table class="tt">
+    {caption && <caption>{caption}</caption>}
+    <tbody>
+      {
+        rows.map((t) => (
+          <tr id={t.id}>
+            <th>
+              <span class="ar">{t.ar}</span>
+              <span class="en">{t.en}</span>
+            </th>
+            <td set:html={renderMath(t.statement)} />
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .tt-wrap {
+    overflow-x: auto;
+    margin: 1.2rem 0;
+  }
+  .tt {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  caption {
+    caption-side: top;
+    text-align: start;
+    font-family: var(--font-head);
+    font-weight: 600;
+    padding-bottom: 0.4rem;
+  }
+  tr {
+    scroll-margin-top: 80px;
+  }
+  tr:target {
+    background: var(--accent-soft);
+  }
+  th,
+  td {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--line);
+    text-align: start;
+    vertical-align: top;
+  }
+  tr:last-child th,
+  tr:last-child td {
+    border-bottom: none;
+  }
+  th {
+    width: 38%;
+    background: var(--paper-2);
+    font-weight: 500;
+  }
+  .ar {
+    display: block;
+    font-family: var(--font-head);
+    font-weight: 600;
+  }
+  .en {
+    display: block;
+    font-size: 0.75rem;
+  }
+</style>

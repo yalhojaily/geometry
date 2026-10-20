@@ -1,0 +1,283 @@
+---
+// Interactive: build a chain of conditionals (Law of Syllogism), then apply
+// the Law of Detachment to a known fact.
+interface Card {
+  h: string;
+  c: string;
+}
+interface Puzzle {
+  label: string;
+  fact: string; // known to be true; equals the first hypothesis
+  goal: string; // final conclusion
+  cards: Card[]; // shuffled, may include distractors
+}
+
+const puzzles: Puzzle[] = [
+  {
+    label: 'سلسلة الطالب',
+    fact: 'الطالب يذاكر بانتظام',
+    goal: 'الطالب يحصل على شهادة تقدير',
+    cards: [
+      { h: 'الطالب ينجح في اختبار الفصل', c: 'الطالب يحصل على شهادة تقدير' },
+      { h: 'الطالب يذاكر بانتظام', c: 'الطالب يفهم البراهين' },
+      { h: 'الطالب يحصل على شهادة تقدير', c: 'الطالب يذاكر بانتظام' },
+      { h: 'الطالب يفهم البراهين', c: 'الطالب ينجح في اختبار الفصل' },
+    ],
+  },
+  {
+    label: 'سلسلة هندسية',
+    fact: 'ℓ ⊥ m',
+    goal: 'كل الزوايا عند تقاطع ℓ و m متطابقة',
+    cards: [
+      { h: 'ℓ و m يكوّنان أربع زوايا قائمة', c: 'كل الزوايا عند تقاطع ℓ و m متطابقة' },
+      { h: 'ℓ و m متقاطعان', c: 'ℓ ⊥ m' },
+      { h: 'ℓ ⊥ m', c: 'ℓ و m يكوّنان زاوية قائمة' },
+      { h: 'ℓ و m يكوّنان زاوية قائمة', c: 'ℓ و m يكوّنان أربع زوايا قائمة' },
+    ],
+  },
+];
+---
+
+<syllogism-lab class="panel lab" data-puzzles={JSON.stringify(puzzles)}>
+  <div class="lab-head">
+    <span class="tag">ابنِ السلسلة</span>
+    <div class="chips">
+      {puzzles.map((p, i) => <button type="button" data-i={i} class:list={{ on: i === 0 }}>{p.label}</button>)}
+    </div>
+  </div>
+  <p class="intro"></p>
+  <ol class="chain"></ol>
+  <div class="cards"></div>
+  <p class="msg" aria-live="polite"></p>
+  <button type="button" class="btn reset">ابدأ من جديد</button>
+</syllogism-lab>
+
+<script>
+  type Card = { h: string; c: string };
+  type Puzzle = { label: string; fact: string; goal: string; cards: Card[] };
+
+  class SyllogismLab extends HTMLElement {
+    puzzles: Puzzle[] = [];
+    cur = 0;
+    chain: Card[] = [];
+
+    connectedCallback() {
+      this.puzzles = JSON.parse(this.dataset.puzzles ?? '[]');
+      this.querySelectorAll<HTMLButtonElement>('.chips button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.cur = Number(b.dataset.i);
+          this.querySelectorAll('.chips button').forEach((x) => x.classList.toggle('on', x === b));
+          this.reset();
+        }),
+      );
+      this.querySelector('.reset')?.addEventListener('click', () => this.reset());
+      this.reset();
+    }
+
+    reset() {
+      this.chain = [];
+      const p = this.puzzles[this.cur];
+      this.querySelector('.intro')!.textContent = `نعلم أن: «${p.fact}». المطلوب الوصول إلى: «${p.goal}». اضغط البطاقات بالترتيب الصحيح؛ فرض كل بطاقة يجب أن يطابق نتيجة التي قبلها.`;
+      this.querySelector('.msg')!.textContent = '';
+      this.render();
+    }
+
+    current(): string {
+      const p = this.puzzles[this.cur];
+      return this.chain.length ? this.chain[this.chain.length - 1].c : p.fact;
+    }
+
+    render() {
+      const p = this.puzzles[this.cur];
+      const chain = this.querySelector('.chain')!;
+      chain.replaceChildren();
+      const start = document.createElement('li');
+      start.className = 'fact';
+      start.textContent = `معلوم: ${p.fact}`;
+      chain.appendChild(start);
+      for (const c of this.chain) {
+        const li = document.createElement('li');
+        li.textContent = `إذا كان ${c.h}، فإن ${c.c}`;
+        chain.appendChild(li);
+      }
+
+      const done = this.current() === p.goal;
+      const cards = this.querySelector('.cards')!;
+      cards.replaceChildren();
+      p.cards.forEach((c) => {
+        if (this.chain.includes(c)) return;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'card';
+        b.disabled = done;
+        b.innerHTML = '<span class="k">إذا كان</span> <span class="h"></span>، <span class="k">فإن</span> <span class="c"></span>';
+        b.querySelector('.h')!.textContent = c.h;
+        b.querySelector('.c')!.textContent = c.c;
+        b.addEventListener('click', () => this.pick(c, b));
+        cards.appendChild(b);
+      });
+
+      const msg = this.querySelector<HTMLElement>('.msg')!;
+      if (done) {
+        msg.className = 'msg win';
+        msg.innerHTML = '';
+        const a = document.createElement('div');
+        a.innerHTML = '<b>قانون القياس المنطقي</b> يختصر السلسلة إلى عبارة واحدة: ';
+        a.append(`إذا كان ${p.fact}، فإن ${p.goal}.`);
+        const b = document.createElement('div');
+        b.innerHTML = '<b>قانون الفصل</b>: الفرض معلوم أنه صحيح، إذن: ';
+        b.append(`${p.goal}. ∎`);
+        msg.append(a, b);
+      }
+    }
+
+    pick(c: Card, btn: HTMLButtonElement) {
+      const msg = this.querySelector<HTMLElement>('.msg')!;
+      if (c.h === this.current()) {
+        this.chain.push(c);
+        msg.className = 'msg';
+        msg.textContent = '';
+        this.render();
+      } else {
+        msg.className = 'msg err';
+        msg.textContent = `لا يمكن: فرض هذه البطاقة «${c.h}» لا يطابق آخر ما وصلنا إليه «${this.current()}».`;
+        btn.classList.remove('shake');
+        void btn.offsetWidth;
+        btn.classList.add('shake');
+      }
+    }
+  }
+  customElements.define('syllogism-lab', SyllogismLab);
+</script>
+
+<style>
+  .lab {
+    display: block;
+  }
+  .lab-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .chips {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .chips button {
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 0.1rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  .chips button.on {
+    border-color: var(--brand);
+    background: var(--def-bg);
+  }
+  .intro {
+    font-size: 0.95rem;
+    color: var(--ink-2);
+    margin: 0.6rem 0;
+  }
+  .chain {
+    list-style: none;
+    margin: 0 0 0.7rem;
+    padding: 0;
+    display: grid;
+    gap: 0.3rem;
+  }
+  .chain :global(li) {
+    position: relative;
+    background: var(--def-bg);
+    border-radius: 10px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.95rem;
+    animation: fadein 0.3s ease;
+  }
+  .chain :global(li + li)::before {
+    content: '↓';
+    position: absolute;
+    top: -0.95rem;
+    inset-inline-start: 1rem;
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .chain :global(li.fact) {
+    background: var(--thm-bg);
+    font-weight: 600;
+  }
+  .cards {
+    display: grid;
+    gap: 0.45rem;
+  }
+  .cards :global(.card) {
+    text-align: start;
+    border: 1.5px dashed var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 12px;
+    padding: 0.5rem 0.8rem;
+    font: inherit;
+    font-size: 0.95rem;
+  }
+  .cards :global(.card:hover:not(:disabled)) {
+    border-color: var(--brand);
+    border-style: solid;
+  }
+  .cards :global(.card:disabled) {
+    opacity: 0.4;
+  }
+  .cards :global(.k) {
+    color: var(--brand);
+    font-weight: 600;
+  }
+  .cards :global(.card.shake) {
+    animation: shake 0.35s;
+    border-color: var(--bad);
+  }
+  .msg {
+    margin: 0.7rem 0;
+    font-size: 0.95rem;
+  }
+  .msg:empty {
+    display: none;
+  }
+  .msg.err {
+    color: var(--bad);
+  }
+  .msg.win {
+    background: var(--thm-bg);
+    border-radius: 10px;
+    padding: 0.55rem 0.8rem;
+    display: grid;
+    gap: 0.3rem;
+  }
+  .reset {
+    font-size: 0.9rem;
+  }
+  @keyframes shake {
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
+  }
+  @keyframes fadein {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

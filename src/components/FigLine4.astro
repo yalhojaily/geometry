@@ -1,0 +1,53 @@
+---
+// Static figure: A, B, C, D on a line in that order; AB and CD marked congruent.
+const xs = { A: 40, B: 110, C: 210, D: 280 };
+---
+
+<figure class="fig">
+  <svg viewBox="0 0 320 70" role="img" aria-label="النقاط A و B و C و D على مستقيم بهذا الترتيب">
+    <line x1="15" y1="35" x2="305" y2="35" class="ln"></line>
+    <line x1="75" y1="27" x2="75" y2="43" class="tk"></line>
+    <line x1="245" y1="27" x2="245" y2="43" class="tk"></line>
+    {Object.entries(xs).map(([k, x]) => (
+      <g>
+        <circle cx={x} cy="35" r="4.5"></circle>
+        <text x={x - 5} y="60">{k}</text>
+      </g>
+    ))}
+  </svg>
+  <figcaption><slot /></figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 0.8rem 0;
+    text-align: center;
+  }
+  svg {
+    width: 100%;
+    max-width: 340px;
+    display: block;
+    margin: 0 auto;
+  }
+  .ln {
+    stroke: var(--brand);
+    stroke-width: 2.5;
+  }
+  .tk {
+    stroke: var(--warn);
+    stroke-width: 2.5;
+  }
+  circle {
+    fill: var(--ink);
+  }
+  text {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    fill: var(--ink);
+  }
+  figcaption {
+    font-size: 0.88rem;
+    color: var(--ink-3);
+  }
+</style>

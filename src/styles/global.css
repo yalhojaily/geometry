@@ -243,3 +243,27 @@ button {
 svg text {
   direction: ltr;
 }
+
+/* Markdown tables written directly in a lesson */
+.body > table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2rem 0;
+  font-size: 0.95rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.body > table th,
+.body > table td {
+  border: 1px solid var(--line);
+  padding: 0.5rem 0.7rem;
+  text-align: start;
+  vertical-align: top;
+}
+.body > table th {
+  background: var(--paper-2);
+  font-family: var(--font-head);
+  font-weight: 600;
+}

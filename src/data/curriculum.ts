@@ -31,12 +31,12 @@ export const chapters: Chapter[] = [
   {
     n: 2, en: 'Reasoning and Proof', ar: 'الاستدلال والبرهان',
     lessons: [
-      { id: '2.1', en: 'Conditional Statements', ar: 'العبارات الشرطية' },
-      { id: '2.2', en: 'Definitions and Biconditional Statements', ar: 'التعريفات والعبارات الشرطية الثنائية' },
-      { id: '2.3', en: 'Deductive Reasoning', ar: 'الاستدلال الاستنتاجي' },
-      { id: '2.4', en: 'Reasoning with Properties from Algebra', ar: 'الاستدلال بخصائص الجبر' },
-      { id: '2.5', en: 'Proving Statements about Segments', ar: 'برهان عبارات عن القطع المستقيمة' },
-      { id: '2.6', en: 'Proving Statements about Angles', ar: 'برهان عبارات عن الزوايا' },
+      { id: '2.1', en: 'Conditional Statements', ar: 'العبارات الشرطية', ready: true },
+      { id: '2.2', en: 'Definitions and Biconditional Statements', ar: 'التعريفات والعبارات الشرطية الثنائية', ready: true },
+      { id: '2.3', en: 'Deductive Reasoning', ar: 'الاستدلال الاستنتاجي', ready: true },
+      { id: '2.4', en: 'Reasoning with Properties from Algebra', ar: 'الاستدلال بخصائص الجبر', ready: true },
+      { id: '2.5', en: 'Proving Statements about Segments', ar: 'برهان عبارات عن القطع المستقيمة', ready: true },
+      { id: '2.6', en: 'Proving Statements about Angles', ar: 'برهان عبارات عن الزوايا', ready: true },
     ],
   },
   {
