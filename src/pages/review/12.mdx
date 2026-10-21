@@ -1,0 +1,105 @@
+---
+layout: ../../layouts/Review.astro
+chapter: 12
+intro: 'التمارين مختلطة من كل دروس الفصل، وبترتيب لا يتبع الدروس، لتتدرب على اختيار الأداة المناسبة بنفسك. تحت كل سؤال رابط الدرس الذي جاء منه؛ إذا أخطأت يقترح عليك مراجعته. في الأعلى عدّاد لإجاباتك، وفي النهاية ملخص بالدروس التي تستحق العودة إليها.'
+---
+
+import Quiz from '../../components/Quiz.astro';
+
+<Quiz n={1} lesson="12.2" type="number" answer={148}>
+
+منشور قائم أبعاده $4 \times 5 \times 6$. ما مساحته السطحية؟
+
+<div slot="explain">$2(20 + 24 + 30) = 148$.</div>
+</Quiz>
+
+<Quiz n={2} lesson="12.1" type="number" answer={24}>
+
+مجسم محدّب له $10$ أوجه و $16$ رأسًا. كم حرفًا له؟
+
+<div slot="explain">$10 + 16 = E + 2$.</div>
+</Quiz>
+
+<Quiz n={3} lesson="12.5" type="number" answer={120}>
+
+هرم مساحة قاعدته $36$ وارتفاعه $10$. ما حجمه؟
+
+<div slot="explain">$\tfrac{1}{3}(36)(10) = 120$.</div>
+</Quiz>
+
+<Quiz n={4} lesson="12.6" type="number" answer={144}>
+
+كرة نصف قطرها $6$. مساحتها السطحية $k\pi$. ما $k$؟
+
+<div slot="explain">$4 \times 36 = 144$.</div>
+</Quiz>
+
+<Quiz n={5} lesson="12.3" type="number" answer={360} hint="ابدأ بالارتفاع الجانبي.">
+
+هرم رباعي منتظم ضلع قاعدته $10$ وارتفاعه $12$. ما مساحته السطحية؟
+
+<div slot="explain">الارتفاع الجانبي $\sqrt{144 + 25} = 13$، و $S = 100 + \tfrac{1}{2}(40)(13) = 360$.</div>
+</Quiz>
+
+<Quiz n={6} lesson="12.7" type="choice" answer={2} options={['2 : 3', '4 : 9', '8 : 27', '6 : 9']}>
+
+مجسمان متشابهان بمعامل $2 : 3$. ما نسبة حجميهما؟
+
+<div slot="explain">$2^3 : 3^3$.</div>
+</Quiz>
+
+<Quiz n={7} lesson="12.4" type="number" answer={80}>
+
+أسطوانة نصف قطرها $4$ وارتفاعها $5$. حجمها $k\pi$. ما $k$؟
+
+<div slot="explain">$16 \times 5 = 80$.</div>
+</Quiz>
+
+<Quiz n={8} lesson="12.2" type="number" answer={60}>
+
+أسطوانة نصف قطرها $3$ وارتفاعها $7$. مساحتها السطحية $k\pi$. ما $k$؟
+
+<div slot="explain">$2(9) + 2(3)(7) = 18 + 42 = 60$.</div>
+</Quiz>
+
+<Quiz n={9} lesson="12.1" type="number" answer={18}>
+
+كم حرفًا للمنشور السداسي؟
+
+<div slot="explain">$6$ في كل قاعدة و $6$ جانبية.</div>
+</Quiz>
+
+<Quiz n={10} lesson="12.5" type="number" answer={30}>
+
+مخروط نصف قطره $3$ وارتفاعه $10$. حجمه $k\pi$. ما $k$؟
+
+<div slot="explain">$\tfrac{1}{3}(9)(10) = 30$.</div>
+</Quiz>
+
+<Quiz n={11} lesson="12.3" type="number" answer={96}>
+
+مخروط نصف قطره $6$ وارتفاعه $8$. مساحته السطحية $k\pi$. ما $k$؟
+
+<div slot="explain">$\ell = 10$، و $36 + 60 = 96$.</div>
+</Quiz>
+
+<Quiz n={12} lesson="12.6" type="number" answer={3}>
+
+كرة حجمها $36\pi$. ما نصف قطرها؟
+
+<div slot="explain">$\tfrac{4}{3}r^3 = 36$، إذن $r^3 = 27$.</div>
+</Quiz>
+
+<Quiz n={13} lesson="12.4" type="number" answer={300}>
+
+منشور قاعدته مثلث قائم ساقاه $5$ و $12$، وارتفاعه $10$. ما حجمه؟
+
+<div slot="explain">$B = 30$، و $V = 300$.</div>
+</Quiz>
+
+<Quiz n={14} lesson="12.7" type="number" answer={320}>
+
+أسطوانتان متشابهتان بمعامل $1 : 4$، وحجم الصغرى $5$. ما حجم الكبرى؟
+
+<div slot="explain">$5 \times 4^3 = 320$.</div>
+</Quiz>

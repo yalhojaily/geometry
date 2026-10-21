@@ -1,0 +1,105 @@
+---
+layout: ../../layouts/Review.astro
+chapter: 10
+intro: 'التمارين مختلطة من كل دروس الفصل، وبترتيب لا يتبع الدروس، لتتدرب على اختيار الأداة المناسبة بنفسك. تحت كل سؤال رابط الدرس الذي جاء منه؛ إذا أخطأت يقترح عليك مراجعته. في الأعلى عدّاد لإجاباتك، وفي النهاية ملخص بالدروس التي تستحق العودة إليها.'
+---
+
+import Quiz from '../../components/Quiz.astro';
+
+<Quiz n={1} lesson="10.3" type="number" answer={65}>
+
+زاوية محيطية تقابل قوسًا $130^\circ$. ما قياسها؟
+
+<div slot="explain">نصف القوس.</div>
+</Quiz>
+
+<Quiz n={2} lesson="10.1" type="number" answer={15} hint="نصف القطر عمودي على المماس.">
+
+نصف قطر دائرة $9$، ومماس من نقطة $P$ طوله $12$. ما بعد $P$ عن المركز؟
+
+<div slot="explain">$\sqrt{81 + 144} = 15$.</div>
+</Quiz>
+
+<Quiz n={3} lesson="10.4" type="number" answer={80}>
+
+وتران يتقاطعان داخل دائرة، والقوسان المقابلان لزاوية ولمقابلتها بالرأس $50^\circ$ و $110^\circ$. ما قياس الزاوية؟
+
+<div slot="explain">$\tfrac{1}{2}(50 + 110) = 80$.</div>
+</Quiz>
+
+<Quiz n={4} lesson="10.5" type="number" answer={6}>
+
+وتران يتقاطعان: جزءا الأول $3$ و $8$، وأحد جزأي الثاني $4$. ما الآخر؟
+
+<div slot="explain">$3 \times 8 = 4x$.</div>
+</Quiz>
+
+<Quiz n={5} lesson="10.2" type="number" answer={288}>
+
+قوس أصغر قياسه $72^\circ$. ما قياس القوس الأكبر؟
+
+<div slot="explain">$360 - 72 = 288$.</div>
+</Quiz>
+
+<Quiz n={6} lesson="10.6" type="choice" answer={1} options={['(2, −5)، 7', '(−2, 5)، 7', '(−2, 5)، 49', '(2, 5)، 7']}>
+
+ما مركز الدائرة $(x + 2)^2 + (y - 5)^2 = 49$ ونصف قطرها؟
+
+<div slot="explain">المركز $(-2, 5)$ ونصف القطر $7$.</div>
+</Quiz>
+
+<Quiz n={7} lesson="10.3" type="number" answer={85}>
+
+شكل رباعي داخل دائرة، إحدى زواياه $95^\circ$. ما الزاوية المقابلة لها؟
+
+<div slot="explain">متكاملتان.</div>
+</Quiz>
+
+<Quiz n={8} lesson="10.1" type="number" answer={15}>
+
+مماسان من $P$: $PA = 4x - 1$ و $PB = 2x + 7$. ما $PA$؟
+
+<div slot="explain">متطابقان: $x = 4$، و $PA = 15$.</div>
+</Quiz>
+
+<Quiz n={9} lesson="10.4" type="number" answer={50}>
+
+قاطعان من نقطة خارجية يقابلان قوسين $150^\circ$ و $50^\circ$. ما قياس الزاوية؟
+
+<div slot="explain">$\tfrac{1}{2}(150 - 50) = 50$.</div>
+</Quiz>
+
+<Quiz n={10} lesson="10.2" type="number" answer={30}>
+
+دائرة نصف قطرها $17$، ووتر يبعد $8$ عن المركز. ما طول الوتر؟
+
+<div slot="explain">نصفه $\sqrt{289 - 64} = 15$، والوتر $30$.</div>
+</Quiz>
+
+<Quiz n={11} lesson="10.5" type="number" answer={10}>
+
+من نقطة خارجية، مماس طوله $x$، وقاطع جزؤه الخارجي $4$ وطوله كله $25$. ما $x$؟
+
+<div slot="explain">$x^2 = 4 \times 25 = 100$.</div>
+</Quiz>
+
+<Quiz n={12} lesson="10.3" type="number" answer={55}>
+
+مثلث داخل دائرة أحد أضلاعه قطر، وإحدى زاويتيه الحادتين $35^\circ$. ما الأخرى؟
+
+<div slot="explain">الزاوية المقابلة للقطر قائمة: $90 - 35 = 55$.</div>
+</Quiz>
+
+<Quiz n={13} lesson="10.4" type="number" answer={44}>
+
+مماس ووتر يلتقيان عند نقطة التماس، والقوس داخل الزاوية $88^\circ$. ما الزاوية؟
+
+<div slot="explain">نصف القوس.</div>
+</Quiz>
+
+<Quiz n={14} lesson="10.7" type="number" answer={2} hint="ارسم المحلين: العمود المنصف ودائرة.">
+
+$AB = 6$. كم نقطة تبعد المسافة نفسها عن $A$ و $B$، وتبعد $5$ عن $A$؟
+
+<div slot="explain">العمود المنصف يبعد $3$ عن $A$، فيقطع الدائرة (نصف قطرها $5$) في نقطتين.</div>
+</Quiz>

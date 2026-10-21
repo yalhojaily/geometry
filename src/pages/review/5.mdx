@@ -1,0 +1,98 @@
+---
+layout: ../../layouts/Review.astro
+chapter: 5
+intro: 'التمارين مختلطة من كل دروس الفصل، وبترتيب لا يتبع الدروس، لتتدرب على اختيار الأداة المناسبة بنفسك. تحت كل سؤال رابط الدرس الذي جاء منه؛ إذا أخطأت يقترح عليك مراجعته. في الأعلى عدّاد لإجاباتك، وفي النهاية ملخص بالدروس التي تستحق العودة إليها.'
+---
+
+import Quiz from '../../components/Quiz.astro';
+
+<Quiz n={1} lesson="5.1" type="number" answer={16}>
+
+$P$ على العمود المنصف لـ $\overline{AB}$، و $PA = 3x + 1$ و $PB = 2x + 6$. ما $PA$؟
+
+<div slot="explain">$PA = PB$: $x = 5$ و $PA = 16$.</div>
+</Quiz>
+
+<Quiz n={2} lesson="5.3" type="number" answer={16}>
+
+$G$ مركز ثقل مثلث، والمتوسط $\overline{AM} = 24$. ما $AG$؟
+
+<div slot="explain">$\tfrac{2}{3} \times 24 = 16$.</div>
+</Quiz>
+
+<Quiz n={3} lesson="5.5" type="choice" answer={1} options={['∠A', '∠B', '∠C']}>
+
+في $\triangle ABC$: $AB = 7$ و $BC = 9$ و $AC = 12$. أي زاوية هي الكبرى؟
+
+<div slot="explain">أطول ضلع $\overline{AC}$ يقابل $\angle B$.</div>
+</Quiz>
+
+<Quiz n={4} lesson="5.2" type="choice" answer={0} options={['مركز الدائرة المحيطة', 'مركز الدائرة الداخلية', 'مركز الثقل', 'ملتقى الارتفاعات']}>
+
+أي نقطة تبعد المسافة نفسها عن رؤوس المثلث الثلاثة؟
+
+<div slot="explain">مركز الدائرة المحيطة (تلاقي الأعمدة المنصفة).</div>
+</Quiz>
+
+<Quiz n={5} lesson="5.4" type="number" answer={9}>
+
+قطعة منصفة في مثلث توازي ضلعًا طوله $18$. ما طولها؟
+
+<div slot="explain">نصف الضلع الموازي.</div>
+</Quiz>
+
+<Quiz n={6} lesson="5.5" type="number" answer={5}>
+
+ضلعان في مثلث $6$ و $10$، والثالث عدد صحيح. ما أصغر قيمة ممكنة له؟
+
+<div slot="explain">$10 - 6 < x$، أي $x > 4$، فأصغر عدد صحيح $5$.</div>
+</Quiz>
+
+<Quiz n={7} lesson="5.6" type="choice" answer={0} options={['المقابل لـ 85° أطول', 'المقابل لـ 70° أطول', 'متساويان']}>
+
+مثلثان فيهما ضلعان متطابقان، والزاوية المحصورة $70^\circ$ في الأول و $85^\circ$ في الثاني. أي ضلع ثالث أطول؟
+
+<div slot="explain">نظرية المفصل: الزاوية الأكبر تقابل الضلع الأطول.</div>
+</Quiz>
+
+<Quiz n={8} lesson="5.1" type="number" answer={11}>
+
+$D$ على منصف $\angle A$، وبُعده عن ضلعيها $2y - 3$ و $y + 4$. ما هذا البعد؟
+
+<div slot="explain">$2y - 3 = y + 4$، إذن $y = 7$ والبعد $11$.</div>
+</Quiz>
+
+<Quiz n={9} lesson="5.3" type="number" answer={3}>
+
+ما الإحداثي الصادي لمركز ثقل المثلث $(0, 0)$ و $(6, 0)$ و $(3, 9)$؟
+
+<div slot="explain">$\tfrac{0 + 0 + 9}{3} = 3$.</div>
+</Quiz>
+
+<Quiz n={10} lesson="5.2" type="choice" answer={1} options={['داخل المثلث', 'منتصف الوتر', 'رأس الزاوية القائمة', 'خارج المثلث']}>
+
+أين يقع مركز الدائرة المحيطة بمثلث قائم؟
+
+<div slot="explain">منتصف الوتر.</div>
+</Quiz>
+
+<Quiz n={11} lesson="5.4" type="number" answer={15}>
+
+أضلاع مثلث $8$ و $10$ و $12$. ما محيط المثلث الذي تكوّنه قطعه المنصفة الثلاث؟
+
+<div slot="explain">نصف المحيط: $\tfrac{30}{2} = 15$.</div>
+</Quiz>
+
+<Quiz n={12} lesson="5.6" type="choice" answer={0} options={['افترض أن الزاوية A قائمة', 'افترض أن الزاوية A حادة', 'افترض أن الزاوية A ليست قائمة']}>
+
+لإثبات «الزاوية A ليست قائمة» بطريقة غير مباشرة، نبدأ بـ:
+
+<div slot="explain">نفترض عكس المطلوب.</div>
+</Quiz>
+
+<Quiz n={13} lesson="5.5" type="choice" answer={1} options={['نعم', 'لا']}>
+
+هل تصنع الأطوال $4$ و $5$ و $10$ مثلثًا؟
+
+<div slot="explain">$4 + 5 = 9 < 10$.</div>
+</Quiz>

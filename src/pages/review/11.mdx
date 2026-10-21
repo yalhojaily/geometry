@@ -1,0 +1,98 @@
+---
+layout: ../../layouts/Review.astro
+chapter: 11
+intro: 'التمارين مختلطة من كل دروس الفصل، وبترتيب لا يتبع الدروس، لتتدرب على اختيار الأداة المناسبة بنفسك. تحت كل سؤال رابط الدرس الذي جاء منه؛ إذا أخطأت يقترح عليك مراجعته. في الأعلى عدّاد لإجاباتك، وفي النهاية ملخص بالدروس التي تستحق العودة إليها.'
+---
+
+import Quiz from '../../components/Quiz.astro';
+
+<Quiz n={1} lesson="11.1" type="number" answer={900}>
+
+ما مجموع الزوايا الداخلية للسباعي؟
+
+<div slot="explain">$(7 - 2) \times 180 = 900$.</div>
+</Quiz>
+
+<Quiz n={2} lesson="11.5" type="number" answer={8}>
+
+قطاع قوسه $45^\circ$ في دائرة نصف قطرها $8$. مساحته $k\pi$. ما $k$؟
+
+<div slot="explain">$\tfrac{1}{8} \times 64\pi = 8\pi$.</div>
+</Quiz>
+
+<Quiz n={3} lesson="11.3" type="choice" answer={2} options={['3 : 4', '6 : 8', '9 : 16', '27 : 64']}>
+
+مضلعان متشابهان بمعامل $3 : 4$. ما نسبة مساحتيهما؟
+
+<div slot="explain">$3^2 : 4^2$.</div>
+</Quiz>
+
+<Quiz n={4} lesson="11.4" type="number" answer={2}>
+
+في دائرة نصف قطرها $12$، طول قوس قياسه $30^\circ$ هو $k\pi$. ما $k$؟
+
+<div slot="explain">$\tfrac{30}{360} \times 24\pi = 2\pi$.</div>
+</Quiz>
+
+<Quiz n={5} lesson="11.1" type="number" answer={12}>
+
+كل زاوية خارجية في مضلع منتظم $30^\circ$. كم ضلعًا له؟
+
+<div slot="explain">$\tfrac{360}{30} = 12$.</div>
+</Quiz>
+
+<Quiz n={6} lesson="11.2" type="number" answer={60}>
+
+مضلع منتظم عامده $4$ ومحيطه $30$. ما مساحته؟
+
+<div slot="explain">$\tfrac{1}{2}(4)(30) = 60$.</div>
+</Quiz>
+
+<Quiz n={7} lesson="11.6" type="number" answer={0.2}>
+
+نقطة عشوائية على قطعة من $0$ إلى $20$. ما احتمال وقوعها بين $5$ و $9$؟
+
+<div slot="explain">$\tfrac{4}{20} = 0.2$.</div>
+</Quiz>
+
+<Quiz n={8} lesson="11.1" type="number" answer={144}>
+
+ما قياس كل زاوية داخلية في العشاري المنتظم؟
+
+<div slot="explain">الخارجية $36^\circ$، والداخلية $144^\circ$.</div>
+</Quiz>
+
+<Quiz n={9} lesson="11.3" type="number" answer={32} hint="ابدأ بالجذر التربيعي لنسبة المساحتين.">
+
+مضلعان متشابهان مساحتاهما $25$ و $64$، ومحيط الأصغر $20$. ما محيط الأكبر؟
+
+<div slot="explain">المعامل $5 : 8$، فالمحيط $20 \times \tfrac{8}{5} = 32$.</div>
+</Quiz>
+
+<Quiz n={10} lesson="11.4" type="number" answer={9}>
+
+محيط دائرة $18\pi$. ما نصف قطرها؟
+
+<div slot="explain">$2\pi r = 18\pi$.</div>
+</Quiz>
+
+<Quiz n={11} lesson="11.5" type="number" answer={25}>
+
+مربع ضلعه $10$ فيه دائرة تمس أضلاعه. مساحة المنطقة داخل المربع وخارج الدائرة $100 - k\pi$. ما $k$؟
+
+<div slot="explain">نصف قطر الدائرة $5$.</div>
+</Quiz>
+
+<Quiz n={12} lesson="11.2" type="number" answer={54} hint="السداسي ستة مثلثات متطابقة الأضلاع.">
+
+سداسي منتظم ضلعه $6$، ومساحته $k\sqrt{3}$. ما $k$؟
+
+<div slot="explain">ستة مثلثات متطابقة الأضلاع: $6 \times \tfrac{\sqrt{3}}{4}(36) = 54\sqrt{3}$.</div>
+</Quiz>
+
+<Quiz n={13} lesson="11.6" type="number" answer={0.1}>
+
+لوح مستطيل $10 \times 6$، وعليه هدف مستطيل $3 \times 2$. ما احتمال إصابة الهدف بسهم عشوائي يصيب اللوح؟
+
+<div slot="explain">$\tfrac{6}{60} = 0.1$.</div>
+</Quiz>

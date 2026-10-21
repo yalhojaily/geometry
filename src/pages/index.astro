@@ -50,6 +50,13 @@ const readyCount = allLessons.filter((l) => l.ready).length;
                 )}
               </li>
             ))}
+            <li>
+              <a class="lesson ready review-link" href={`${base}/review/${c.n}/`} data-review={c.n}>
+                <span class="lid">✦</span>
+                <span class="lt">مراجعة الفصل: تمارين مختلطة</span>
+                <span class="rscore" aria-hidden="true" />
+              </a>
+            </li>
           </ol>
         </details>
       ))
@@ -64,6 +71,15 @@ const readyCount = allLessons.filter((l) => l.ready).length;
   } catch {}
   document.querySelectorAll<HTMLElement>('.lesson.ready').forEach((a) => {
     if (p[a.dataset.id ?? '']) a.classList.add('done');
+  });
+  let rv: Record<string, { first: number; total: number }> = {};
+  try {
+    rv = JSON.parse(localStorage.getItem('review') ?? '{}');
+  } catch {}
+  document.querySelectorAll<HTMLElement>('.review-link').forEach((a) => {
+    const r = rv[a.dataset.review ?? ''];
+    const sc = a.querySelector('.rscore');
+    if (r && sc) sc.textContent = `${r.first}/${r.total}`;
   });
   const n = Object.values(p).filter(Boolean).length;
   const el = document.querySelector('.done-count');
@@ -201,6 +217,18 @@ const readyCount = allLessons.filter((l) => l.ready).length;
     border: 1px solid var(--line);
     border-radius: 999px;
     padding: 0 0.55rem;
+  }
+  .review-link {
+    background: var(--accent-soft);
+  }
+  .review-link .lid {
+    color: var(--accent);
+  }
+  .rscore {
+    margin-inline-start: auto;
+    font-family: var(--font-head);
+    font-size: 0.85rem;
+    color: var(--thm);
   }
   .mark {
     width: 1.4rem;

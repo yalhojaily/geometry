@@ -1,0 +1,293 @@
+---
+// Chapter review page: mixed exercises from all lessons of a chapter,
+// with a live score and a list of lessons worth revisiting.
+import Base from './Base.astro';
+import { chapters, lessonSlug } from '../data/curriculum';
+
+interface Props {
+  frontmatter: {
+    chapter: number;
+    intro: string;
+  };
+}
+
+const { chapter: n, intro } = Astro.props.frontmatter;
+const ch = chapters.find((c) => c.n === n)!;
+const next = chapters.find((c) => c.n === n + 1);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const last = ch.lessons[ch.lessons.length - 1];
+---
+
+<Base title={`مراجعة الفصل ${n}: ${ch.ar} · هندسة`}>
+  <article class="wrap lesson review" data-chapter={n}>
+    <nav class="crumbs">
+      <a href={`${base}/`}>الفهرس</a>
+      <span>›</span>
+      <span>الفصل {n}: {ch.ar}</span>
+    </nav>
+
+    <header class="lesson-head">
+      <div class="num">{n}</div>
+      <div>
+        <h1>مراجعة الفصل: {ch.ar}</h1>
+        <div class="en">Chapter {n} Review · {ch.en}</div>
+      </div>
+    </header>
+
+    <aside class="why">
+      <span class="why-label">كيف تستخدم هذه الصفحة؟</span>
+      <p>{intro}</p>
+    </aside>
+
+    <div class="covers">
+      <span class="covers-label">دروس الفصل:</span>
+      {
+        ch.lessons.map((l) => (
+          <a class="chip" href={`${base}/lessons/${lessonSlug(l.id)}/`}>
+            {l.id} {l.ar}
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="score panel" aria-live="polite">
+      <div class="score-row">
+        <span>حللت <b class="s-solved">0</b> من <b class="s-total">0</b></span>
+        <span class="s-first-wrap">من المحاولة الأولى: <b class="s-first">0</b></span>
+      </div>
+      <div class="bar"><div class="fill"></div></div>
+    </div>
+
+    <div class="body">
+      <slot />
+    </div>
+
+    <section class="summary panel" hidden>
+      <h2>النتيجة</h2>
+      <p class="sum-text"></p>
+      <div class="sum-lessons"></div>
+    </section>
+
+    <nav class="pager">
+      <a class="pg" href={`${base}/lessons/${lessonSlug(last.id)}/`}>
+        <small>السابق</small>
+        {last.id} {last.ar}
+      </a>
+      {
+        next && (
+          <a class="pg pg-next" href={`${base}/lessons/${lessonSlug(next.lessons[0].id)}/`}>
+            <small>الفصل التالي</small>
+            {next.lessons[0].id} {next.lessons[0].ar}
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</Base>
+
+<script>
+  const article = document.querySelector<HTMLElement>('.review')!;
+  const chapter = article.dataset.chapter!;
+  const quizzes = Array.from(article.querySelectorAll<HTMLElement>('quiz-q'));
+  const total = quizzes.length;
+  const missed = new Set<HTMLElement>();
+  const solved = new Set<HTMLElement>();
+
+  const $ = (s: string) => article.querySelector<HTMLElement>(s)!;
+  $('.s-total').textContent = String(total);
+
+  function save(first: number) {
+    try {
+      const all = JSON.parse(localStorage.getItem('review') ?? '{}');
+      const prev = all[chapter];
+      if (!prev || first > prev.first || (first === prev.first && solved.size > prev.solved))
+        all[chapter] = { solved: solved.size, first, total };
+      localStorage.setItem('review', JSON.stringify(all));
+    } catch {}
+  }
+
+  function update() {
+    const first = Array.from(solved).filter((q) => !missed.has(q)).length;
+    $('.s-solved').textContent = String(solved.size);
+    $('.s-first').textContent = String(first);
+    $('.fill').style.width = `${(100 * solved.size) / total}%`;
+    if (solved.size === total) {
+      const sum = $('.summary');
+      sum.hidden = false;
+      const pct = Math.round((100 * first) / total);
+      $('.sum-text').textContent =
+        pct >= 90
+          ? `ممتاز! أجبت ${first} من ${total} من المحاولة الأولى (${pct}%). أنت جاهز للفصل التالي.`
+          : pct >= 70
+            ? `جيد جدًا: ${first} من ${total} من المحاولة الأولى (${pct}%). راجع الدروس أدناه لتثبيت ما أخطأت فيه.`
+            : `أجبت ${first} من ${total} من المحاولة الأولى (${pct}%). يستحق الأمر مراجعة الدروس أدناه ثم إعادة المحاولة.`;
+      const lessons = new Map<string, string>();
+      missed.forEach((q) => {
+        const a = q.querySelector<HTMLAnchorElement>('.from');
+        if (a) lessons.set(a.href, a.textContent!.trim() + ' · ' + (a.title ?? ''));
+      });
+      $('.sum-lessons').innerHTML = lessons.size
+        ? '<p>دروس تستحق المراجعة:</p>' + Array.from(lessons).map(([h, t]) => `<a class="chip" href="${h}">${t}</a>`).join(' ')
+        : '';
+      save(first);
+    }
+  }
+
+  article.addEventListener('quiz-missed', (e) => {
+    missed.add(e.target as HTMLElement);
+    update();
+  });
+  article.addEventListener('quiz-solved', (e) => {
+    solved.add(e.target as HTMLElement);
+    update();
+  });
+  update();
+</script>
+
+<style>
+  .lesson {
+    padding-top: 1.2rem;
+    padding-bottom: 3rem;
+  }
+  .crumbs {
+    font-size: 0.88rem;
+    color: var(--ink-3);
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .crumbs a {
+    color: var(--brand);
+  }
+  .lesson-head {
+    display: flex;
+    gap: 0.9rem;
+    align-items: center;
+    margin: 1rem 0 0.8rem;
+  }
+  .num {
+    flex: none;
+    min-width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: var(--accent);
+    color: var(--ink);
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 1.3rem;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.35rem, 4.6vw, 1.9rem);
+  }
+  .en {
+    color: var(--ink-3);
+    font-size: 0.9rem;
+    direction: ltr;
+    text-align: right;
+  }
+  .why {
+    background: var(--paper-2);
+    border-radius: var(--radius);
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .why-label {
+    font-family: var(--font-head);
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+  .why p {
+    margin: 0.3rem 0 0;
+  }
+  .covers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .covers-label {
+    font-size: 0.9rem;
+    color: var(--ink-3);
+  }
+  .chip,
+  .summary :global(.chip) {
+    font-size: 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.15rem 0.7rem;
+    color: var(--ink);
+    background: var(--card);
+    text-decoration: none;
+  }
+  .chip:hover {
+    border-color: var(--brand);
+  }
+  .score {
+    position: sticky;
+    top: 62px;
+    z-index: 5;
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 1rem;
+  }
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+  }
+  .s-first-wrap {
+    color: var(--ink-3);
+  }
+  .bar {
+    height: 6px;
+    border-radius: 6px;
+    background: var(--paper-2);
+    margin-top: 0.45rem;
+    overflow: hidden;
+  }
+  .fill {
+    height: 100%;
+    width: 0;
+    background: var(--thm);
+    transition: width 0.3s ease;
+  }
+  .summary {
+    margin-top: 1.4rem;
+  }
+  .summary h2 {
+    margin-top: 0;
+  }
+  .summary :global(.chip) {
+    display: inline-block;
+    margin: 0.2rem 0 0.2rem 0.3rem;
+  }
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-top: 2rem;
+  }
+  .pg {
+    flex: 1;
+    max-width: 48%;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.8rem;
+    color: var(--ink);
+    background: var(--card);
+    text-decoration: none;
+  }
+  .pg small {
+    display: block;
+    color: var(--ink-3);
+  }
+  .pg-next {
+    text-align: left;
+  }
+</style>

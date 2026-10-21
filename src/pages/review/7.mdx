@@ -1,0 +1,98 @@
+---
+layout: ../../layouts/Review.astro
+chapter: 7
+intro: 'التمارين مختلطة من كل دروس الفصل، وبترتيب لا يتبع الدروس، لتتدرب على اختيار الأداة المناسبة بنفسك. تحت كل سؤال رابط الدرس الذي جاء منه؛ إذا أخطأت يقترح عليك مراجعته. في الأعلى عدّاد لإجاباتك، وفي النهاية ملخص بالدروس التي تستحق العودة إليها.'
+---
+
+import Quiz from '../../components/Quiz.astro';
+
+<Quiz n={1} lesson="7.2" type="choice" answer={0} options={['(−4, −1)', '(4, 1)', '(−1, 4)', '(1, −4)']}>
+
+ما صورة $(4, -1)$ بالانعكاس في محور $y$؟
+
+<div slot="explain">تتغير إشارة $x$.</div>
+</Quiz>
+
+<Quiz n={2} lesson="7.3" type="choice" answer={0} options={['(2, 3)', '(−2, −3)', '(−3, 2)', '(3, 2)']}>
+
+ما صورة $(3, -2)$ بدوران $90^\circ$ عكس عقارب الساعة حول الأصل؟
+
+<div slot="explain">$(x, y) \to (-y, x)$: $(2, 3)$.</div>
+</Quiz>
+
+<Quiz n={3} lesson="7.1" type="choice" answer={3} options={['الانعكاس', 'الدوران', 'الانسحاب', 'التمدد']}>
+
+أي تحويل **ليس** حركة صلبة؟
+
+<div slot="explain">التمدد يغيّر الأطوال.</div>
+</Quiz>
+
+<Quiz n={4} lesson="7.4" type="choice" answer={0} options={['⟨−3, 2⟩', '⟨3, −2⟩', '⟨−1, 10⟩', '⟨2, −3⟩']}>
+
+انسحاب ينقل $(1, 4)$ إلى $(-2, 6)$. ما متجهه؟
+
+<div slot="explain">$\langle -2 - 1, 6 - 4 \rangle$.</div>
+</Quiz>
+
+<Quiz n={5} lesson="7.3" type="number" answer={70}>
+
+انعكاس في مستقيمين يتقاطعان بزاوية $35^\circ$. ما زاوية الدوران المساوي له؟
+
+<div slot="explain">ضعف الزاوية.</div>
+</Quiz>
+
+<Quiz n={6} lesson="7.5" type="choice" answer={0} options={['(6, −3)', '(−2, 3)', '(6, 3)', '(2, −7)']}>
+
+طبّق على $(2, 3)$: الانسحاب $(x, y) \to (x + 4, y)$، ثم الانعكاس في محور $x$.
+
+<div slot="explain">$(2, 3) \to (6, 3) \to (6, -3)$.</div>
+</Quiz>
+
+<Quiz n={7} lesson="7.2" type="number" answer={4}>
+
+كم محور تماثل للمربع؟
+
+<div slot="explain">محوران عبر منتصفات الأضلاع، وقطران.</div>
+</Quiz>
+
+<Quiz n={8} lesson="7.4" type="number" answer={12}>
+
+انعكاس في مستقيمين متوازيين المسافة بينهما $6$. ما مسافة الانسحاب المساوي له؟
+
+<div slot="explain">ضعف المسافة.</div>
+</Quiz>
+
+<Quiz n={9} lesson="7.2" type="choice" answer={0} options={['(7, 2)', '(−2, 7)', '(−7, −2)', '(2, −7)']}>
+
+ما صورة $(2, 7)$ بالانعكاس في المستقيم $y = x$؟
+
+<div slot="explain">يتبادل الإحداثيان.</div>
+</Quiz>
+
+<Quiz n={10} lesson="7.5" type="choice" answer={1} options={['انعكاسًا في y = x', 'دورانًا 180° حول الأصل', 'انسحابًا', 'انعكاسًا انزلاقيًا']}>
+
+انعكاس في محور $x$ ثم في محور $y$ يساوي:
+
+<div slot="explain">المحوران متعامدان، فالتركيب دوران $180^\circ$.</div>
+</Quiz>
+
+<Quiz n={11} lesson="7.3" type="number" answer={45}>
+
+ما أصغر زاوية تماثل دوراني للثماني المنتظم؟
+
+<div slot="explain">$\tfrac{360}{8} = 45$.</div>
+</Quiz>
+
+<Quiz n={12} lesson="7.6" type="choice" answer={1} options={['T', 'TV', 'TG', 'TR']}>
+
+الشريط **… b d b d …** من أي نوع؟
+
+<div slot="explain">كل حرفين بينهما مرآة رأسية: TV.</div>
+</Quiz>
+
+<Quiz n={13} lesson="7.3" type="choice" answer={2} options={['(1, −5)', '(−1, 5)', '(5, −1)', '(5, 1)']}>
+
+ما صورة $(-5, 1)$ بدوران $180^\circ$ حول الأصل؟
+
+<div slot="explain">تتغير الإشارتان.</div>
+</Quiz>

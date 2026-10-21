@@ -1,0 +1,105 @@
+---
+layout: ../../layouts/Review.astro
+chapter: 4
+intro: 'التمارين مختلطة من كل دروس الفصل، وبترتيب لا يتبع الدروس، لتتدرب على اختيار الأداة المناسبة بنفسك. تحت كل سؤال رابط الدرس الذي جاء منه؛ إذا أخطأت يقترح عليك مراجعته. في الأعلى عدّاد لإجاباتك، وفي النهاية ملخص بالدروس التي تستحق العودة إليها.'
+---
+
+import Quiz from '../../components/Quiz.astro';
+
+<Quiz n={1} lesson="4.1" type="number" answer={90}>
+
+زوايا مثلث $x^\circ$ و $2x^\circ$ و $3x^\circ$. ما قياس الكبرى؟
+
+<div slot="explain">$6x = 180$، إذن $x = 30$ والكبرى $90^\circ$.</div>
+</Quiz>
+
+<Quiz n={2} lesson="4.2" type="choice" answer={0} options={['BC ≅ QR', 'AB ≅ QR', '∠A ≅ ∠Q', 'AC ≅ PQ']}>
+
+$\triangle ABC \cong \triangle PQR$. أي عبارة صحيحة؟
+
+<div slot="explain">الترتيب يحدد التناظر: $B \leftrightarrow Q$ و $C \leftrightarrow R$.</div>
+</Quiz>
+
+<Quiz n={3} lesson="4.6" type="number" answer={70}>
+
+مثلث متطابق الضلعين زاوية رأسه $40^\circ$. ما قياس كل زاوية قاعدة؟
+
+<div slot="explain">$\tfrac{180 - 40}{2} = 70$.</div>
+</Quiz>
+
+<Quiz n={4} lesson="4.4" type="choice" answer={3} options={['SSS', 'SAS', 'ASA', 'AAS']}>
+
+معك زاويتان وضلع غير محصور بينهما. أي معيار؟
+
+<div slot="explain">زاويتان وضلع غير محصور: AAS.</div>
+</Quiz>
+
+<Quiz n={5} lesson="4.1" type="number" answer={75}>
+
+زاوية خارجية لمثلث $120^\circ$، وإحدى الزاويتين البعيدتين $45^\circ$. ما الأخرى؟
+
+<div slot="explain">الخارجية مجموع البعيدتين: $120 - 45 = 75$.</div>
+</Quiz>
+
+<Quiz n={6} lesson="4.4" type="choice" answer={2} options={['SSS', 'SAS', 'SSA', 'ASA']}>
+
+أي مما يلي **لا** يثبت تطابق مثلثين؟
+
+<div slot="explain">SSA ليس معيار تطابق.</div>
+</Quiz>
+
+<Quiz n={7} lesson="4.6" type="number" answer={55}>
+
+زاويتا قاعدة مثلث متطابق الضلعين $(3x + 10)^\circ$ و $(5x - 20)^\circ$. ما قياس كل منهما؟
+
+<div slot="explain">$3x + 10 = 5x - 20$، إذن $x = 15$ والقياس $55^\circ$.</div>
+</Quiz>
+
+<Quiz n={8} lesson="4.2" type="number" answer={70} hint="ما الزاوية في DEF التي تناظر A؟">
+
+$\triangle ABC \cong \triangle DEF$، و $m\angle A = 50^\circ$ و $m\angle E = 60^\circ$. ما $m\angle F$؟
+
+<div slot="explain">$\angle D \cong \angle A$، فـ $m\angle F = 180 - 50 - 60 = 70$.</div>
+</Quiz>
+
+<Quiz n={9} lesson="4.3" type="choice" answer={0} options={['SSS', 'SAS', 'ASA', 'HL']}>
+
+في الشكل الرباعي $ABCD$: $AB = CD$ و $BC = DA$، والقطر $\overline{AC}$ مشترك بين المثلثين. بأي معيار يتطابق $\triangle ABC$ و $\triangle CDA$؟
+
+<div slot="explain">ثلاثة أضلاع متطابقة.</div>
+</Quiz>
+
+<Quiz n={10} lesson="4.6" type="number" answer={39}>
+
+مثلث متطابق الأضلاع، ضلع فيه $2x + 3$ وضلع آخر $4x - 7$. ما محيطه؟
+
+<div slot="explain">$x = 5$، والضلع $13$، والمحيط $39$.</div>
+</Quiz>
+
+<Quiz n={11} lesson="4.5" type="choice" answer={0} options={['الأجزاء المتناظرة في مثلثين متطابقين', 'نظرية الزاوية الثالثة', 'مسلّمة SAS']}>
+
+أثبتنا تطابق مثلثين. ما السبب في أن زاويتين متناظرتين فيهما متطابقتان؟
+
+<div slot="explain">الأجزاء المتناظرة في مثلثين متطابقين متطابقة.</div>
+</Quiz>
+
+<Quiz n={12} lesson="4.6" type="choice" answer={0} options={['متطابقان بـ HL', 'لا يكفي (SSA)', 'متطابقان بـ AAA']}>
+
+مثلثان قائمان، وتراهما متطابقان وساق من الأول تطابق ساقًا من الثاني:
+
+<div slot="explain">معيار HL.</div>
+</Quiz>
+
+<Quiz n={13} lesson="4.7" type="choice" answer={0} options={['(0, 0) و (a, 0) و (0, b)', '(1, 1) و (a, 1) و (1, b)', '(a, b) و (0, 0) و (b, a)']}>
+
+أنسب وضع لمثلث قائم ساقاه $a$ و $b$ في المستوى الإحداثي:
+
+<div slot="explain">رأس القائمة عند الأصل والساقان على المحورين.</div>
+</Quiz>
+
+<Quiz n={14} lesson="4.1" type="choice" answer={1} options={['مختلف الأضلاع', 'متطابق الضلعين', 'متطابق الأضلاع']}>
+
+مثلث أضلاعه $5$ و $5$ و $8$:
+
+<div slot="explain">ضلعان متطابقان.</div>
+</Quiz>

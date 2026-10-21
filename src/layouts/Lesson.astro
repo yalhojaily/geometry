@@ -17,7 +17,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (l: { id: string; ready?: boolean } | undefined) =>
   l?.ready ? `${base}/lessons/${lessonSlug(l.id)}/` : undefined;
 const prevHref = href(prev);
-const nextHref = href(next);
+const lastOfChapter = !next || next.chapter.n !== lesson.chapter.n;
+const reviewHref = `${base}/review/${lesson.chapter.n}/`;
+const nextHref = lastOfChapter ? reviewHref : href(next);
 ---
 
 <Base title={`${lesson.id} ${lesson.ar} · هندسة`}>
@@ -78,11 +80,18 @@ const nextHref = href(next);
         )
       }
       {
-        next && (
-          <a class:list={['pg', 'pg-next', { disabled: !nextHref }]} href={nextHref}>
-            <small>{nextHref ? 'التالي' : 'التالي (قريبًا)'}</small>
-            {next.id} {next.ar}
+        lastOfChapter ? (
+          <a class="pg pg-next pg-review" href={reviewHref}>
+            <small>انتهى الفصل</small>
+            مراجعة الفصل {lesson.chapter.n}: تمارين مختلطة
           </a>
+        ) : (
+          next && (
+            <a class:list={['pg', 'pg-next', { disabled: !nextHref }]} href={nextHref}>
+              <small>{nextHref ? 'التالي' : 'التالي (قريبًا)'}</small>
+              {next.id} {next.ar}
+            </a>
+          )
         )
       }
     </nav>
@@ -239,6 +248,10 @@ const nextHref = href(next);
   .pg-next {
     text-align: left;
     grid-column: 2;
+  }
+  .pg-review {
+    border-color: var(--accent);
+    background: var(--accent-soft);
   }
   .pg.disabled {
     opacity: 0.55;

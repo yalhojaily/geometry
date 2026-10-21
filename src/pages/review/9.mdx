@@ -1,0 +1,105 @@
+---
+layout: ../../layouts/Review.astro
+chapter: 9
+intro: 'التمارين مختلطة من كل دروس الفصل، وبترتيب لا يتبع الدروس، لتتدرب على اختيار الأداة المناسبة بنفسك. تحت كل سؤال رابط الدرس الذي جاء منه؛ إذا أخطأت يقترح عليك مراجعته. في الأعلى عدّاد لإجاباتك، وفي النهاية ملخص بالدروس التي تستحق العودة إليها.'
+---
+
+import Quiz from '../../components/Quiz.astro';
+
+<Quiz n={1} lesson="9.2" type="number" answer={41}>
+
+ساقا مثلث قائم $9$ و $40$. ما الوتر؟
+
+<div slot="explain">$\sqrt{81 + 1600} = \sqrt{1681} = 41$.</div>
+</Quiz>
+
+<Quiz n={2} lesson="9.4" type="number" answer={12}>
+
+مثلث $30^\circ$-$60^\circ$-$90^\circ$ ساقه القصرى $6$. ما الوتر؟
+
+<div slot="explain">الوتر ضعف القصرى.</div>
+</Quiz>
+
+<Quiz n={3} lesson="9.5" type="choice" answer={0} options={['8/17', '15/17', '8/15', '17/8']}>
+
+مثلث قائم أضلاعه $8$ و $15$ و $17$، والزاوية $A$ تقابل الضلع $8$. ما $\sin A$؟
+
+<div slot="explain">المقابل على الوتر.</div>
+</Quiz>
+
+<Quiz n={4} lesson="9.1" type="number" answer={8}>
+
+الارتفاع إلى وتر مثلث قائم يقسم الوتر إلى $4$ و $16$. ما طول الارتفاع؟
+
+<div slot="explain">$\sqrt{4 \times 16} = 8$.</div>
+</Quiz>
+
+<Quiz n={5} lesson="9.3" type="choice" answer={2} options={['حاد الزوايا', 'قائم', 'منفرج الزاوية']}>
+
+صنّف المثلث $7, 8, 12$.
+
+<div slot="explain">$144 > 49 + 64 = 113$.</div>
+</Quiz>
+
+<Quiz n={6} lesson="9.7" type="number" answer={10}>
+
+ما مقدار المتجه $\langle -6, 8 \rangle$؟
+
+<div slot="explain">$\sqrt{36 + 64} = 10$.</div>
+</Quiz>
+
+<Quiz n={7} lesson="9.4" type="number" answer={8}>
+
+مثلث $45^\circ$-$45^\circ$-$90^\circ$ وتره $8\sqrt{2}$. ما ساقه؟
+
+<div slot="explain">الوتر = الساق × $\sqrt{2}$.</div>
+</Quiz>
+
+<Quiz n={8} lesson="9.6" type="number" answer={60} hint="تذكّر نسب المثلث 30-60-90.">
+
+في مثلث قائم، المقابل لزاوية $\theta$ يساوي $\sqrt{3}$ أضعاف المجاور. ما $\theta$؟
+
+<div slot="explain">$\tan \theta = \sqrt{3}$، إذن $\theta = 60^\circ$.</div>
+</Quiz>
+
+<Quiz n={9} lesson="9.2" type="number" answer={8}>
+
+سلّم طوله $10 \text{ m}$، وقاعدته على بعد $6 \text{ m}$ من الجدار. على أي ارتفاع يلمس الجدار؟
+
+<div slot="explain">$\sqrt{100 - 36} = 8$.</div>
+</Quiz>
+
+<Quiz n={10} lesson="9.1" type="number" answer={15}>
+
+وتر مثلث قائم $25$، والجزء المجاور لساق ما $9$. ما طول هذه الساق؟
+
+<div slot="explain">$\sqrt{25 \times 9} = 15$.</div>
+</Quiz>
+
+<Quiz n={11} lesson="9.5" type="number" answer={20}>
+
+تقف على بعد $20 \text{ m}$ من مبنى، وزاوية الارتفاع إلى قمته $45^\circ$. ما ارتفاعه بالمتر؟
+
+<div slot="explain">$\tan 45^\circ = 1$، فالارتفاع يساوي المسافة.</div>
+</Quiz>
+
+<Quiz n={12} lesson="9.3" type="choice" answer={1} options={['حاد الزوايا', 'قائم', 'منفرج الزاوية']}>
+
+صنّف المثلث $20, 21, 29$.
+
+<div slot="explain">$29^2 = 841 = 400 + 441$.</div>
+</Quiz>
+
+<Quiz n={13} lesson="9.7" type="choice" answer={0} options={['⟨−2, 6⟩', '⟨6, 4⟩', '⟨−8, 5⟩', '⟨−2, 4⟩']}>
+
+ما $\langle 2, 5 \rangle + \langle -4, 1 \rangle$؟
+
+<div slot="explain">اجمع المركّبات.</div>
+</Quiz>
+
+<Quiz n={14} lesson="9.4" type="number" answer={5}>
+
+مثلث متطابق الأضلاع ضلعه $10$، وارتفاعه $k\sqrt{3}$. ما $k$؟
+
+<div slot="explain">الارتفاع الساق الطولى في مثلث 30-60-90 قصراه $5$: $5\sqrt{3}$.</div>
+</Quiz>

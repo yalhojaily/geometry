@@ -1,0 +1,98 @@
+---
+layout: ../../layouts/Review.astro
+chapter: 8
+intro: 'التمارين مختلطة من كل دروس الفصل، وبترتيب لا يتبع الدروس، لتتدرب على اختيار الأداة المناسبة بنفسك. تحت كل سؤال رابط الدرس الذي جاء منه؛ إذا أخطأت يقترح عليك مراجعته. في الأعلى عدّاد لإجاباتك، وفي النهاية ملخص بالدروس التي تستحق العودة إليها.'
+---
+
+import Quiz from '../../components/Quiz.astro';
+
+<Quiz n={1} lesson="8.1" type="number" answer={75}>
+
+زوايا مثلث بنسبة $3 : 4 : 5$. ما قياس الكبرى؟
+
+<div slot="explain">$12x = 180$، إذن $x = 15$، والكبرى $75^\circ$.</div>
+</Quiz>
+
+<Quiz n={2} lesson="8.4" type="number" answer={13.5}>
+
+عمود طوله $1.5 \text{ m}$ ظله $2 \text{ m}$، وفي الوقت نفسه ظل شجرة $18 \text{ m}$. ما ارتفاع الشجرة بالمتر؟
+
+<div slot="explain">$\tfrac{h}{1.5} = \tfrac{18}{2}$، إذن $h = 13.5$.</div>
+</Quiz>
+
+<Quiz n={3} lesson="8.6" type="number" answer={9}>
+
+$\overline{DE} \parallel \overline{BC}$، و $AD = 4$ و $DB = 6$ و $AE = 6$. ما $EC$؟
+
+<div slot="explain">$\tfrac{4}{6} = \tfrac{6}{EC}$، إذن $EC = 9$.</div>
+</Quiz>
+
+<Quiz n={4} lesson="8.2" type="number" answer={10}>
+
+ما الوسط الهندسي للعددين $4$ و $25$؟
+
+<div slot="explain">$\sqrt{100} = 10$.</div>
+</Quiz>
+
+<Quiz n={5} lesson="8.3" type="number" answer={45}>
+
+مضلعان متشابهان بمعامل $2 : 5$، ومحيط الأصغر $18$. ما محيط الأكبر؟
+
+<div slot="explain">$18 \times \tfrac{5}{2} = 45$.</div>
+</Quiz>
+
+<Quiz n={6} lesson="8.5" type="choice" answer={0} options={['نعم، بمعامل 3 : 2', 'لا']}>
+
+مثلث أضلاعه $6$ و $9$ و $12$، وآخر أضلاعه $4$ و $6$ و $8$. هل هما متشابهان؟
+
+<div slot="explain">كل النسب $\tfrac{3}{2}$: SSS.</div>
+</Quiz>
+
+<Quiz n={7} lesson="8.7" type="choice" answer={0} options={['(6, −3)', '(5, 2)', '(2/3, −1/3)', '(−6, 3)']}>
+
+ما صورة $(2, -1)$ بتمدد حول الأصل بمعامل $3$؟
+
+<div slot="explain">$(3 \times 2, 3 \times (-1))$.</div>
+</Quiz>
+
+<Quiz n={8} lesson="8.1" type="number" answer={10}>
+
+حل: $\tfrac{x - 2}{6} = \tfrac{4}{3}$.
+
+<div slot="explain">$3(x - 2) = 24$، إذن $x = 10$.</div>
+</Quiz>
+
+<Quiz n={9} lesson="8.6" type="number" answer={8} hint="المنصف يقسم BC بنسبة AB : AC.">
+
+$\overline{AD}$ ينصف $\angle A$ في $\triangle ABC$، و $AB = 10$ و $AC = 15$ و $BC = 20$. ما $BD$؟
+
+<div slot="explain">$\tfrac{BD}{DC} = \tfrac{2}{3}$، و $5x = 20$، إذن $BD = 8$.</div>
+</Quiz>
+
+<Quiz n={10} lesson="8.4" type="choice" answer={0} options={['نعم', 'لا']}>
+
+مثلث زاويتاه $40^\circ$ و $60^\circ$، وآخر زاويتاه $60^\circ$ و $80^\circ$. هل هما متشابهان؟
+
+<div slot="explain">زوايا الأول $40, 60, 80$، والثاني $60, 80, 40$: AA.</div>
+</Quiz>
+
+<Quiz n={11} lesson="8.3" type="number" answer={15}>
+
+$ABCD \sim EFGH$، و $AB = 6$ و $EF = 9$ و $BC = 10$. ما $FG$؟
+
+<div slot="explain">المعامل $1.5$: $FG = 15$.</div>
+</Quiz>
+
+<Quiz n={12} lesson="8.2" type="number" answer={130}>
+
+خريطة مقياسها $1 \text{ cm} : 20 \text{ km}$. مسافة على الخريطة $6.5 \text{ cm}$. ما المسافة الحقيقية بالكيلومتر؟
+
+<div slot="explain">$6.5 \times 20 = 130$.</div>
+</Quiz>
+
+<Quiz n={13} lesson="8.7" type="number" answer={0.25}>
+
+تمدد ينقل قطعة طولها $8$ إلى قطعة طولها $2$. ما المعامل؟
+
+<div slot="explain">$\tfrac{2}{8} = 0.25$: تصغير.</div>
+</Quiz>

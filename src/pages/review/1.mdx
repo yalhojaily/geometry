@@ -1,0 +1,105 @@
+---
+layout: ../../layouts/Review.astro
+chapter: 1
+intro: 'التمارين مختلطة من كل دروس الفصل، وبترتيب لا يتبع الدروس، لتتدرب على اختيار الأداة المناسبة بنفسك. تحت كل سؤال رابط الدرس الذي جاء منه؛ إذا أخطأت يقترح عليك مراجعته. في الأعلى عدّاد لإجاباتك، وفي النهاية ملخص بالدروس التي تستحق العودة إليها.'
+---
+
+import Quiz from '../../components/Quiz.astro';
+
+<Quiz n={1} lesson="1.1" type="number" answer={39} hint="كم مرة تضيف 4 لتصل من الحد الأول إلى العاشر؟">
+
+ما الحد العاشر في النمط $3, 7, 11, 15, \dots$؟
+
+<div slot="explain">كل حد يزيد $4$: الحد العاشر $3 + 9 \times 4 = 39$.</div>
+</Quiz>
+
+<Quiz n={2} lesson="1.3" type="number" answer={10}>
+
+$A(-2, 3)$ و $B(4, 11)$. ما $AB$؟
+
+<div slot="explain">$\sqrt{6^2 + 8^2} = \sqrt{100} = 10$.</div>
+</Quiz>
+
+<Quiz n={3} lesson="1.6" type="number" answer={144}>
+
+زاويتان تكوّنان زوجًا خطيًا، وإحداهما أربعة أضعاف الأخرى. ما قياس الكبرى؟
+
+<div slot="explain">$x + 4x = 180$، إذن $x = 36$ والكبرى $144^\circ$.</div>
+</Quiz>
+
+<Quiz n={4} lesson="1.2" type="choice" answer={1} options={['لا شيء', 'واحد فقط', 'اثنان', 'عدد لا نهائي']}>
+
+كم مستوًى يمر بثلاث نقاط ليست على استقامة واحدة؟
+
+<div slot="explain">مستوٍ واحد فقط (مسلّمة النقاط الثلاث).</div>
+</Quiz>
+
+<Quiz n={5} lesson="1.5" type="number" answer={50} hint="المنصف يصنع نصفين متساويين.">
+
+$\overrightarrow{BD}$ ينصف $\angle ABC$، و $m\angle ABD = (3x + 4)^\circ$ و $m\angle DBC = (5x - 10)^\circ$. ما $m\angle ABC$؟
+
+<div slot="explain">$3x + 4 = 5x - 10$، إذن $x = 7$، وكل نصف $25^\circ$، والزاوية كلها $50^\circ$.</div>
+</Quiz>
+
+<Quiz n={6} lesson="1.7" type="number" answer={54}>
+
+مستطيل محيطه $30$ وطوله $9$. ما مساحته؟
+
+<div slot="explain">العرض $\tfrac{30 - 18}{2} = 6$، والمساحة $9 \times 6 = 54$.</div>
+</Quiz>
+
+<Quiz n={7} lesson="1.1" type="choice" answer={1} options={['2 + 3', '(−2) + 5', '1 + 1', '10 + 0.5']}>
+
+أي مما يلي مثال مضاد للتخمين «مجموع عددين أكبر دائمًا من كل منهما»؟
+
+<div slot="explain">$-2 + 5 = 3$، وهو ليس أكبر من $5$.</div>
+</Quiz>
+
+<Quiz n={8} lesson="1.3" type="number" answer={5}>
+
+$B$ بين $A$ و $C$، و $AB = 2x + 1$ و $BC = x + 5$ و $AC = 21$. ما قيمة $x$؟
+
+<div slot="explain">مسلّمة جمع القطع: $3x + 6 = 21$، إذن $x = 5$.</div>
+</Quiz>
+
+<Quiz n={9} lesson="1.6" type="number" answer={128} hint="ابدأ من الداخل: المتمّمة أولًا.">
+
+ما قياس مكمّلة متمّمة الزاوية $38^\circ$؟
+
+<div slot="explain">المتمّمة $90 - 38 = 52$، ومكمّلتها $180 - 52 = 128$.</div>
+</Quiz>
+
+<Quiz n={10} lesson="1.5" type="choice" answer={0} options={['(2, 1)', '(5, −3)', '(4, 2)', '(10, −6)']}>
+
+ما منتصف القطعة الواصلة بين $(-3, 4)$ و $(7, -2)$؟
+
+<div slot="explain">$\left(\tfrac{-3 + 7}{2}, \tfrac{4 - 2}{2}\right) = (2, 1)$.</div>
+</Quiz>
+
+<Quiz n={11} lesson="1.2" type="choice" answer={1} options={['نقطة', 'مستقيم', 'مستوٍ', 'قطعة']}>
+
+ما تقاطع مستويين مختلفين متقاطعين؟
+
+<div slot="explain">مستقيم (مسلّمة تقاطع المستويين).</div>
+</Quiz>
+
+<Quiz n={12} lesson="1.6" type="number" answer={60}>
+
+$\angle 1$ و $\angle 2$ متقابلتان بالرأس، و $m\angle 1 = (2x + 10)^\circ$ و $m\angle 2 = (3x - 15)^\circ$. ما $m\angle 1$؟
+
+<div slot="explain">المتقابلتان بالرأس متطابقتان: $x = 25$، و $m\angle 1 = 60^\circ$.</div>
+</Quiz>
+
+<Quiz n={13} lesson="1.5" type="number" answer={7}>
+
+$M(4, 2)$ منتصف $\overline{AB}$، و $A(1, 5)$. ما الإحداثي السيني لـ $B$؟
+
+<div slot="explain">$\tfrac{1 + x}{2} = 4$، إذن $x = 7$، و $B(7, -1)$.</div>
+</Quiz>
+
+<Quiz n={14} lesson="1.7" type="number" answer={25} hint="المساحة تستخدم نصف القطر لا القطر.">
+
+دائرة قطرها $10$، ومساحتها $k\pi$. ما $k$؟
+
+<div slot="explain">نصف القطر $5$، والمساحة $25\pi$.</div>
+</Quiz>

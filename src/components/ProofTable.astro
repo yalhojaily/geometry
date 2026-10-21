@@ -285,6 +285,55 @@ const rows = steps.map((st, i) => ({
     color: var(--good);
     font-weight: 600;
   }
+  /* Narrow screens: each step becomes a card, the reason under its statement */
+  @media (max-width: 560px) {
+    table,
+    tbody,
+    td {
+      display: block;
+    }
+    thead {
+      display: none;
+    }
+    tr {
+      display: grid;
+      grid-template-columns: 1.6rem 1fr;
+      border-bottom: 1px solid var(--line);
+      padding: 0.35rem 0;
+    }
+    tr[hidden] {
+      display: none;
+    }
+    td {
+      border-bottom: none;
+      padding: 0.15rem 0.3rem;
+    }
+    .c-n {
+      grid-row: span 2;
+      width: auto;
+    }
+    .st {
+      width: auto;
+      overflow-x: auto;
+    }
+    .st :global(.katex) {
+      font-size: 1.04em;
+    }
+    td.rs {
+      grid-column: 2;
+      font-size: 0.92rem;
+      color: var(--ink-2);
+      border-radius: 8px;
+    }
+    td.rs::before {
+      content: 'السبب: ';
+      color: var(--ink-3);
+      font-size: 0.85rem;
+    }
+    .proof[data-mode='fill'] tr:not(.locked) td.rs::before {
+      content: none;
+    }
+  }
   @keyframes fadein {
     from {
       opacity: 0;
