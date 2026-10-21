@@ -1,0 +1,95 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '11.5'
+why: 'من أين جاءت صيغة πr²؟ قطّع الدائرة كما تقطع فطيرة، ورتّب القطع، فتحصل على شكل يقترب من مستطيل. ومن الصيغة نفسها نحسب مساحة أي قطعة منها: القطاع الدائري.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import ArcLab from '../../components/ArcLab.astro';
+
+## مساحة الدائرة
+
+<ArcLab mode="pizza" />
+
+## مساحة القطاع
+
+<Term id="formula-sector-area" />
+
+<ArcLab mode="sector" />
+
+<Callout type="tip" title="النمط نفسه">
+
+طول القوس جزء من **المحيط**، ومساحة القطاع جزء من **المساحة**، والجزء في الحالتين $\tfrac{m}{360}$. إذا حفظت الكسر، لا تحتاج إلى صيغتين.
+
+</Callout>
+
+<Example title="مثال 1: مساحة دائرة">
+
+1. **نصف القطر $7$:** $A = \pi(7)^2 = 49\pi \approx 153.9$.
+2. **القطر $10$:** نصف القطر $5$، فالمساحة $25\pi \approx 78.5$.
+
+</Example>
+
+<Example title="مثال 2: مساحة قطاع">
+
+قطاع قوسه $120^\circ$ في دائرة نصف قطرها $6$.
+
+1. $A = \tfrac{120}{360} \cdot \pi(36) = \tfrac{1}{3} \cdot 36\pi = 12\pi \approx 37.7$.
+
+</Example>
+
+<Example title="مثال 3: منطقة مظللة">
+
+مربع ضلعه $10$، وفي داخله دائرة تمس أضلاعه الأربعة. أوجد مساحة المنطقة داخل المربع وخارج الدائرة.
+
+1. مساحة المربع $100$.
+2. قطر الدائرة $10$، فنصف قطرها $5$ ومساحتها $25\pi$.
+3. المنطقة المظللة $100 - 25\pi \approx 21.5$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={81} hint="المساحة = kπ.">
+
+مساحة دائرة نصف قطرها $9$ هي $k\pi$. ما $k$؟
+
+<div slot="explain">$9^2 = 81$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={4}>
+
+دائرة مساحتها $16\pi$. ما نصف قطرها؟
+
+<div slot="explain">$r^2 = 16$، إذن $r = 4$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={25} hint="ربع الدائرة.">
+
+قطاع قوسه $90^\circ$ في دائرة نصف قطرها $10$. مساحته $k\pi$. ما $k$؟
+
+<div slot="explain">$\tfrac{1}{4} \cdot 100\pi = 25\pi$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={60}>
+
+قطاع مساحته $6\pi$ في دائرة نصف قطرها $6$. ما قياس قوسه؟
+
+<div slot="explain">مساحة الدائرة $36\pi$، والقطاع سدسها، فقوسه $\tfrac{360}{6} = 60^\circ$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={4} hint="ضاعف نصف القطر: كم تتضاعف المساحة؟">
+
+إذا ضاعفت نصف قطر دائرة، كم مرة تتضاعف مساحتها؟
+
+<div slot="explain">$\pi(2r)^2 = 4\pi r^2$: أربع مرات (كل الدوائر متشابهة، الدرس 11.3).</div>
+</Quiz>
+
+## الخلاصة
+
+- مساحة الدائرة: $A = \pi r^2$.
+- مساحة القطاع: $\tfrac{m}{360} \cdot \pi r^2$.
+- المناطق المظللة: اطرح مساحة من أخرى، أو اجمع الأجزاء.

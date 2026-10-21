@@ -1,0 +1,101 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '11.2'
+why: 'كيف تحسب مساحة خلية نحل سداسية أو لافتة ثمانية؟ قسّم المضلع المنتظم من مركزه إلى مثلثات متطابقة، فتحصل على صيغة واحدة لكل المضلعات المنتظمة.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import RegAreaLab from '../../components/RegAreaLab.astro';
+
+## أجزاء المضلع المنتظم
+
+<Term id="def-apothem" />
+
+## المساحة
+
+<Term id="formula-regular-area" />
+
+<RegAreaLab />
+
+<Callout type="tip" title="ابحث عن المثلث القائم">
+
+العامد ونصف القطر ونصف الضلع تصنع مثلثًا قائمًا زاويته عند المركز نصف الزاوية المركزية: $\tfrac{180^\circ}{n}$. في السداسي هذه الزاوية $30^\circ$، فالمثلث $30^\circ$-$60^\circ$-$90^\circ$. وفي المربع $45^\circ$، فالمثلث $45^\circ$-$45^\circ$-$90^\circ$. وفي الحالات الأخرى نستخدم النسب المثلثية.
+
+</Callout>
+
+<Prereq id="alg-radicals" />
+
+<Example title="مثال 1: المثلث المتطابق الأضلاع">
+
+مثلث متطابق الأضلاع ضلعه $6$. أوجد مساحته.
+
+1. $A = \tfrac{\sqrt{3}}{4}s^2 = \tfrac{\sqrt{3}}{4}(36) = 9\sqrt{3} \approx 15.6$.
+
+</Example>
+
+<Example title="مثال 2: السداسي المنتظم">
+
+سداسي منتظم ضلعه $10$. أوجد مساحته.
+
+1. السداسي يتكون من ستة مثلثات متطابقة الأضلاع ضلع كل منها $10$، فنصف القطر $10$.
+2. العامد هو ارتفاع أحد هذه المثلثات: $a = 5\sqrt{3}$ (الساق الطولى في مثلث $30^\circ$-$60^\circ$-$90^\circ$ قصراه $5$).
+3. المحيط $P = 60$.
+4. $A = \tfrac{1}{2}(5\sqrt{3})(60) = 150\sqrt{3} \approx 259.8$.
+
+</Example>
+
+<Example title="مثال 3: مع العامد والمحيط معطيين">
+
+خماسي منتظم ضلعه $8$ وعامده $5.5$. أوجد مساحته.
+
+1. $P = 5 \times 8 = 40$.
+2. $A = \tfrac{1}{2}(5.5)(40) = 110$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={72}>
+
+ما قياس الزاوية المركزية للخماسي المنتظم؟
+
+<div slot="explain">$\tfrac{360}{5} = 72$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={120}>
+
+مضلع منتظم عامده $5$ ومحيطه $48$. ما مساحته؟
+
+<div slot="explain">$\tfrac{1}{2}(5)(48) = 120$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={4} hint="مساحة المتطابق الأضلاع = (√3/4)s².">
+
+مثلث متطابق الأضلاع مساحته $4\sqrt{3}$. ما طول ضلعه؟
+
+<div slot="explain">$\tfrac{\sqrt{3}}{4}s^2 = 4\sqrt{3}$، إذن $s^2 = 16$ و $s = 4$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={60}>
+
+ما قياس الزاوية المركزية للسداسي المنتظم؟
+
+<div slot="explain">$\tfrac{360}{6} = 60$، ولهذا مثلثاته متطابقة الأضلاع.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={36}>
+
+مربع عامده $3$. ما مساحته؟
+
+<div slot="explain">العامد نصف الضلع، فالضلع $6$ والمساحة $36$. وبالصيغة: $\tfrac{1}{2}(3)(24) = 36$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **العامد** البعد من المركز إلى ضلع، و**الزاوية المركزية** $\tfrac{360^\circ}{n}$.
+- مساحة المضلع المنتظم: $A = \tfrac{1}{2}aP$.
+- مساحة المثلث المتطابق الأضلاع: $A = \tfrac{\sqrt{3}}{4}s^2$.

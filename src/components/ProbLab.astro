@@ -1,0 +1,91 @@
+---
+// Interactive: throw random darts at a square board with a circular target and
+// compare the hit rate with the area ratio.
+import '../styles/qlab.css';
+---
+
+<prob-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">رمي السهام عشوائيًا</span>
+  </div>
+  <svg viewBox="0 0 360 260" class="stage" role="img" aria-label="لوح مربع فيه دائرة، ونقاط سهام عشوائية"></svg>
+  <div class="sliders">
+    <label><span class="ltr">r = <b class="rv">3</b></span><input type="range" class="r" min="1" max="5" value="3" dir="ltr" aria-label="نصف قطر الهدف" /></label>
+  </div>
+  <div class="presets">
+    <button type="button" data-t="1">ارمِ سهمًا</button>
+    <button type="button" data-t="10">10 سهام</button>
+    <button type="button" data-t="100">100 سهم</button>
+    <button type="button" data-t="1000">1000 سهم</button>
+    <button type="button" class="clr">امسح</button>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</prob-lab>
+
+<script>
+  import { el } from '../scripts/svg';
+
+  const S = 10; // board side in units
+  const PX = 24; // px per unit
+  const X0 = 60;
+  const Y0 = 10;
+  const fmt = (n: number, d = 3) => String(Math.round(n * 10 ** d) / 10 ** d);
+
+  class ProbLab extends HTMLElement {
+    r = 3;
+    darts: [number, number][] = [];
+    connectedCallback() {
+      const r = this.querySelector<HTMLInputElement>('input.r')!;
+      r.addEventListener('input', () => {
+        this.r = Number(r.value);
+        this.darts = [];
+        this.render();
+      });
+      this.querySelectorAll<HTMLButtonElement>('[data-t]').forEach((b) =>
+        b.addEventListener('click', () => {
+          const n = Number(b.dataset.t);
+          for (let i = 0; i < n; i++) this.darts.push([Math.random() * S, Math.random() * S]);
+          if (this.darts.length > 5000) this.darts = this.darts.slice(-5000);
+          this.render();
+        }),
+      );
+      this.querySelector('.clr')!.addEventListener('click', () => {
+        this.darts = [];
+        this.render();
+      });
+      this.render();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const r = this.r;
+      svg.appendChild(el('rect', { x: X0, y: Y0, width: S * PX, height: S * PX }, 'board'));
+      svg.appendChild(el('circle', { cx: X0 + (S / 2) * PX, cy: Y0 + (S / 2) * PX, r: r * PX }, 'target'));
+      let hits = 0;
+      for (const [x, y] of this.darts) {
+        const hit = (x - S / 2) ** 2 + (y - S / 2) ** 2 <= r * r;
+        if (hit) hits++;
+        svg.appendChild(el('circle', { cx: X0 + x * PX, cy: Y0 + y * PX, r: 1.8 }, hit ? 'hit-d' : 'miss-d'));
+      }
+      this.querySelector('.rv')!.textContent = String(r);
+      const theory = (Math.PI * r * r) / (S * S);
+      const n = this.darts.length;
+      this.querySelector('.calc')!.innerHTML =
+        `<div class="big">P = πr² / 10² = ${fmt(Math.PI * r * r, 2)} / 100 ≈ ${fmt(theory)}</div>` +
+        `<div>${hits} / ${n} = ${n ? fmt(hits / n) : '—'}</div>`;
+      this.querySelector('.note')!.textContent =
+        n < 50
+          ? 'السهم يقع في أي نقطة من اللوح بالاحتمال نفسه. ارمِ سهامًا كثيرة وقارن نسبة الإصابة بنسبة المساحتين.'
+          : 'مع ازدياد عدد السهام تقترب نسبة الإصابة من نسبة مساحة الهدف إلى مساحة اللوح. هذا هو الاحتمال الهندسي.';
+    }
+  }
+  customElements.define('prob-lab', ProbLab);
+</script>
+
+<style is:global>
+  prob-lab .stage .board { fill: var(--card); stroke: var(--brand); stroke-width: 2; }
+  prob-lab .stage .target { fill: var(--accent); fill-opacity: 0.18; stroke: var(--accent); stroke-width: 2; }
+  prob-lab .stage .hit-d { fill: var(--accent); }
+  prob-lab .stage .miss-d { fill: var(--ink-3); fill-opacity: 0.6; }
+</style>

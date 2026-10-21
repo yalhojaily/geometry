@@ -1,0 +1,109 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '11.1'
+why: 'عرفنا أن زوايا المثلث مجموعها °180 وزوايا الشكل الرباعي °360. ماذا عن الخماسي والسداسي وذي المئة ضلع؟ قاعدة واحدة تجيب عن الكل، ومعها قاعدة أبسط للزوايا الخارجية: °360 دائمًا.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import PolyAngleLab from '../../components/PolyAngleLab.astro';
+
+## الزوايا الداخلية
+
+<Term id="thm-polygon-interior" />
+
+<PolyAngleLab />
+
+| المضلع | $n$ | عدد المثلثات | مجموع الزوايا | زاوية المنتظم |
+|---|:-:|:-:|:-:|:-:|
+| مثلث | 3 | 1 | $180^\circ$ | $60^\circ$ |
+| شكل رباعي | 4 | 2 | $360^\circ$ | $90^\circ$ |
+| خماسي | 5 | 3 | $540^\circ$ | $108^\circ$ |
+| سداسي | 6 | 4 | $720^\circ$ | $120^\circ$ |
+| ثماني | 8 | 6 | $1080^\circ$ | $135^\circ$ |
+
+## الزوايا الخارجية
+
+<Term id="thm-polygon-exterior" />
+
+اختر «الزوايا الخارجية» في المختبر وغيّر $n$: المجموع لا يتغير.
+
+<Callout type="tip" title="الطريق الأقصر">
+
+لإيجاد زاوية داخلية في مضلع منتظم، احسب الخارجية أولًا: $\tfrac{360}{n}$، ثم اطرحها من $180^\circ$. مثلًا للعشاري: $\tfrac{360}{10} = 36^\circ$، والداخلية $180 - 36 = 144^\circ$.
+
+</Callout>
+
+<Prereq id="alg-linear-eq" />
+
+<Example title="مثال 1: مجموع وزاوية">
+
+1. **مجموع زوايا مضلع ذي 12 ضلعًا:** $(12 - 2) \times 180 = 1800^\circ$.
+2. **كل زاوية في الاثني عشري المنتظم:** $\tfrac{1800}{12} = 150^\circ$.
+
+</Example>
+
+<Example title="مثال 2: كم ضلعًا؟">
+
+كل زاوية داخلية في مضلع منتظم $140^\circ$. كم ضلعًا له؟
+
+1. الخارجية $180 - 140 = 40^\circ$.
+2. $n = \tfrac{360}{40} = 9$.
+
+</Example>
+
+<Example title="مثال 3: زاوية مجهولة">
+
+زوايا خماسي $100^\circ$ و $110^\circ$ و $95^\circ$ و $120^\circ$ و $x^\circ$. أوجد $x$.
+
+1. المجموع $(5 - 2) \times 180 = 540^\circ$.
+2. $100 + 110 + 95 + 120 + x = 540$، أي $425 + x = 540$.
+3. $x = 115$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={1260}>
+
+ما مجموع الزوايا الداخلية لمضلع تساعي (9 أضلاع)؟
+
+<div slot="explain">$(9 - 2) \times 180 = 1260$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={135}>
+
+ما قياس كل زاوية داخلية في الثماني المنتظم؟
+
+<div slot="explain">الخارجية $\tfrac{360}{8} = 45$، والداخلية $135$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={360}>
+
+ما مجموع الزوايا الخارجية لمضلع ذي 20 ضلعًا؟
+
+<div slot="explain">$360^\circ$ دائمًا.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={24} hint="الخارجية = 180 − الداخلية.">
+
+كل زاوية داخلية في مضلع منتظم $165^\circ$. كم ضلعًا له؟
+
+<div slot="explain">الخارجية $15^\circ$، و $n = \tfrac{360}{15} = 24$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={10}>
+
+مجموع زوايا مضلع $1440^\circ$. كم ضلعًا له؟
+
+<div slot="explain">$(n - 2) \times 180 = 1440$، إذن $n - 2 = 8$، و $n = 10$.</div>
+</Quiz>
+
+## الخلاصة
+
+- مجموع الزوايا الداخلية: $(n - 2) \cdot 180^\circ$، لأن الأقطار من رأس واحد تصنع $n - 2$ مثلثًا.
+- مجموع الزوايا الخارجية: $360^\circ$ دائمًا.
+- في المضلع المنتظم: الخارجية $\tfrac{360^\circ}{n}$، والداخلية $180^\circ$ ناقص الخارجية.

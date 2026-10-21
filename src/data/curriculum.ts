@@ -136,12 +136,12 @@ export const chapters: Chapter[] = [
   {
     n: 11, en: 'Area of Polygons and Circles', ar: 'مساحات المضلعات والدوائر',
     lessons: [
-      { id: '11.1', en: 'Angle Measures in Polygons', ar: 'قياسات الزوايا في المضلعات' },
-      { id: '11.2', en: 'Areas of Regular Polygons', ar: 'مساحات المضلعات المنتظمة' },
-      { id: '11.3', en: 'Perimeters and Areas of Similar Figures', ar: 'محيطات ومساحات الأشكال المتشابهة' },
-      { id: '11.4', en: 'Circumference and Arc Length', ar: 'محيط الدائرة وطول القوس' },
-      { id: '11.5', en: 'Areas of Circles and Sectors', ar: 'مساحات الدوائر والقطاعات' },
-      { id: '11.6', en: 'Geometric Probability', ar: 'الاحتمال الهندسي' },
+      { id: '11.1', en: 'Angle Measures in Polygons', ar: 'قياسات الزوايا في المضلعات', ready: true },
+      { id: '11.2', en: 'Areas of Regular Polygons', ar: 'مساحات المضلعات المنتظمة', ready: true },
+      { id: '11.3', en: 'Perimeters and Areas of Similar Figures', ar: 'محيطات ومساحات الأشكال المتشابهة', ready: true },
+      { id: '11.4', en: 'Circumference and Arc Length', ar: 'محيط الدائرة وطول القوس', ready: true },
+      { id: '11.5', en: 'Areas of Circles and Sectors', ar: 'مساحات الدوائر والقطاعات', ready: true },
+      { id: '11.6', en: 'Geometric Probability', ar: 'الاحتمال الهندسي', ready: true },
     ],
   },
   {

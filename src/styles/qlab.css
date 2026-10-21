@@ -252,3 +252,9 @@
   text-align: right;
   font-family: var(--font-body);
 }
+.qlab .stage .outl {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}

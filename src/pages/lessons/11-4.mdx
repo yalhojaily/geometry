@@ -1,0 +1,105 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '11.4'
+why: 'كم يقطع إطار سيارة في دورة واحدة؟ وما طول المسار على مضمار منحنٍ؟ محيط الدائرة يجيب عن الأول، وطول القوس، وهو جزء من المحيط، يجيب عن الثاني.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import ArcLab from '../../components/ArcLab.astro';
+
+## محيط الدائرة
+
+<Term id="formula-circle" />
+
+العدد $\pi$ هو نسبة محيط أي دائرة إلى قطرها. هذه النسبة واحدة لكل الدوائر، لأن كل الدوائر متشابهة. قيمته تقريبًا $3.14159$، ولا تنتهي أرقامه ولا تتكرر.
+
+## طول القوس
+
+<Term id="formula-arc-length" />
+
+<ArcLab mode="arc" />
+
+<Callout type="warning" title="القياس والطول">
+
+**قياس** القوس بالدرجات، و**طوله** بوحدات الطول. قوسان قياسهما $60^\circ$ في دائرتين مختلفتين لهما طولان مختلفان.
+
+</Callout>
+
+<Example title="مثال 1: المحيط">
+
+1. **دائرة نصف قطرها $7$:** $C = 2\pi(7) = 14\pi \approx 43.98$.
+2. **دائرة محيطها $30\pi$:** قطرها $30$، ونصف قطرها $15$.
+
+</Example>
+
+<Example title="مثال 2: طول القوس">
+
+في دائرة نصف قطرها $9$، أوجد طول قوس قياسه $60^\circ$.
+
+1. $\tfrac{60}{360} \cdot 2\pi(9) = \tfrac{1}{6} \cdot 18\pi = 3\pi \approx 9.42$.
+
+</Example>
+
+<Example title="مثال 3: الإطار">
+
+إطار دراجة قطره $66 \text{ cm}$. كم دورة يدور ليقطع $1 \text{ km}$؟
+
+1. في دورة واحدة يقطع محيطه: $66\pi \approx 207.3 \text{ cm}$.
+2. $1 \text{ km} = 100000 \text{ cm}$.
+3. عدد الدورات $\tfrac{100000}{207.3} \approx 482$.
+
+</Example>
+
+<Example title="مثال 4: نصف القطر من القوس">
+
+قوس قياسه $45^\circ$ طوله $5\pi$. أوجد نصف قطر الدائرة.
+
+1. $\tfrac{45}{360} \cdot 2\pi r = 5\pi$، أي $\tfrac{1}{8} \cdot 2\pi r = 5\pi$.
+2. $\tfrac{\pi r}{4} = 5\pi$، إذن $r = 20$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={10}>
+
+دائرة محيطها $10\pi$. ما قطرها؟
+
+<div slot="explain">$C = \pi d$، إذن $d = 10$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={4} hint="اكتب طول القوس بدلالة π.">
+
+في دائرة نصف قطرها $8$، طول قوس قياسه $90^\circ$ هو $k\pi$. ما $k$؟
+
+<div slot="explain">$\tfrac{90}{360} \cdot 16\pi = 4\pi$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={120}>
+
+في دائرة محيطها $36$، قوس طوله $12$. ما قياسه بالدرجات؟
+
+<div slot="explain">القوس ثلث المحيط، فقياسه ثلث $360^\circ$: $120^\circ$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={6}>
+
+قوس قياسه $180^\circ$ طوله $6\pi$. ما نصف قطر الدائرة؟
+
+<div slot="explain">نصف المحيط $\pi r = 6\pi$، إذن $r = 6$.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={1} options={['لهما الطول نفسه', 'الأول أطول', 'الثاني أطول']}>
+
+قوس $40^\circ$ في دائرة نصف قطرها $9$، وقوس $60^\circ$ في دائرة نصف قطرها $5$. أيهما أطول؟
+
+<div slot="explain">الأول: $\tfrac{40}{360} \cdot 18\pi = 2\pi$. الثاني: $\tfrac{60}{360} \cdot 10\pi = \tfrac{5\pi}{3} \approx 1.67\pi$. الأول أطول.</div>
+</Quiz>
+
+## الخلاصة
+
+- محيط الدائرة: $C = 2\pi r = \pi d$.
+- طول القوس: $\tfrac{m}{360} \cdot 2\pi r$، أي جزء من المحيط بنسبة القياس إلى $360^\circ$.

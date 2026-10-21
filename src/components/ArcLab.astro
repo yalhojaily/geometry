@@ -1,0 +1,156 @@
+---
+// Interactive circle measurements.
+//  mode="arc":    arc length as a fraction of the circumference
+//  mode="sector": sector area as a fraction of the circle's area
+//  mode="pizza":  cut the circle into slices and rearrange them into a near-parallelogram (A = πr²)
+import '../styles/qlab.css';
+interface Props {
+  mode?: 'arc' | 'sector' | 'pizza';
+}
+const { mode = 'arc' } = Astro.props;
+const TAGS = { arc: 'طول القوس', sector: 'مساحة القطاع', pizza: 'من أين تأتي πr²؟' };
+---
+
+<arc-lab class="panel lab qlab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{TAGS[mode]}</span>
+  </div>
+  <svg viewBox="0 0 360 240" class="stage" role="img" aria-label={TAGS[mode]}></svg>
+  <div class="sliders">
+    {
+      mode === 'pizza' ? (
+        <label>
+          <span class="ltr">
+            n = <b data-v="n">8</b>
+          </span>
+          <input type="range" data-k="n" min="4" max="40" step="2" value="8" dir="ltr" aria-label="عدد القطع" />
+        </label>
+      ) : (
+        <>
+          <label>
+            <span class="ltr">
+              m = <b data-v="m">90</b>°
+            </span>
+            <input type="range" data-k="m" min="10" max="350" step="5" value="90" dir="ltr" aria-label="قياس القوس" />
+          </label>
+          <label>
+            <span class="ltr">
+              r = <b data-v="r">4</b>
+            </span>
+            <input type="range" data-k="r" min="1" max="6" step="1" value="4" dir="ltr" aria-label="نصف القطر" />
+          </label>
+        </>
+      )
+    }
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</arc-lab>
+
+<script>
+  import { el, text, polar, arcPath, type P } from '../scripts/svg';
+
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+
+  class ArcLab extends HTMLElement {
+    mode = 'arc';
+    v: Record<string, number> = { m: 90, r: 4, n: 8 };
+    connectedCallback() {
+      this.mode = this.dataset.mode ?? 'arc';
+      this.querySelectorAll<HTMLInputElement>('input[data-k]').forEach((inp) =>
+        inp.addEventListener('input', () => {
+          this.v[inp.dataset.k!] = Number(inp.value);
+          this.render();
+        }),
+      );
+      this.render();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      this.querySelectorAll<HTMLElement>('[data-v]').forEach((e) => (e.textContent = String(this.v[e.dataset.v!])));
+      if (this.mode === 'pizza') return this.pizza(svg);
+      const { m, r } = this.v;
+      const R = 17 * r + 10; // drawn radius grows with r
+      const C: P = { x: 180, y: 120 };
+      svg.appendChild(el('circle', { cx: C.x, cy: C.y, r: R }, 'whole'));
+      const a1 = 90 - m / 2;
+      const a2 = a1 + m;
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      if (this.mode === 'sector') {
+        svg.appendChild(el('path', { d: arcPath(C, R, a1, a2, true) }, 'sector'));
+      } else {
+        svg.appendChild(el('path', { d: arcPath(C, R, a1, a2) }, 'arcm'));
+        const p1 = polar(C, R, a1);
+        const p2 = polar(C, R, a2);
+        svg.appendChild(el('line', { x1: C.x, y1: C.y, x2: p1.x, y2: p1.y }, 'radl'));
+        svg.appendChild(el('line', { x1: C.x, y1: C.y, x2: p2.x, y2: p2.y }, 'radl'));
+      }
+      svg.appendChild(el('path', { d: arcPath(C, 16, a1, a2, true) }, 'wedge w1'));
+      const lp = polar(C, 28, 90);
+      svg.appendChild(text(lp.x, lp.y, `${m}°`, 'val'));
+      svg.appendChild(el('circle', { cx: C.x, cy: C.y, r: 3 }, 'mk'));
+      const frac = m / 360;
+      if (this.mode === 'arc') {
+        const circ = 2 * Math.PI * r;
+        calc.innerHTML =
+          `<div>2πr = 2π × ${r} = ${fmt(circ)}</div>` +
+          `<div class="big">${m}/360 × ${fmt(circ)} = ${fmt(frac * circ)}</div>`;
+        note.textContent = `القوس ${fmt(frac * 100)}% من الدورة الكاملة، فطوله ${fmt(frac * 100)}% من محيط الدائرة. غيّر r: الزاوية نفسها تعطي قوسًا أطول في الدائرة الأكبر.`;
+      } else {
+        const area = Math.PI * r * r;
+        calc.innerHTML =
+          `<div>πr² = π × ${r}² = ${fmt(area)}</div>` +
+          `<div class="big">${m}/360 × ${fmt(area)} = ${fmt(frac * area)}</div>`;
+        note.textContent = `القطاع ${fmt(frac * 100)}% من الدائرة، كقطعة من فطيرة. فمساحته ${fmt(frac * 100)}% من مساحة الدائرة كلها.`;
+      }
+    }
+    pizza(svg: Element) {
+      const n = this.v.n;
+      const R = 52;
+      // the circle, sliced
+      const C: P = { x: 70, y: 120 };
+      for (let i = 0; i < n; i++) {
+        const a = (360 / n) * i;
+        svg.appendChild(el('path', { d: arcPath(C, R, a, a + 360 / n, true) }, i % 2 ? 'sl1' : 'sl0'));
+      }
+      // rearranged: alternate up/down
+      const w = (2 * Math.PI * R) / n; // arc length of one slice ≈ its base
+      const total = (n / 2) * w;
+      const sx = Math.min(1, 210 / (total + w / 2));
+      const x0 = 140;
+      const yb = 175;
+      const half = (180 / n) * (Math.PI / 180);
+      for (let i = 0; i < n; i++) {
+        const up = i % 2 === 0;
+        // apex at the top for "down" slices, at the bottom for "up" slices
+        const cx = x0 + ((i * w) / 2 + w / 2) * sx;
+        const apex = up ? { x: cx, y: yb - R * Math.cos(half) } : { x: cx, y: yb };
+        // build the slice from its apex with its arc away from the apex
+        const dir = up ? 90 + 180 : 90; // pointing down for up-slices (arc at the bottom)
+        const p1 = polar(apex, R, dir - 180 / n);
+        const p2 = polar(apex, R, dir + 180 / n);
+        const d = `M ${apex.x} ${apex.y} L ${p1.x} ${p1.y} A ${R} ${R} 0 0 0 ${p2.x} ${p2.y} Z`;
+        const g = el('path', { d }, i % 2 ? 'sl1' : 'sl0');
+        if (sx < 1) g.setAttribute('transform', `translate(${apex.x} 0) scale(${sx} 1) translate(${-apex.x} 0)`);
+        svg.appendChild(g);
+      }
+      svg.appendChild(text(x0 + (total * sx) / 2 + 6, yb + 22, 'πr', 'mlbl'));
+      svg.appendChild(text(x0 - 10, yb - R / 2, 'r', 'mlbl'));
+      this.querySelector('.calc')!.innerHTML = `<div class="big">A ≈ (πr) × r = πr²</div>`;
+      this.querySelector('.note')!.textContent =
+        'اقطع الدائرة إلى قطع متساوية وضعها متعاكسة. نصف القطع أقواسها في الأسفل ونصفها في الأعلى، فالقاعدة نصف المحيط πr والارتفاع r. زد عدد القطع: الشكل يقترب من مستطيل مساحته πr × r.';
+    }
+  }
+  customElements.define('arc-lab', ArcLab);
+</script>
+
+<style is:global>
+  arc-lab .stage .whole { fill: var(--brand); fill-opacity: 0.06; stroke: var(--brand); stroke-width: 2; }
+  arc-lab .stage .sector { fill: var(--accent); fill-opacity: 0.4; stroke: var(--accent); stroke-width: 2; }
+  arc-lab .stage .arcm { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; }
+  arc-lab .stage .radl { stroke: var(--ink-2); stroke-width: 1.6; }
+  arc-lab .stage .sl0 { fill: var(--accent); fill-opacity: 0.55; stroke: var(--card); stroke-width: 1; }
+  arc-lab .stage .sl1 { fill: var(--thm); fill-opacity: 0.45; stroke: var(--card); stroke-width: 1; }
+</style>

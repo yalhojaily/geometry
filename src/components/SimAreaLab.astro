@@ -1,0 +1,67 @@
+---
+// Interactive: scaling a triangle by k makes it out of k² copies of the original,
+// so areas scale by k² while lengths (and perimeters) scale by k.
+import '../styles/qlab.css';
+---
+
+<simarea-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">لماذا تتضاعف المساحة بالمربع؟</span>
+  </div>
+  <svg viewBox="0 0 360 240" class="stage" role="img" aria-label="مثلث صغير ومثلث مكبّر مقسوم إلى نسخ منه"></svg>
+  <div class="sliders">
+    <label><span class="ltr">k = <b class="kv">3</b></span><input type="range" class="k" min="1" max="5" value="3" dir="ltr" aria-label="معامل التشابه" /></label>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</simarea-lab>
+
+<script>
+  import { el, type P } from '../scripts/svg';
+  import { pts } from '../scripts/quad';
+
+  class SimAreaLab extends HTMLElement {
+    k = 3;
+    connectedCallback() {
+      const k = this.querySelector<HTMLInputElement>('input.k')!;
+      k.addEventListener('input', () => {
+        this.k = Number(k.value);
+        this.render();
+      });
+      this.render();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const k = this.k;
+      // unit triangle: base 1, apex offset 0.35, height 0.8; the original is drawn at the
+      // same scale as one small copy inside the big triangle
+      const u = (x: number, y: number, ox: number, oy: number, s: number): P => ({ x: ox + (x + 0.35 * y) * s, y: oy - 0.8 * y * s });
+      const sc = Math.min(230 / (k * 1.35), 55);
+      const o = [u(0, 0, 18, 225, sc), u(1, 0, 18, 225, sc), u(0, 1, 18, 225, sc)];
+      svg.appendChild(el('polygon', { points: pts(o) }, 'small'));
+      const ox = 18 + 1.35 * sc + 20;
+      const oy = 225;
+      for (let i = 0; i < k; i++)
+        for (let j = 0; j < k - i; j++) {
+          // upright
+          svg.appendChild(el('polygon', { points: pts([u(j, i, ox, oy, sc), u(j + 1, i, ox, oy, sc), u(j, i + 1, ox, oy, sc)]) }, 'up'));
+          // inverted
+          if (j < k - i - 1)
+            svg.appendChild(el('polygon', { points: pts([u(j + 1, i, ox, oy, sc), u(j + 1, i + 1, ox, oy, sc), u(j, i + 1, ox, oy, sc)]) }, 'down'));
+        }
+      svg.appendChild(el('polygon', { points: pts([u(0, 0, ox, oy, sc), u(k, 0, ox, oy, sc), u(0, k, ox, oy, sc)]) }, 'outl'));
+      this.querySelector('.kv')!.textContent = String(k);
+      this.querySelector('.calc')!.innerHTML =
+        `<div>P₂ / P₁ = ${k}</div>` + `<div class="big">A₂ / A₁ = ${k}² = ${k * k}</div>`;
+      this.querySelector('.note')!.textContent = `المثلث المكبّر بمعامل ${k} يتكون من ${k * k} نسخة من المثلث الأصلي بالضبط (الفاتحة والمقلوبة كلها متطابقة). لذلك تتضاعف المساحة ${k * k} مرة، بينما يتضاعف المحيط ${k} مرات فقط.`;
+    }
+  }
+  customElements.define('simarea-lab', SimAreaLab);
+</script>
+
+<style is:global>
+  simarea-lab .stage .small { fill: var(--accent); fill-opacity: 0.6; stroke: var(--accent); stroke-width: 1.5; }
+  simarea-lab .stage .up { fill: var(--accent); fill-opacity: 0.35; stroke: var(--card); stroke-width: 1.2; }
+  simarea-lab .stage .down { fill: var(--thm); fill-opacity: 0.25; stroke: var(--card); stroke-width: 1.2; }
+</style>

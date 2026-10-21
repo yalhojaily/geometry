@@ -1,0 +1,82 @@
+---
+// Interactive: area of a regular polygon = ½ · apothem · perimeter.
+// The polygon splits into n congruent triangles of base s and height a.
+import '../styles/qlab.css';
+---
+
+<regarea-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">مساحة المضلع المنتظم</span>
+  </div>
+  <svg viewBox="0 0 360 300" class="stage" role="img" aria-label="مضلع منتظم مقسوم إلى مثلثات متطابقة من مركزه"></svg>
+  <div class="sliders">
+    <label><span class="ltr">n = <b class="nv">6</b></span><input type="range" class="n" min="3" max="12" value="6" dir="ltr" aria-label="عدد الأضلاع" /></label>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</regarea-lab>
+
+<script>
+  import { el, text, polar, type P } from '../scripts/svg';
+  import { pts, rightMark } from '../scripts/quad';
+
+  const C: P = { x: 180, y: 140 };
+  const R = 110; // radius = 5 units
+  const U = R / 5;
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+
+  class RegAreaLab extends HTMLElement {
+    n = 6;
+    connectedCallback() {
+      const n = this.querySelector<HTMLInputElement>('input.n')!;
+      n.addEventListener('input', () => {
+        this.n = Number(n.value);
+        this.render();
+      });
+      this.render();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const n = this.n;
+      const vs = Array.from({ length: n }, (_, i) => polar(C, R, -90 - 180 / n + (360 / n) * i));
+      svg.appendChild(el('polygon', { points: pts(vs) }, 'poly'));
+      vs.forEach((p, i) => {
+        const q = vs[(i + 1) % n];
+        svg.appendChild(el('polygon', { points: pts([C, p, q]) }, i === 0 ? 'tri0' : 'tri'));
+      });
+      // the highlighted triangle is the one at the bottom (between vs[0] and vs[1])
+      const A = vs[0];
+      const B = vs[1];
+      const M = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
+      svg.appendChild(el('line', { x1: C.x, y1: C.y, x2: M.x, y2: M.y }, 'apo'));
+      rightMark(svg, M, B, C, 8);
+      svg.appendChild(el('line', { x1: C.x, y1: C.y, x2: A.x, y2: A.y }, 'rad'));
+      svg.appendChild(el('circle', { cx: C.x, cy: C.y, r: 3.5 }, 'mk'));
+      svg.appendChild(text(M.x, M.y + 16, 's', 'mlbl'));
+      svg.appendChild(text((C.x + M.x) / 2 + 10, (C.y + M.y) / 2, 'a', 'mlbl'));
+      svg.appendChild(text((C.x + A.x) / 2 - 10, (C.y + A.y) / 2, 'r', 'mlbl'));
+      const a = Math.cos(Math.PI / n) * 5;
+      const s = 2 * Math.sin(Math.PI / n) * 5;
+      const P = n * s;
+      this.querySelector('.nv')!.textContent = String(n);
+      this.querySelector('.calc')!.innerHTML =
+        `<div>r = 5</div><div>360° ÷ ${n} = ${fmt(360 / n)}°</div>` +
+        `<div>a = ${fmt(a)} , s = ${fmt(s)} , P = ${n} × ${fmt(s)} = ${fmt(P)}</div>` +
+        `<div class="big">A = ½aP = ½ × ${fmt(a)} × ${fmt(P)} = ${fmt(0.5 * a * P)}</div>` +
+        `<div>πr² = ${fmt(Math.PI * 25)}</div>`;
+      const L = (t: string) => `<span class="ltr">${t}</span>`;
+      this.querySelector('.note')!.innerHTML =
+        `المضلع ${n} مثلثات متطابقة، قاعدة كل منها ${L('s')} وارتفاعه العامد ${L('a')}. مساحة كل منها ${L('½as')}، فمجموعها ${L('½aP')} لأن المحيط ${L(`P = ${n}s`)}. زد عدد الأضلاع وراقب المساحة تقترب من مساحة الدائرة ${L('πr²')}.`;
+      void U;
+    }
+  }
+  customElements.define('regarea-lab', RegAreaLab);
+</script>
+
+<style is:global>
+  regarea-lab .stage .tri { fill: none; stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 3; }
+  regarea-lab .stage .tri0 { fill: var(--accent); fill-opacity: 0.25; stroke: none; }
+  regarea-lab .stage .apo { stroke: var(--post); stroke-width: 2.4; }
+  regarea-lab .stage .rad { stroke: var(--thm); stroke-width: 2.4; }
+</style>

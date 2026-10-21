@@ -1,0 +1,134 @@
+---
+// Interactive: interior angle sum by triangulating from one vertex,
+// or the exterior angles (one per vertex) adding to 360°.
+import '../styles/qlab.css';
+---
+
+<polyangle-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">زوايا المضلع</span>
+    <span class="hint-small">اسحب الرؤوس</span>
+  </div>
+  <div class="modes" role="tablist">
+    <button type="button" data-m="int" class="on">الزوايا الداخلية</button>
+    <button type="button" data-m="ext">الزوايا الخارجية</button>
+  </div>
+  <svg viewBox="0 0 360 280" class="stage" role="img" aria-label="مضلع مقسوم إلى مثلثات من رأس واحد"></svg>
+  <div class="sliders">
+    <label><span class="ltr">n = <b class="nv">5</b></span><input type="range" class="n" min="3" max="10" value="5" dir="ltr" aria-label="عدد الأضلاع" /></label>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</polyangle-lab>
+
+<script>
+  import { el, text, makeDraggable, polar, screenAngle, arcPath, type P } from '../scripts/svg';
+  import { pts, interiorAngles, centroid, handle, isSimple, signedArea } from '../scripts/quad';
+
+  const NAMES = 'ABCDEFGHJK';
+  const C0: P = { x: 180, y: 145 };
+
+  class PolyAngleLab extends HTMLElement {
+    n = 5;
+    m = 'int';
+    v: P[] = [];
+    drag!: { start: (k: string, e: PointerEvent) => void };
+    connectedCallback() {
+      this.reset();
+      const n = this.querySelector<HTMLInputElement>('input.n')!;
+      n.addEventListener('input', () => {
+        this.n = Number(n.value);
+        this.reset();
+        this.render();
+      });
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.m = b.dataset.m!;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<string>(svg, (k, p) => {
+        const i = Number(k);
+        const next = this.v.slice();
+        next[i] = { x: Math.max(20, Math.min(340, p.x)), y: Math.max(20, Math.min(260, p.y)) };
+        if (!isSimple(next, 12)) return;
+        // keep it convex so the theorems apply as stated
+        const ang = interiorAngles(next);
+        if (ang.some((a) => a.m >= 179)) return;
+        this.v = next;
+        this.render();
+      });
+      this.render();
+    }
+    reset() {
+      // a slightly irregular convex polygon
+      this.v = Array.from({ length: this.n }, (_, i) => {
+        const t = 90 + (360 / this.n) * i;
+        const r = 105 * (1 + 0.12 * Math.sin(i * 2.3));
+        return polar(C0, r, t);
+      });
+      if (signedArea(this.v) < 0) this.v.reverse();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const v = this.v;
+      const n = v.length;
+      const ang = interiorAngles(v);
+      const cen = centroid(v);
+      this.querySelector('.nv')!.textContent = String(n);
+      svg.appendChild(el('polygon', { points: pts(v) }, 'poly'));
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      if (this.m === 'int') {
+        // fan of triangles from vertex A
+        for (let i = 1; i < n - 1; i++) {
+          svg.appendChild(el('polygon', { points: pts([v[0], v[i], v[i + 1]]) }, `fan f${i % 3}`));
+        }
+        for (let i = 2; i < n - 1; i++) svg.appendChild(el('line', { x1: v[0].x, y1: v[0].y, x2: v[i].x, y2: v[i].y }, 'diag'));
+        const sum = ang.reduce((s, a) => s + a.m, 0);
+        calc.innerHTML =
+          `<div>${n - 2} × 180° = ${(n - 2) * 180}°</div>` +
+          `<div class="big">${ang.map((a) => Math.round(a.m)).join(' + ')} = ${Math.round(sum)}°</div>`;
+        note.textContent = `الأقطار من الرأس A تقسم المضلع ذا ${n} أضلاع إلى ${n - 2} مثلثات. زوايا المثلثات معًا هي زوايا المضلع، فالمجموع ${n - 2} × °180.`;
+      } else {
+        let total = 0;
+        const parts: number[] = [];
+        v.forEach((p, i) => {
+          const prev = v[(i - 1 + n) % n];
+          const next = v[(i + 1) % n];
+          // extend side prev→p beyond p
+          const d = { x: p.x - prev.x, y: p.y - prev.y };
+          const L = Math.hypot(d.x, d.y) || 1;
+          const ext = { x: p.x + (d.x / L) * 40, y: p.y + (d.y / L) * 40 };
+          svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: ext.x, y2: ext.y }, 'extl'));
+          const a1 = screenAngle(p, ext);
+          const a2 = screenAngle(p, next);
+          // polygon is counter-clockwise on screen, so turning is counter-clockwise
+          const sweep = ((a2 - a1) % 360 + 360) % 360;
+          total += sweep;
+          parts.push(Math.round(sweep));
+          svg.appendChild(el('path', { d: arcPath(p, 18, a1, a1 + sweep, true) }, `wedge w${i % 4}`));
+          const lp = polar(p, 32, a1 + sweep / 2);
+          svg.appendChild(text(lp.x, lp.y, `${Math.round(sweep)}°`, 'val'));
+        });
+        calc.innerHTML = `<div class="big">${parts.join(' + ')} = ${Math.round(total)}°</div>`;
+        note.textContent =
+          'تخيّل أنك تمشي على حدود المضلع: عند كل رأس تنعطف بزاوية خارجية. بعد دورة كاملة تعود إلى اتجاهك الأول، فمجموع الانعطافات °360 مهما كان عدد الأضلاع.';
+      }
+      svg.appendChild(el('polygon', { points: pts(v) }, 'outl'));
+      v.forEach((p, i) => handle(svg, p, NAMES[i], cen, (e) => this.drag.start(String(i), e)));
+    }
+  }
+  customElements.define('polyangle-lab', PolyAngleLab);
+</script>
+
+<style is:global>
+  polyangle-lab .stage .fan { stroke: none; }
+  polyangle-lab .stage .f0 { fill: var(--def-bg); }
+  polyangle-lab .stage .f1 { fill: var(--thm-bg); }
+  polyangle-lab .stage .f2 { fill: var(--post-bg); }
+  polyangle-lab .stage .extl { stroke: var(--ink-3); stroke-width: 1.6; stroke-dasharray: 4 3; }
+</style>
