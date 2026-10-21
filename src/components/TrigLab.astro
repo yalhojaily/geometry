@@ -1,0 +1,146 @@
+---
+// Interactive: sine, cosine and tangent as ratios of sides.
+// The angle fixes the ratios; the size slider changes the triangle but not the ratios.
+import '../styles/qlab.css';
+---
+
+<trig-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">النسب المثلثية</span>
+  </div>
+  <div class="modes" role="tablist">
+    <button type="button" data-m="sin" class="on"><span class="ltr">sin</span></button>
+    <button type="button" data-m="cos"><span class="ltr">cos</span></button>
+    <button type="button" data-m="tan"><span class="ltr">tan</span></button>
+  </div>
+  <svg viewBox="0 0 360 230" class="stage" role="img" aria-label="مثلث قائم وزاوية حادة A وأضلاعه المقابل والمجاور والوتر"></svg>
+  <div class="sliders">
+    <label><span class="ltr">∠A = <b class="tv">35</b>°</span><input type="range" class="t" min="5" max="80" value="35" dir="ltr" aria-label="الزاوية A" /></label>
+    <label><span class="ltr">k = <b class="kv">1</b></span><input type="range" class="k" min="0.5" max="1" step="0.1" value="1" dir="ltr" aria-label="حجم المثلث" /></label>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</trig-lab>
+
+<script>
+  import { el, text, type P } from '../scripts/svg';
+  import { pts, rightMark } from '../scripts/quad';
+
+  const fmt = (n: number, d = 4) => String(Math.round(n * 10 ** d) / 10 ** d);
+  const UNIT = 30; // px per unit
+
+  class TrigLab extends HTMLElement {
+    t = 35;
+    k = 1;
+    m = 'sin';
+    connectedCallback() {
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.m = b.dataset.m!;
+          this.querySelectorAll('.modes button').forEach((q) => q.classList.toggle('on', q === b));
+          this.render();
+        }),
+      );
+      const t = this.querySelector<HTMLInputElement>('input.t')!;
+      const k = this.querySelector<HTMLInputElement>('input.k')!;
+      t.addEventListener('input', () => {
+        this.t = Number(t.value);
+        this.render();
+      });
+      k.addEventListener('input', () => {
+        this.k = Number(k.value);
+        this.render();
+      });
+      this.render();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const r = (this.t * Math.PI) / 180;
+      // fit the largest triangle (size 1) into the stage, then scale by k
+      const fitW = 290 / Math.cos(r);
+      const fitH = 190 / Math.sin(r);
+      const hypPx = Math.min(fitW, fitH) * this.k;
+      const A: P = { x: 30, y: 210 };
+      const C: P = { x: 30 + hypPx * Math.cos(r), y: 210 };
+      const B: P = { x: C.x, y: 210 - hypPx * Math.sin(r) };
+      svg.appendChild(el('polygon', { points: pts([A, B, C]) }, 'poly'));
+      const on = {
+        sin: ['opp', 'hyp'],
+        cos: ['adj', 'hyp'],
+        tan: ['opp', 'adj'],
+      }[this.m as 'sin' | 'cos' | 'tan'];
+      const side = (p: P, q: P, key: string) =>
+        svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, on.includes(key) ? `side-${key}` : 'side-off'));
+      side(B, C, 'opp');
+      side(A, C, 'adj');
+      side(A, B, 'hyp');
+      rightMark(svg, C, A, B, 10);
+      const rr = 30;
+      svg.appendChild(
+        el('path', { d: `M ${A.x} ${A.y} L ${A.x + rr} ${A.y} A ${rr} ${rr} 0 0 0 ${A.x + rr * Math.cos(r)} ${A.y - rr * Math.sin(r)} Z` }, 'wedge w0'),
+      );
+      const adj = C.x - A.x;
+      const hyp = hypPx;
+      const o = (C.y - B.y) / UNIT;
+      const a = adj / UNIT;
+      const h = hyp / UNIT;
+      svg.appendChild(text(A.x - 12, A.y + 4, 'A', 'lbl'));
+      svg.appendChild(text(B.x + 12, B.y, 'B', 'lbl'));
+      svg.appendChild(text(C.x + 12, C.y + 4, 'C', 'lbl'));
+      svg.appendChild(text(C.x + 16, (B.y + C.y) / 2 + 14, `${fmt(o, 2)}`, 'val'));
+      svg.appendChild(text(C.x + 16, (B.y + C.y) / 2, 'المقابل', 'wlbl'));
+      svg.appendChild(text((A.x + C.x) / 2, A.y + 14, `المجاور  ${fmt(a, 2)}`, 'wlbl'));
+      const hm = { x: (A.x + B.x) / 2 - 14, y: (A.y + B.y) / 2 - 10 };
+      svg.appendChild(text(hm.x, hm.y, `الوتر  ${fmt(h, 2)}`, 'wlbl'));
+      this.querySelector('.tv')!.textContent = String(this.t);
+      this.querySelector('.kv')!.textContent = String(this.k);
+      const val = { sin: o / h, cos: a / h, tan: o / a }[this.m as 'sin' | 'cos' | 'tan'];
+      const [n1, d1] = { sin: [o, h], cos: [a, h], tan: [o, a] }[this.m as 'sin' | 'cos' | 'tan'];
+      const exact = { sin: Math.sin(r), cos: Math.cos(r), tan: Math.tan(r) }[this.m as 'sin' | 'cos' | 'tan'];
+      this.querySelector('.calc')!.innerHTML =
+        `<div>${this.m} ${this.t}° = ${fmt(n1, 2)} / ${fmt(d1, 2)} = ${fmt(val)}</div>` +
+        `<div class="big">${this.m} ${this.t}° ≈ ${fmt(exact)}</div>`;
+      this.querySelector('.note')!.textContent =
+        'غيّر الحجم: الأطوال تتغير، لكن النسبة لا تتغير، لأن كل المثلثات القائمة التي فيها هذه الزاوية متشابهة (AA). النسبة تتغير فقط حين تغيّر الزاوية.';
+    }
+  }
+  customElements.define('trig-lab', TrigLab);
+</script>
+
+<style is:global>
+  trig-lab .stage line {
+    stroke-linecap: round;
+  }
+  trig-lab .stage .side-off {
+    stroke: var(--brand);
+    stroke-width: 2.5;
+    stroke-opacity: 0.5;
+  }
+  trig-lab .stage .side-opp {
+    stroke: var(--accent);
+    stroke-width: 5;
+  }
+  trig-lab .stage .side-adj {
+    stroke: var(--thm);
+    stroke-width: 5;
+  }
+  trig-lab .stage .side-hyp {
+    stroke: var(--post);
+    stroke-width: 5;
+  }
+  trig-lab .stage .poly {
+    stroke: none;
+  }
+  trig-lab .stage .wlbl {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    fill: var(--ink-2);
+    text-anchor: middle;
+    direction: rtl;
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+  }
+</style>

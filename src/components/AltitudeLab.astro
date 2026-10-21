@@ -1,0 +1,126 @@
+---
+// Interactive: altitude to the hypotenuse of a right triangle.
+// C moves on the semicircle over AB (so ∠C stays right); CD ⟂ AB.
+import '../styles/qlab.css';
+---
+
+<altitude-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">الارتفاع على الوتر</span>
+    <span class="hint-small">اسحب C</span>
+  </div>
+  <div class="modes" role="tablist">
+    <button type="button" data-m="alt" class="on">الارتفاع CD</button>
+    <button type="button" data-m="leg">الساقان</button>
+  </div>
+  <svg viewBox="0 0 360 230" class="stage" role="img" aria-label="مثلث قائم في C وارتفاعه CD على الوتر AB"></svg>
+  <div class="calc"></div>
+  <p class="note"></p>
+</altitude-lab>
+
+<script>
+  import { el, text, makeDraggable, type P } from '../scripts/svg';
+  import { len, pts, rightMark } from '../scripts/quad';
+
+  const A: P = { x: 40, y: 205 };
+  const B: P = { x: 320, y: 205 };
+  const O: P = { x: 180, y: 205 };
+  const R = 140;
+  const U = 28; // AB = 10 units
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+
+  class AltitudeLab extends HTMLElement {
+    phi = 112; // position of C on the semicircle (degrees from +x)
+    m = 'alt';
+    drag!: { start: (k: string, e: PointerEvent) => void };
+    connectedCallback() {
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.m = b.dataset.m!;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.render();
+        }),
+      );
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<string>(svg, (_k, p) => {
+        let a = (Math.atan2(-(p.y - O.y), p.x - O.x) * 180) / Math.PI;
+        if (a < 0) a = a < -90 ? 180 : 0;
+        this.phi = Math.max(15, Math.min(165, a));
+        this.render();
+      });
+      this.render();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const t = (this.phi * Math.PI) / 180;
+      const C = { x: O.x + R * Math.cos(t), y: O.y - R * Math.sin(t) };
+      const D = { x: C.x, y: A.y };
+      svg.appendChild(el('path', { d: `M ${A.x} ${A.y} A ${R} ${R} 0 0 1 ${B.x} ${B.y}` }, 'diag'));
+      if (this.m === 'alt') {
+        svg.appendChild(el('polygon', { points: pts([A, D, C]) }, 'tA'));
+        svg.appendChild(el('polygon', { points: pts([D, B, C]) }, 'tB'));
+      } else {
+        svg.appendChild(el('polygon', { points: pts([A, B, C]) }, 'poly'));
+      }
+      svg.appendChild(el('polygon', { points: pts([A, B, C]) }, 'outline'));
+      svg.appendChild(el('line', { x1: C.x, y1: C.y, x2: D.x, y2: D.y }, 'hl'));
+      rightMark(svg, D, B, C, 9);
+      rightMark(svg, C, A, B, 11);
+      for (const [p, n, dx, dy] of [
+        [A, 'A', -12, 4],
+        [B, 'B', 12, 4],
+        [D, 'D', 0, 16],
+      ] as [P, string, number, number][])
+        svg.appendChild(text(p.x + dx, p.y + dy, n, 'lbl'));
+      svg.appendChild(text(C.x, C.y - 15, 'C', 'lbl'));
+      const g = el('g', {}, 'pt');
+      g.appendChild(el('circle', { cx: C.x, cy: C.y, r: 15 }, 'hit'));
+      g.appendChild(el('circle', { cx: C.x, cy: C.y, r: 6 }, 'dot'));
+      g.addEventListener('pointerdown', (e) => this.drag.start('C', e as PointerEvent));
+      svg.appendChild(g);
+
+      const ad = len(A, D) / U;
+      const db = len(D, B) / U;
+      const cd = len(C, D) / U;
+      const ac = len(A, C) / U;
+      const bc = len(B, C) / U;
+      const calc = this.querySelector('.calc')!;
+      if (this.m === 'alt') {
+        calc.innerHTML =
+          `<div>AD = ${fmt(ad)} , DB = ${fmt(db)} , CD = ${fmt(cd)}</div>` +
+          `<div class="big">CD² = ${fmt(cd * cd)} , AD × DB = ${fmt(ad * db)}</div>`;
+        this.querySelector('.note')!.textContent =
+          'المثلثان الملوّنان ACD و CBD متشابهان، ويشبهان المثلث الكبير ACB. ومن تشابههما: CD هو الوسط الهندسي لـ AD و DB.';
+      } else {
+        calc.innerHTML =
+          `<div>AB = 10 , AD = ${fmt(ad)} , DB = ${fmt(db)}</div>` +
+          `<div class="big">AC² = ${fmt(ac * ac)} , AD × AB = ${fmt(ad * 10)}</div>` +
+          `<div class="big">BC² = ${fmt(bc * bc)} , DB × AB = ${fmt(db * 10)}</div>`;
+        this.querySelector('.note')!.textContent =
+          'كل ساق هي الوسط الهندسي للوتر كله والجزء المجاور لها منه. اجمع السطرين الأخيرين وستحصل على نظرية فيثاغورس (الدرس 9.2).';
+      }
+    }
+  }
+  customElements.define('altitude-lab', AltitudeLab);
+</script>
+
+<style is:global>
+  altitude-lab .stage .tA {
+    fill: var(--def-bg);
+    stroke: none;
+  }
+  altitude-lab .stage .tB {
+    fill: var(--thm-bg);
+    stroke: none;
+  }
+  altitude-lab .stage .outline {
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 3;
+    stroke-linejoin: round;
+  }
+  altitude-lab .stage path.diag {
+    fill: none;
+  }
+</style>

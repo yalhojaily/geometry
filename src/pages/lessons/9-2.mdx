@@ -1,0 +1,120 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '9.2'
+why: 'ربما أشهر نظرية في الرياضيات كلها. تربط أضلاع المثلث القائم الثلاثة بمعادلة واحدة، وتسمح لك بحساب أي مسافة إذا عرفت مسافتين متعامدتين: قطر الشاشة، وطول السلّم، والمسافة على الخريطة.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import ProofTable from '../../components/ProofTable.astro';
+import PythagLab from '../../components/PythagLab.astro';
+import { proofs } from '../../data/proofs';
+
+## النظرية
+
+<Term id="thm-pythagorean" />
+
+<PythagLab mode="squares" />
+
+## البرهان
+
+النظرية لها مئات البراهين. هذا البرهان يستخدم نظرية الوسط الهندسي للساق من الدرس السابق:
+
+<ProofTable {...proofs.pythagoras} />
+
+<Prereq id="alg-squares-roots" />
+<Prereq id="alg-simple-quadratic" />
+<Prereq id="alg-radicals" />
+
+<Example title="مثال 1: الوتر">
+
+ساقا مثلث قائم $6$ و $8$. أوجد الوتر.
+
+1. $c^2 = 6^2 + 8^2 = 36 + 64 = 100$.
+2. $c = 10$.
+
+</Example>
+
+<Example title="مثال 2: ساق مجهولة">
+
+الوتر $13$ وإحدى الساقين $5$. أوجد الأخرى.
+
+1. $13^2 = 5^2 + b^2$، أي $169 = 25 + b^2$.
+2. $b^2 = 144$، إذن $b = 12$.
+
+</Example>
+
+<Example title="مثال 3: الإجابة جذر">
+
+ساقا مثلث قائم $4$ و $6$. أوجد الوتر بأبسط صورة.
+
+1. $c^2 = 16 + 36 = 52$.
+2. $c = \sqrt{52} = \sqrt{4 \cdot 13} = 2\sqrt{13} \approx 7.21$.
+
+</Example>
+
+## الثلاثيات الفيثاغورية
+
+<Term id="def-pythagorean-triple" />
+
+<Callout type="tip" title="وفّر الحساب">
+
+إذا رأيت ساقين $9$ و $12$، فلاحظ أنهما $3 \times 3$ و $3 \times 4$. الوتر إذن $3 \times 5 = 15$ دون حساب مربعات.
+
+</Callout>
+
+<Example title="مثال 4: مساحة مثلث متطابق الضلعين">
+
+مثلث متطابق الضلعين ساقاه $10$ وقاعدته $12$. أوجد مساحته.
+
+1. الارتفاع من الرأس ينصف القاعدة، فيتكوّن مثلث قائم وتره $10$ وساقه $6$.
+2. الارتفاع $h = \sqrt{100 - 36} = 8$.
+3. المساحة $\tfrac{1}{2}(12)(8) = 48$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={17}>
+
+ساقا مثلث قائم $8$ و $15$. ما الوتر؟
+
+<div slot="explain">$\sqrt{64 + 225} = \sqrt{289} = 17$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={24}>
+
+الوتر $25$ وإحدى الساقين $7$. ما الأخرى؟
+
+<div slot="explain">$\sqrt{625 - 49} = \sqrt{576} = 24$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={20} hint="ابحث عن ثلاثية مألوفة مضاعفة.">
+
+ساقا مثلث قائم $12$ و $16$. ما الوتر؟
+
+<div slot="explain">$12 = 4 \times 3$ و $16 = 4 \times 4$، فالوتر $4 \times 5 = 20$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={2} hint="بسّط الجذر: √8 = k√2.">
+
+ساقا مثلث قائم $2$ و $2$. إذا كتبت الوتر على صورة $k\sqrt{2}$، فما $k$؟
+
+<div slot="explain">$\sqrt{4 + 4} = \sqrt{8} = 2\sqrt{2}$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={12}>
+
+سلّم طوله $13 \text{ m}$ يستند إلى جدار، وقاعدته على بعد $5 \text{ m}$ من الجدار. على أي ارتفاع يلمس الجدار؟
+
+<div slot="explain">$\sqrt{169 - 25} = 12 \text{ m}$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **نظرية فيثاغورس:** في المثلث القائم $c^2 = a^2 + b^2$، حيث $c$ الوتر.
+- تعطي الوتر من الساقين، أو ساقًا من الوتر والساق الأخرى.
+- **الثلاثيات الفيثاغورية** ($3, 4, 5$ و $5, 12, 13$ و $8, 15, 17$ ومضاعفاتها) توفر الحساب.

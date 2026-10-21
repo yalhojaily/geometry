@@ -1,0 +1,227 @@
+---
+// Interactive: squares on the sides of a right triangle (a² + b² = c²),
+// or, with mode="classify", any three lengths: acute / right / obtuse.
+import '../styles/qlab.css';
+interface Props {
+  mode?: 'squares' | 'classify';
+}
+const { mode = 'squares' } = Astro.props;
+---
+
+<pythag-lab class="panel lab qlab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{mode === 'squares' ? 'المربعات على أضلاع المثلث القائم' : 'حاد أم قائم أم منفرج؟'}</span>
+    <span class="kind badge-k"></span>
+  </div>
+  <svg viewBox="0 0 360 300" class="stage" role="img" aria-label={mode === 'squares' ? 'مثلث قائم ومربعات على أضلاعه' : 'مثلث بأطوال أضلاع معطاة'}></svg>
+  <div class="sliders"></div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</pythag-lab>
+
+<script>
+  import { el, text, type P } from '../scripts/svg';
+  import { pts, len, rightMark, centroid } from '../scripts/quad';
+
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+
+  class PythagLab extends HTMLElement {
+    mode = 'squares';
+    v: Record<string, number> = {};
+
+    connectedCallback() {
+      this.mode = this.dataset.mode ?? 'squares';
+      const defs: [string, number, number, number][] =
+        this.mode === 'squares'
+          ? [
+              ['a', 1, 6, 3],
+              ['b', 1, 6, 4],
+            ]
+          : [
+              ['a', 1, 12, 5],
+              ['b', 1, 12, 6],
+              ['c', 1, 12, 8],
+            ];
+      const box = this.querySelector('.sliders')!;
+      box.innerHTML = defs
+        .map(([k, min, max, val]) => {
+          this.v[k] = val;
+          return `<label><span class="ltr">${k} = <b data-v="${k}">${val}</b></span><input type="range" data-k="${k}" min="${min}" max="${max}" step="1" value="${val}" dir="ltr" aria-label="${k}" /></label>`;
+        })
+        .join('');
+      box.querySelectorAll<HTMLInputElement>('input').forEach((inp) =>
+        inp.addEventListener('input', () => {
+          this.v[inp.dataset.k!] = Number(inp.value);
+          this.render();
+        }),
+      );
+      this.render();
+    }
+
+    /** Fit math-coordinate points (y up) into the stage, returning a mapper. */
+    fitter(all: P[], W = 340, H = 280, cap = 30) {
+      const xs = all.map((p) => p.x);
+      const ys = all.map((p) => p.y);
+      const x0 = Math.min(...xs);
+      const x1 = Math.max(...xs);
+      const y0 = Math.min(...ys);
+      const y1 = Math.max(...ys);
+      const s = Math.min(W / (x1 - x0), H / (y1 - y0), cap);
+      const ox = 180 - ((x0 + x1) / 2) * s;
+      const oy = 150 + ((y0 + y1) / 2) * s;
+      return (p: P): P => ({ x: ox + p.x * s, y: oy - p.y * s });
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      this.querySelectorAll<HTMLElement>('[data-v]').forEach((e) => (e.textContent = String(this.v[e.dataset.v!])));
+      if (this.mode === 'squares') this.squares(svg);
+      else this.classify(svg);
+    }
+
+    squares(svg: Element) {
+      const { a, b } = this.v;
+      const c = Math.hypot(a, b);
+      // right angle at C(0,0); B on +x (leg a), A on +y (leg b)
+      const C = { x: 0, y: 0 };
+      const B = { x: a, y: 0 };
+      const A = { x: 0, y: b };
+      const sqA = [C, B, { x: a, y: -a }, { x: 0, y: -a }];
+      const sqB = [C, A, { x: -b, y: b }, { x: -b, y: 0 }];
+      const n = { x: b / c, y: a / c }; // outward normal of AB
+      const sqC = [B, A, { x: A.x + n.x * c, y: A.y + n.y * c }, { x: B.x + n.x * c, y: B.y + n.y * c }];
+      const f = this.fitter([...sqA, ...sqB, ...sqC]);
+      const poly = (ps: P[], cls: string) => svg.appendChild(el('polygon', { points: pts(ps.map(f)) }, cls));
+      poly(sqA, 'sqa');
+      poly(sqB, 'sqb');
+      poly(sqC, 'sqc');
+      // unit grid inside the leg squares
+      for (let i = 1; i < a; i++) {
+        const p = f({ x: i, y: 0 });
+        const q = f({ x: i, y: -a });
+        const r = f({ x: 0, y: -i });
+        const s = f({ x: a, y: -i });
+        svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, 'ugrid'));
+        svg.appendChild(el('line', { x1: r.x, y1: r.y, x2: s.x, y2: s.y }, 'ugrid'));
+      }
+      for (let i = 1; i < b; i++) {
+        const p = f({ x: 0, y: i });
+        const q = f({ x: -b, y: i });
+        const r = f({ x: -i, y: 0 });
+        const s = f({ x: -i, y: b });
+        svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, 'ugrid'));
+        svg.appendChild(el('line', { x1: r.x, y1: r.y, x2: s.x, y2: s.y }, 'ugrid'));
+      }
+      poly([A, B, C], 'poly');
+      rightMark(svg, f(C), f(B), f(A), 10);
+      const lab = (p: P, t: string) => {
+        const q = f(p);
+        svg.appendChild(text(q.x, q.y, t, 'val'));
+      };
+      lab({ x: a / 2, y: -a / 2 }, `a² = ${a * a}`);
+      lab({ x: -b / 2, y: b / 2 }, `b² = ${b * b}`);
+      lab({ x: (A.x + B.x) / 2 + (n.x * c) / 2, y: (A.y + B.y) / 2 + (n.y * c) / 2 }, `c² = ${fmt(c * c)}`);
+      const cc = Math.round(c * 1000) / 1000;
+      const exact = Number.isInteger(cc);
+      this.querySelector('.kind')!.textContent = exact ? 'ثلاثية فيثاغورية' : '';
+      (this.querySelector('.kind') as HTMLElement).style.visibility = exact ? 'visible' : 'hidden';
+      this.querySelector('.calc')!.innerHTML =
+        `<div>a² + b² = ${a * a} + ${b * b} = ${a * a + b * b}</div>` +
+        `<div class="big">c = √${a * a + b * b}${exact ? ` = ${cc}` : ` ≈ ${fmt(c)}`}</div>`;
+      this.querySelector('.note')!.textContent =
+        'مساحة المربع على الوتر تساوي مجموع مساحتي المربعين على الساقين. عُدّ المربعات الصغيرة في المربعين الأصغرين.';
+    }
+
+    classify(svg: Element) {
+      const sides = [this.v.a, this.v.b, this.v.c];
+      const sorted = [...sides].sort((x, y) => x - y);
+      const [p, q, r] = sorted;
+      const kind = this.querySelector('.kind') as HTMLElement;
+      kind.style.visibility = 'visible';
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      if (p + q <= r) {
+        kind.textContent = 'ليس مثلثًا';
+        calc.innerHTML = `<div>${p} + ${q} = ${p + q} ≤ ${r}</div>`;
+        note.textContent = 'هذه الأطوال لا تصنع مثلثًا: مجموع الضلعين الأقصرين لا يزيد على الأطول (متباينة المثلث).';
+        return;
+      }
+      // build with the longest side as base
+      const x = (q * q + r * r - p * p) / (2 * r); // distance from left end along base to apex (side q from left)
+      const L = { x: 0, y: 0 };
+      const Rt = { x: r, y: 0 };
+      const T = { x, y: Math.sqrt(Math.max(0, q * q - x * x)) };
+      const f = this.fitter([L, Rt, T], 300, 240, 50);
+      const ps = [L, Rt, T].map(f);
+      svg.appendChild(el('polygon', { points: pts(ps) }, 'poly'));
+      const lhs = r * r;
+      const rhs = p * p + q * q;
+      const cls = lhs === rhs ? 'right' : lhs < rhs ? 'acute' : 'obtuse';
+      // mark the angle opposite the longest side (at the apex)
+      const ang = (Math.acos((p * p + q * q - r * r) / (2 * p * q)) * 180) / Math.PI;
+      if (cls === 'right') rightMark(svg, ps[2], ps[0], ps[1], 12);
+      else {
+        const v = ps[2];
+        const u1 = { x: ps[0].x - v.x, y: ps[0].y - v.y };
+        const u2 = { x: ps[1].x - v.x, y: ps[1].y - v.y };
+        const l1 = Math.hypot(u1.x, u1.y);
+        const l2 = Math.hypot(u2.x, u2.y);
+        const rr = 22;
+        const a1 = { x: v.x + (u1.x / l1) * rr, y: v.y + (u1.y / l1) * rr };
+        const a2 = { x: v.x + (u2.x / l2) * rr, y: v.y + (u2.y / l2) * rr };
+        svg.appendChild(el('path', { d: `M ${v.x} ${v.y} L ${a1.x} ${a1.y} A ${rr} ${rr} 0 0 ${u1.x * u2.y - u1.y * u2.x > 0 ? 1 : 0} ${a2.x} ${a2.y} Z` }, cls === 'acute' ? 'wedge w1' : 'wedge w3'));
+      }
+      const mids: [P, P, number][] = [
+        [ps[0], ps[1], r],
+        [ps[0], ps[2], q],
+        [ps[1], ps[2], p],
+      ];
+      const cen = centroid(ps);
+      mids.forEach(([m1, m2, vv]) => {
+        const m = { x: (m1.x + m2.x) / 2, y: (m1.y + m2.y) / 2 };
+        const d = len(m, cen) || 1;
+        svg.appendChild(text(m.x + ((m.x - cen.x) / d) * 14, m.y + ((m.y - cen.y) / d) * 14, String(vv), 'mlbl'));
+      });
+      const sign = cls === 'right' ? '=' : cls === 'acute' ? '<' : '>';
+      kind.textContent = cls === 'right' ? 'قائم' : cls === 'acute' ? 'حاد الزوايا' : 'منفرج الزاوية';
+      calc.innerHTML =
+        `<div dir="rtl">أطول ضلع <span class="ltr">c = ${r}</span>، والضلعان الآخران <span class="ltr">${p}</span> و <span class="ltr">${q}</span></div>` +
+        `<div class="big">c² = ${lhs} ${sign} a² + b² = ${p * p} + ${q * q} = ${rhs}</div>` +
+        `<div dir="rtl">الزاوية المقابلة لأطول ضلع: <span class="ltr">${fmt(ang)}°</span></div>`;
+      note.textContent =
+        cls === 'right'
+          ? 'المربعان متساويان: المثلث قائم، والزاوية القائمة تقابل أطول ضلع.'
+          : cls === 'acute'
+            ? 'مربع أطول ضلع أصغر من مجموع المربعين الآخرين: الزاوية المقابلة له أصغر من °90، فالمثلث حاد الزوايا.'
+            : 'مربع أطول ضلع أكبر من مجموع المربعين الآخرين: الزاوية المقابلة له أكبر من °90، فالمثلث منفرج.';
+    }
+  }
+  customElements.define('pythag-lab', PythagLab);
+</script>
+
+<style is:global>
+  pythag-lab .stage .sqa {
+    fill: var(--def-bg);
+    stroke: var(--def);
+    stroke-width: 2;
+  }
+  pythag-lab .stage .sqb {
+    fill: var(--thm-bg);
+    stroke: var(--thm);
+    stroke-width: 2;
+  }
+  pythag-lab .stage .sqc {
+    fill: var(--post-bg);
+    stroke: var(--post);
+    stroke-width: 2;
+  }
+  pythag-lab .stage .ugrid {
+    stroke: var(--ink-3);
+    stroke-opacity: 0.35;
+    stroke-width: 1;
+  }
+  pythag-lab .stage .poly {
+    fill-opacity: 0.25;
+  }
+</style>

@@ -1,0 +1,111 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '9.5'
+why: 'كل المثلثات القائمة التي فيها زاوية حادة واحدة متشابهة، فنسب أضلاعها ثابتة. أعطينا هذه النسب أسماء: الجيب وجيب التمام والظل. بها تقيس ارتفاع جبل أو عرض نهر دون أن تلمسه.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import TrigLab from '../../components/TrigLab.astro';
+
+## النسب الثلاث
+
+<Term id="def-trig-ratios" />
+
+<TrigLab />
+
+<Callout type="tip" title="كيف تتذكرها؟">
+
+بالإنجليزية تُحفظ بكلمة **SOH-CAH-TOA**: Sine = Opposite / Hypotenuse، و Cosine = Adjacent / Hypotenuse، و Tangent = Opposite / Adjacent. «المقابل» و«المجاور» يتغيران بحسب الزاوية التي تنظر منها، أما الوتر فثابت: الضلع المقابل للزاوية القائمة.
+
+</Callout>
+
+<Example title="مثال 1: النسب في مثلث">
+
+مثلث قائم في $C$، و $AC = 12$ و $BC = 5$ و $AB = 13$. أوجد النسب الثلاث للزاوية $A$.
+
+1. للزاوية $A$: المقابل $BC = 5$، والمجاور $AC = 12$، والوتر $13$.
+2. $\sin A = \tfrac{5}{13} \approx 0.385$، و $\cos A = \tfrac{12}{13} \approx 0.923$، و $\tan A = \tfrac{5}{12} \approx 0.417$.
+3. وللزاوية $B$ يتبادل المقابل والمجاور: $\sin B = \tfrac{12}{13} = \cos A$.
+
+</Example>
+
+<Example title="مثال 2: النسب الخاصة">
+
+من المثلث $30^\circ$-$60^\circ$-$90^\circ$ الذي أضلاعه $1$ و $\sqrt{3}$ و $2$:
+
+1. $\sin 30^\circ = \tfrac{1}{2}$، و $\cos 30^\circ = \tfrac{\sqrt{3}}{2}$، و $\tan 30^\circ = \tfrac{1}{\sqrt{3}} = \tfrac{\sqrt{3}}{3}$.
+2. ومن المثلث $45^\circ$-$45^\circ$-$90^\circ$: $\sin 45^\circ = \cos 45^\circ = \tfrac{\sqrt{2}}{2}$، و $\tan 45^\circ = 1$.
+
+</Example>
+
+## زاويتا الارتفاع والانخفاض
+
+<Term id="def-elevation" />
+
+<Prereq id="alg-proportion" />
+
+<Example title="مثال 3: ارتفاع شجرة">
+
+تقف على بعد $50 \text{ m}$ من شجرة، وزاوية الارتفاع إلى قمتها $35^\circ$. ما ارتفاعها؟ (أهمل طولك)
+
+1. المسافة الأفقية هي **المجاور**، والارتفاع هو **المقابل**، فنستخدم الظل.
+2. $\tan 35^\circ = \tfrac{h}{50}$.
+3. $h = 50 \tan 35^\circ \approx 50(0.7002) \approx 35 \text{ m}$.
+
+</Example>
+
+<Example title="مثال 4: زاوية الانخفاض">
+
+من قمة منارة ارتفاعها $200 \text{ ft}$، زاوية الانخفاض إلى سفينة $25^\circ$. كم تبعد السفينة عن قاعدة المنارة؟
+
+1. زاوية الارتفاع من السفينة إلى القمة تساوي زاوية الانخفاض: $25^\circ$.
+2. $\tan 25^\circ = \tfrac{200}{d}$، إذن $d = \tfrac{200}{\tan 25^\circ} \approx \tfrac{200}{0.4663} \approx 429 \text{ ft}$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="choice" answer={1} options={['3/5', '4/5', '3/4', '5/4']}>
+
+مثلث قائم أضلاعه $3$ و $4$ و $5$، والزاوية $A$ تقابل الضلع $3$. ما $\cos A$؟
+
+<div slot="explain">المجاور $4$ والوتر $5$: $\tfrac{4}{5}$.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={2} options={['3/5', '4/5', '3/4', '4/3']}>
+
+في المثلث نفسه، ما $\tan A$؟
+
+<div slot="explain">المقابل على المجاور: $\tfrac{3}{4}$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={0.5}>
+
+ما قيمة $\sin 30^\circ$؟
+
+<div slot="explain">الساق القصرى نصف الوتر: $\tfrac{1}{2}$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={1}>
+
+ما قيمة $\tan 45^\circ$؟
+
+<div slot="explain">الساقان متساويتان: $1$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={34} hint="الارتفاع هو المقابل، والسلّم هو الوتر.">
+
+سلّم طوله $80 \text{ ft}$ يصنع زاوية $25^\circ$ مع الأرض. على أي ارتفاع يلمس الجدار؟ (قرّب لأقرب عدد صحيح؛ $\sin 25^\circ \approx 0.4226$)
+
+<div slot="explain">$80 \sin 25^\circ \approx 33.8 \approx 34 \text{ ft}$.</div>
+</Quiz>
+
+## الخلاصة
+
+- $\sin = \tfrac{\text{المقابل}}{\text{الوتر}}$ و $\cos = \tfrac{\text{المجاور}}{\text{الوتر}}$ و $\tan = \tfrac{\text{المقابل}}{\text{المجاور}}$.
+- النسب تتحدد بالزاوية وحدها، لأن المثلثات القائمة ذات الزاوية الحادة نفسها متشابهة.
+- **زاوية الارتفاع** للأعلى و**زاوية الانخفاض** للأسفل، وهما متساويتان بين نقطتين.

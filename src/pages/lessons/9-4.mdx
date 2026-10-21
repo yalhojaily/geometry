@@ -1,0 +1,115 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '9.4'
+why: 'مثلثان قائمان يظهران في كل مكان: نصف المربع، ونصف المثلث المتطابق الأضلاع. نسب أضلاعهما ثابتة، فإذا عرفت ضلعًا واحدًا عرفت الثلاثة دون حساب جذور طويلة.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import SpecialLab from '../../components/SpecialLab.astro';
+
+## المثلثان الخاصان
+
+<Term id="thm-45-45-90" />
+<Term id="thm-30-60-90" />
+
+<SpecialLab />
+
+من أين تأتي هذه النسب؟
+
+- **نصف المربع:** قطر مربع ضلعه $x$ يقسمه إلى مثلثين $45^\circ$-$45^\circ$-$90^\circ$. بنظرية فيثاغورس: الوتر $\sqrt{x^2 + x^2} = \sqrt{2x^2} = x\sqrt{2}$.
+- **نصف المثلث المتطابق الأضلاع:** مثلث ضلعه $2x$، والارتفاع ينصف قاعدته. الوتر $2x$، والساق القصرى $x$، والارتفاع $\sqrt{4x^2 - x^2} = x\sqrt{3}$.
+
+<Prereq id="alg-radicals" />
+
+<Example title="مثال 1: من الساق إلى الوتر">
+
+مثلث $45^\circ$-$45^\circ$-$90^\circ$ ساقه $7$. أوجد الوتر.
+
+1. الوتر $= 7\sqrt{2} \approx 9.9$.
+
+</Example>
+
+<Example title="مثال 2: من الوتر إلى الساق">
+
+مثلث $45^\circ$-$45^\circ$-$90^\circ$ وتره $10$. أوجد الساق.
+
+1. $x\sqrt{2} = 10$، إذن $x = \tfrac{10}{\sqrt{2}}$.
+2. اضرب البسط والمقام في $\sqrt{2}$: $x = \tfrac{10\sqrt{2}}{2} = 5\sqrt{2} \approx 7.07$.
+
+</Example>
+
+<Example title="مثال 3: المثلث 30-60-90">
+
+مثلث $30^\circ$-$60^\circ$-$90^\circ$ ساقه الطولى $9$. أوجد الضلعين الآخرين.
+
+1. الساق الطولى $x\sqrt{3} = 9$، إذن $x = \tfrac{9}{\sqrt{3}} = \tfrac{9\sqrt{3}}{3} = 3\sqrt{3}$.
+2. الساق القصرى $3\sqrt{3} \approx 5.2$، والوتر $2x = 6\sqrt{3} \approx 10.4$.
+
+</Example>
+
+<Callout type="tip" title="ابدأ دائمًا بالساق القصرى">
+
+في المثلث $30^\circ$-$60^\circ$-$90^\circ$، أوجد الساق القصرى $x$ أولًا مهما كان الضلع المعطى. ثم: الوتر $2x$، والطولى $x\sqrt{3}$. والطولى دائمًا أطول من القصرى وأقصر من الوتر.
+
+</Callout>
+
+<Example title="مثال 4: ارتفاع مثلث متطابق الأضلاع">
+
+مثلث متطابق الأضلاع ضلعه $8$. أوجد ارتفاعه ومساحته.
+
+1. الارتفاع يقسمه إلى مثلثين $30^\circ$-$60^\circ$-$90^\circ$ وترهما $8$، فالساق القصرى $4$.
+2. الارتفاع (الساق الطولى) $4\sqrt{3} \approx 6.93$.
+3. المساحة $\tfrac{1}{2}(8)(4\sqrt{3}) = 16\sqrt{3} \approx 27.7$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={6} hint="الوتر = الساق × √2.">
+
+مثلث $45^\circ$-$45^\circ$-$90^\circ$ وتره $6\sqrt{2}$. ما طول ساقه؟
+
+<div slot="explain">$x\sqrt{2} = 6\sqrt{2}$، إذن $x = 6$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={14}>
+
+مثلث $30^\circ$-$60^\circ$-$90^\circ$ ساقه القصرى $7$. ما الوتر؟
+
+<div slot="explain">الوتر ضعف القصرى: $14$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={5}>
+
+مثلث $30^\circ$-$60^\circ$-$90^\circ$ وتره $10$. ما الساق القصرى؟
+
+<div slot="explain">نصف الوتر: $5$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={4} hint="الطولى = القصرى × √3.">
+
+مثلث $30^\circ$-$60^\circ$-$90^\circ$ ساقه الطولى $4\sqrt{3}$. ما الساق القصرى؟
+
+<div slot="explain">$x\sqrt{3} = 4\sqrt{3}$، إذن $x = 4$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={5}>
+
+مربع قطره $5\sqrt{2}$. ما طول ضلعه؟
+
+<div slot="explain">القطر يصنع مثلثين $45^\circ$-$45^\circ$-$90^\circ$: الضلع $5$.</div>
+</Quiz>
+
+## الخلاصة
+
+| المثلث | الأضلاع |
+|---|---|
+| $45^\circ$-$45^\circ$-$90^\circ$ | $x : x : x\sqrt{2}$ |
+| $30^\circ$-$60^\circ$-$90^\circ$ | $x : x\sqrt{3} : 2x$ |
+
+- الأول نصف مربع، والثاني نصف مثلث متطابق الأضلاع.
+- في الثاني ابدأ بالساق القصرى.

@@ -1,0 +1,109 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '9.7'
+why: 'التقينا المتجه في الدرس 7.4 حركةً بين نقطتين. الآن نقيسه: كم طوله؟ وفي أي اتجاه يشير؟ وماذا يحدث حين نجمع حركتين؟ هنا تلتقي نظرية فيثاغورس والنسب المثلثية في أداة يستخدمها الطيارون والمهندسون وكل محركات الألعاب.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import VectorLab from '../../components/VectorLab.astro';
+
+## المقدار والاتجاه
+
+<Term id="def-vector-magnitude" />
+
+<Example title="مثال 1: مقدار متجه واتجاهه">
+
+أوجد مقدار المتجه $\langle 4, 7 \rangle$ واتجاهه.
+
+1. **المقدار:** $\sqrt{4^2 + 7^2} = \sqrt{65} \approx 8.06$.
+2. **الاتجاه:** $\tan \theta = \tfrac{7}{4}$، إذن $\theta = \tan^{-1}(1.75) \approx 60.3^\circ$ شمال الشرق.
+
+</Example>
+
+<Example title="مثال 2: متجه بين نقطتين">
+
+$P(1, 5)$ و $Q(4, 1)$. أوجد $\overrightarrow{PQ}$ ومقداره.
+
+1. $\overrightarrow{PQ} = \langle 4 - 1, 1 - 5 \rangle = \langle 3, -4 \rangle$.
+2. المقدار $\sqrt{9 + 16} = 5$.
+3. يشير إلى الجنوب الشرقي: $\tan^{-1}\left(\tfrac{4}{3}\right) \approx 53.1^\circ$ جنوب الشرق.
+
+</Example>
+
+## جمع المتجهات
+
+<Term id="def-vector-sum" />
+
+<VectorLab />
+
+<Callout type="tip" title="لماذا المتجهات؟">
+
+طائرة تتجه شرقًا بسرعة $400 \text{ km/h}$، والريح تهب شمالًا بسرعة $30 \text{ km/h}$. حركتها الفعلية هي **مجموع** المتجهين، لا أحدهما. لهذا يحسب الطيار المجموع ليعرف إلى أين سيصل.
+
+</Callout>
+
+<Example title="مثال 3: الطائرة والريح">
+
+مع أرقام الطائرة والريح أعلاه، ما السرعة الفعلية واتجاهها؟
+
+1. المجموع $\langle 400, 0 \rangle + \langle 0, 30 \rangle = \langle 400, 30 \rangle$.
+2. المقدار $\sqrt{400^2 + 30^2} = \sqrt{160900} \approx 401 \text{ km/h}$.
+3. الاتجاه $\tan^{-1}\left(\tfrac{30}{400}\right) \approx 4.3^\circ$ شمال الشرق.
+
+</Example>
+
+<Example title="مثال 4: متجهات متساوية ومتوازية">
+
+$\vec{u} = \langle 2, 3 \rangle$ و $\vec{v} = \langle 4, 6 \rangle$ و $\vec{w} = \langle 2, 3 \rangle$.
+
+1. $\vec{u}$ و $\vec{w}$ **متساويان**: المركّبات نفسها، فالمقدار والاتجاه نفسهما، أينما رُسما.
+2. $\vec{v} = 2\vec{u}$: الاتجاه نفسه وضعف الطول، فهما **متوازيان** وغير متساويين.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={13}>
+
+ما مقدار المتجه $\langle 5, 12 \rangle$؟
+
+<div slot="explain">$\sqrt{25 + 144} = 13$.</div>
+</Quiz>
+
+<Quiz n={2} type="choice" answer={0} options={['⟨4, 1⟩', '⟨2, −1⟩', '⟨−2, 1⟩', '⟨3, 0⟩']}>
+
+ما $\langle 3, -1 \rangle + \langle 1, 2 \rangle$؟
+
+<div slot="explain">$\langle 3 + 1, -1 + 2 \rangle = \langle 4, 1 \rangle$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={45}>
+
+ما اتجاه المتجه $\langle 3, 3 \rangle$ بالدرجات (بالنسبة إلى الشرق)؟
+
+<div slot="explain">$\tan^{-1}(1) = 45^\circ$.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={1} options={['متساويان', 'متوازيان غير متساويين', 'غير متوازيين']}>
+
+المتجهان $\langle 1, -2 \rangle$ و $\langle -3, 6 \rangle$:
+
+<div slot="explain">$\langle -3, 6 \rangle = -3\langle 1, -2 \rangle$: اتجاهان متعاكسان على المستقيم نفسه، فهما متوازيان غير متساويين.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={10}>
+
+$A(2, 1)$ و $B(8, 9)$. ما مقدار $\overrightarrow{AB}$؟
+
+<div slot="explain">$\langle 6, 8 \rangle$، ومقداره $\sqrt{36 + 64} = 10$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **المقدار:** $|\langle a, b \rangle| = \sqrt{a^2 + b^2}$.
+- **الاتجاه:** الزاوية مع الشرق، من $\tan \theta = \tfrac{b}{a}$.
+- **الجمع:** رأس الأول إلى ذيل الثاني، أو اجمع المركّبات.
+- **متساويان:** المقدار والاتجاه نفسهما. **متوازيان:** الاتجاه نفسه أو المعاكس.

@@ -1,0 +1,100 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '9.6'
+why: 'في الدرس السابق عرفنا الزاوية وأوجدنا ضلعًا. الآن نعكس الاتجاه: نعرف ضلعين ونريد الزاوية. ومع النسب العكسية ونظرية فيثاغورس يمكنك «حل» أي مثلث قائم: إيجاد كل أضلاعه وزواياه من معلومتين فقط.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import TrigLab from '../../components/TrigLab.astro';
+
+## حل المثلث القائم
+
+<Term id="def-inverse-trig" />
+
+يكفيك لحل مثلث قائم أن تعرف **ضلعين**، أو **ضلعًا وزاوية حادة**.
+
+<TrigLab />
+
+<Callout type="tip" title="اختر الأداة">
+
+- **عندك ضلعان وتريد الثالث:** نظرية فيثاغورس.
+- **عندك ضلعان وتريد زاوية:** النسبة العكسية التي تربط هذين الضلعين.
+- **عندك زاوية وضلع وتريد ضلعًا:** النسبة التي تربط الضلع المعطى بالمطلوب.
+- **زاوية حادة وتريد الأخرى:** مجموعهما $90^\circ$.
+
+</Callout>
+
+<Example title="مثال 1: من ضلعين">
+
+مثلث قائم في $C$، و $AC = 12$ و $BC = 5$. حل المثلث.
+
+1. **الوتر:** $AB = \sqrt{144 + 25} = 13$.
+2. **الزاوية $A$:** $\tan A = \tfrac{5}{12}$، إذن $m\angle A = \tan^{-1}\left(\tfrac{5}{12}\right) \approx 22.6^\circ$.
+3. **الزاوية $B$:** $90 - 22.6 = 67.4^\circ$.
+
+</Example>
+
+<Example title="مثال 2: من ضلع وزاوية">
+
+مثلث قائم في $C$، و $m\angle A = 28^\circ$ و $AB = 12$. حل المثلث.
+
+1. **الزاوية $B$:** $90 - 28 = 62^\circ$.
+2. **$BC$ (المقابل لـ $A$):** $\sin 28^\circ = \tfrac{BC}{12}$، إذن $BC = 12 \sin 28^\circ \approx 5.63$.
+3. **$AC$ (المجاور لـ $A$):** $\cos 28^\circ = \tfrac{AC}{12}$، إذن $AC = 12 \cos 28^\circ \approx 10.60$.
+
+</Example>
+
+<Example title="مثال 3: زاوية منحدر">
+
+منحدر للكراسي المتحركة يرتفع $0.7 \text{ m}$ على طول $10 \text{ m}$ من سطحه. ما زاوية ميله؟
+
+1. الارتفاع هو المقابل، وسطح المنحدر هو الوتر: $\sin \theta = \tfrac{0.7}{10} = 0.07$.
+2. $\theta = \sin^{-1}(0.07) \approx 4^\circ$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={45}>
+
+مثلث قائم ساقاه متساويتان. ما قياس كل زاوية حادة؟
+
+<div slot="explain">$\tan^{-1}(1) = 45^\circ$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={30} hint="أي زاوية جيبها نصف؟">
+
+في مثلث قائم، المقابل لزاوية $\theta$ يساوي نصف الوتر. ما $\theta$؟
+
+<div slot="explain">$\sin \theta = 0.5$، إذن $\theta = 30^\circ$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={67}>
+
+زاوية حادة في مثلث قائم $23^\circ$. ما الأخرى؟
+
+<div slot="explain">$90 - 23 = 67$.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={2} options={['sin⁻¹', 'cos⁻¹', 'tan⁻¹']}>
+
+تعرف المقابل والمجاور لزاوية. أي نسبة عكسية تستخدم لإيجادها؟
+
+<div slot="explain">المقابل والمجاور يرتبطان بالظل: $\tan^{-1}$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={60} hint="جيب التمام = المجاور ÷ الوتر.">
+
+في مثلث قائم، المجاور لزاوية $3$ والوتر $6$. ما قياس الزاوية؟
+
+<div slot="explain">$\cos \theta = \tfrac{1}{2}$، إذن $\theta = 60^\circ$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **حل المثلث** = إيجاد أضلاعه الثلاثة وزواياه الثلاث.
+- يكفي **ضلعان**، أو **ضلع وزاوية حادة**.
+- النسب العكسية $\sin^{-1}$ و $\cos^{-1}$ و $\tan^{-1}$ تعطي الزاوية من نسبة.

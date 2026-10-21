@@ -112,13 +112,13 @@ export const chapters: Chapter[] = [
   {
     n: 9, en: 'Right Triangles and Trigonometry', ar: 'المثلثات القائمة وحساب المثلثات',
     lessons: [
-      { id: '9.1', en: 'Similar Right Triangles', ar: 'المثلثات القائمة المتشابهة' },
-      { id: '9.2', en: 'The Pythagorean Theorem', ar: 'نظرية فيثاغورس' },
-      { id: '9.3', en: 'The Converse of the Pythagorean Theorem', ar: 'عكس نظرية فيثاغورس' },
-      { id: '9.4', en: 'Special Right Triangles', ar: 'المثلثات القائمة الخاصة' },
-      { id: '9.5', en: 'Trigonometric Ratios', ar: 'النسب المثلثية' },
-      { id: '9.6', en: 'Solving Right Triangles', ar: 'حل المثلثات القائمة' },
-      { id: '9.7', en: 'Vectors', ar: 'المتجهات' },
+      { id: '9.1', en: 'Similar Right Triangles', ar: 'المثلثات القائمة المتشابهة', ready: true },
+      { id: '9.2', en: 'The Pythagorean Theorem', ar: 'نظرية فيثاغورس', ready: true },
+      { id: '9.3', en: 'The Converse of the Pythagorean Theorem', ar: 'عكس نظرية فيثاغورس', ready: true },
+      { id: '9.4', en: 'Special Right Triangles', ar: 'المثلثات القائمة الخاصة', ready: true },
+      { id: '9.5', en: 'Trigonometric Ratios', ar: 'النسب المثلثية', ready: true },
+      { id: '9.6', en: 'Solving Right Triangles', ar: 'حل المثلثات القائمة', ready: true },
+      { id: '9.7', en: 'Vectors', ar: 'المتجهات', ready: true },
     ],
   },
   {

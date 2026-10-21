@@ -55,6 +55,7 @@ const R = {
   cpctc: { r: 'الأجزاء المتناظرة في مثلثين متطابقين', ref: 'def-cpctc' },
   straight: { r: 'تعريف الزاوية المستقيمة', ref: 'def-angle-types' },
   aa: { r: 'مسلّمة التشابه AA', ref: 'post-aa' },
+  geoLeg: { r: 'نظرية الوسط الهندسي للساق', ref: 'thm-geomean-leg' },
   defPgram: { r: 'تعريف متوازي الأضلاع', ref: 'def-parallelogram' },
   pgramSides: { r: 'نظرية الأضلاع المتقابلة في متوازي الأضلاع', ref: 'thm-pgram-sides' },
   altIntConv: { r: 'عكس نظرية الزوايا المتبادلة داخليًا', ref: 'thm-alt-interior-converse' },
@@ -457,6 +458,19 @@ export const proofs: Record<string, Proof> = {
       { s: '$\\triangle ADE \\sim \\triangle ABC$', ...R.aa },
     ],
     distractors: [R.altInt.r, R.sas.r, R.vertical.r],
+  },
+  pythagoras: {
+    title: 'نظرية فيثاغورس بالتشابه',
+    given: '$\\triangle ABC$ قائم في $C$، و $\\overline{CD}$ الارتفاع إلى الوتر؛ $BC = a$ و $AC = b$ و $AB = c$، و $AD = e$ و $DB = f$',
+    prove: '$c^2 = a^2 + b^2$',
+    steps: [
+      { s: '$\\tfrac{c}{a} = \\tfrac{a}{f}$ و $\\tfrac{c}{b} = \\tfrac{b}{e}$', ...R.geoLeg },
+      { s: '$a^2 = cf$ و $b^2 = ce$', r: 'خاصية الضرب التبادلي للتناسب', ref: 'prop-proportion' },
+      { s: '$a^2 + b^2 = cf + ce$', ...R.add },
+      { s: '$a^2 + b^2 = c(f + e)$', ...R.dist },
+      { s: '$e + f = c$', ...R.segAdd },
+      { s: '$a^2 + b^2 = c \\cdot c = c^2$', ...R.subst },
+    ],
   },
 };
 

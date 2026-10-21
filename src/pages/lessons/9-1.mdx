@@ -1,0 +1,103 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '9.1'
+why: 'ارسم الارتفاع من رأس الزاوية القائمة إلى الوتر، فتحصل على ثلاثة مثلثات متشابهة دفعة واحدة. هذه الملاحظة البسيطة تعطي علاقات جميلة بين الأطوال، ومنها سنبرهن نظرية فيثاغورس في الدرس التالي.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import AltitudeLab from '../../components/AltitudeLab.astro';
+
+## ثلاثة مثلثات متشابهة
+
+<Term id="thm-altitude-similar" />
+
+لماذا؟ $\triangle ACD$ و $\triangle ACB$ يشتركان في $\angle A$، وكلاهما فيه زاوية قائمة، فهما متشابهان (AA). وبالطريقة نفسها $\triangle CBD \sim \triangle ACB$ لأنهما يشتركان في $\angle B$. ومن التعدي يتشابه المثلثان الصغيران.
+
+<AltitudeLab />
+
+<Callout type="tip" title="ارسم المثلثات الثلاثة منفصلة">
+
+أصعب ما في هذه المسائل معرفة أي ضلع يقابل أي ضلع. ارسم المثلثات الثلاثة جنبًا إلى جنب بالاتجاه نفسه: الزاوية القائمة في المكان نفسه، والزاوية الصغرى في المكان نفسه. ثم اكتب التناسب.
+
+</Callout>
+
+## الوسط الهندسي
+
+<Term id="thm-geomean-altitude" />
+<Term id="thm-geomean-leg" />
+
+<Prereq id="alg-proportion" />
+
+<Example title="مثال 1: الارتفاع">
+
+في $\triangle ABC$ القائم في $C$، الارتفاع $\overline{CD}$ يقسم الوتر إلى $AD = 4$ و $DB = 9$. أوجد $CD$.
+
+1. $CD$ الوسط الهندسي لـ $AD$ و $DB$: $CD^2 = 4 \times 9 = 36$.
+2. $CD = 6$.
+
+</Example>
+
+<Example title="مثال 2: الساق">
+
+في المثلث نفسه، أوجد $AC$ و $BC$.
+
+1. $AC^2 = AD \cdot AB = 4 \times 13 = 52$، إذن $AC = \sqrt{52} = 2\sqrt{13} \approx 7.21$.
+2. $BC^2 = DB \cdot AB = 9 \times 13 = 117$، إذن $BC = \sqrt{117} = 3\sqrt{13} \approx 10.82$.
+
+</Example>
+
+<Example title="مثال 3: جزء الوتر المجهول">
+
+الارتفاع إلى الوتر طوله $8$، ويقسم الوتر إلى جزأين أحدهما $4$. أوجد الآخر.
+
+1. $8^2 = 4 \cdot x$.
+2. $64 = 4x$، إذن $x = 16$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={12}>
+
+الارتفاع إلى الوتر يقسمه إلى $8$ و $18$. ما طول الارتفاع؟
+
+<div slot="explain">$\sqrt{8 \times 18} = \sqrt{144} = 12$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={25}>
+
+الارتفاع إلى الوتر طوله $10$، وأحد جزأي الوتر $4$. ما الجزء الآخر؟
+
+<div slot="explain">$100 = 4x$، إذن $x = 25$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={6} hint="الساق² = الوتر × الجزء المجاور.">
+
+الوتر $9$، والجزء المجاور لساق ما $4$. ما طول هذه الساق؟
+
+<div slot="explain">$\sqrt{9 \times 4} = 6$.</div>
+</Quiz>
+
+<Quiz n={4} type="choice" answer={1} options={['المثلثان الصغيران فقط', 'المثلثات الثلاثة كلها', 'لا يوجد تشابه']}>
+
+أي المثلثات متشابهة في الشكل (المثلث القائم مع ارتفاعه)؟
+
+<div slot="explain">الثلاثة: الكبير والصغيران.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={20}>
+
+ساق طولها $10$، والجزء المجاور لها من الوتر $5$. ما طول الوتر؟
+
+<div slot="explain">$10^2 = 5 \cdot c$، إذن $c = 20$.</div>
+</Quiz>
+
+## الخلاصة
+
+- الارتفاع إلى الوتر يصنع **ثلاثة مثلثات متشابهة**.
+- **الارتفاع** هو الوسط الهندسي لجزأي الوتر: $h^2 = xy$.
+- **كل ساق** هي الوسط الهندسي للوتر كله والجزء المجاور لها: $a^2 = c \cdot y$.

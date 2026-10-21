@@ -87,7 +87,7 @@ export const skills: Skill[] = [
     review: 'في التناسب $\\tfrac{a}{b} = \\tfrac{c}{d}$ يكون حاصل ضرب الطرفين مساويًا لحاصل ضرب الوسطين: $ad = bc$.',
     example: '$\\tfrac{x}{6} = \\tfrac{10}{15} \\Rightarrow 15x = 60 \\Rightarrow x = 4$',
     check: { q: 'إذا كان $\\tfrac{3}{x} = \\tfrac{9}{12}$، فما قيمة $x$؟', answer: 4 },
-    usedIn: ['8.1', '8.2', '8.3', '8.4', '8.6'],
+    usedIn: ['8.1', '8.2', '8.3', '8.4', '8.6', '9.1', '9.5'],
   },
   {
     id: 'alg-radicals',
