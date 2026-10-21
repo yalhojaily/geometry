@@ -1,0 +1,141 @@
+---
+// The chapter's lessons as a numbered list, with the current page marked.
+import ChapterGlyph from './ChapterGlyph.astro';
+import { chapters, lessonSlug } from '../data/curriculum';
+
+interface Props {
+  chapter: number;
+  current?: string; // lesson id, or 'review'
+}
+const { chapter, current } = Astro.props;
+const ch = chapters.find((c) => c.n === chapter)!;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<nav class="crail" aria-label={`دروس الفصل ${chapter}`}>
+  <a class="crail-head" href={`${base}/`}>
+    <ChapterGlyph n={chapter} size={40} />
+    <span>
+      <small>الفصل {chapter}</small>
+      {ch.ar}
+    </span>
+  </a>
+  <ol>
+    {
+      ch.lessons.map((l) => (
+        <li>
+          <a
+            href={`${base}/lessons/${lessonSlug(l.id)}/`}
+            data-id={l.id}
+            class:list={{ here: l.id === current }}
+            aria-current={l.id === current ? 'page' : undefined}
+          >
+            <span class="n">{l.id}</span>
+            <span>{l.ar}</span>
+          </a>
+        </li>
+      ))
+    }
+    <li>
+      <a
+        href={`${base}/review/${chapter}/`}
+        class:list={['rv', { here: current === 'review' }]}
+        aria-current={current === 'review' ? 'page' : undefined}
+      >
+        <span class="n">
+          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><polygon points="8,1.5 14.5,14 1.5,14" /></svg>
+        </span>
+        <span>مراجعة الفصل</span>
+      </a>
+    </li>
+  </ol>
+</nav>
+
+<script>
+  let p: Record<string, boolean> = {};
+  try {
+    p = JSON.parse(localStorage.getItem('progress') ?? '{}');
+  } catch {}
+  document.querySelectorAll<HTMLElement>('.crail [data-id]').forEach((a) => a.classList.toggle('done', !!p[a.dataset.id!]));
+  addEventListener('progress-changed', () => {
+    try {
+      p = JSON.parse(localStorage.getItem('progress') ?? '{}');
+    } catch {}
+    document.querySelectorAll<HTMLElement>('.crail [data-id]').forEach((a) => a.classList.toggle('done', !!p[a.dataset.id!]));
+  });
+</script>
+
+<style>
+  .crail-head {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 0.6rem;
+  }
+  .crail-head small {
+    display: block;
+    font-family: var(--font-body);
+    font-weight: 400;
+    color: var(--ink-3);
+    font-size: 0.8rem;
+  }
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-inline-start: 1px solid var(--line-2);
+  }
+  li a {
+    display: flex;
+    gap: 0.55rem;
+    align-items: baseline;
+    padding: 0.22rem 0.7rem;
+    margin-inline-start: -1px;
+    border-inline-start: 3px solid transparent;
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  li a:hover {
+    color: var(--ink);
+  }
+  .n {
+    flex: none;
+    width: 2rem;
+    direction: ltr;
+    text-align: end;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .rv .n {
+    display: flex;
+    justify-content: flex-end;
+    align-self: center;
+  }
+  .rv polygon {
+    fill: var(--yellow);
+    stroke: var(--ink);
+    stroke-width: 1.3;
+    stroke-linejoin: round;
+  }
+  a.done .n {
+    color: var(--good);
+  }
+  a.here {
+    border-inline-start-color: var(--red);
+    color: var(--ink);
+    font-weight: 600;
+    background: var(--card);
+  }
+  a.here .n {
+    color: var(--red);
+  }
+</style>

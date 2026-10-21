@@ -1,60 +1,69 @@
 ---
 import Base from '../layouts/Base.astro';
+import EuclidHero from '../components/EuclidHero.astro';
+import ChapterGlyph from '../components/ChapterGlyph.astro';
 import { chapters, allLessons, lessonSlug } from '../data/curriculum';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const readyCount = allLessons.filter((l) => l.ready).length;
+const first = allLessons[0];
+const order = allLessons.map((l) => ({ id: l.id, ar: l.ar, href: `${base}/lessons/${lessonSlug(l.id)}/` }));
 ---
 
 <Base title="هندسة · شرح تفاعلي للهندسة الإقليدية">
   <section class="hero wrap">
-    <h1>الهندسة، خطوة بخطوة</h1>
-    <p>
-      شرح تفاعلي لمنهج الهندسة الإقليدية، بنفس ترتيب فصول الكتاب. حرّك الأشكال، اختبر التخمينات،
-      وحل التمارين بتصحيح فوري.
-    </p>
-    <div class="stats">
-      <span><b>12</b> فصلًا</span>
-      <span><b>{allLessons.length}</b> درسًا</span>
-      <span><b>{readyCount}</b> جاهز</span>
-      <span class="mine">أكملت <b class="done-count">0</b></span>
+    <div class="hero-text">
+      <h1>الهندسة<br />خطوة بخطوة</h1>
+      <p class="lead">
+        شرح تفاعلي لمنهج الهندسة الإقليدية في {chapters.length} فصلًا و{allLessons.length} درسًا، بترتيب فصول
+        الكتاب. كل تعريف ونظرية تراها مرسومة، وكل شكل يمكنك تحريكه، وكل تمرين يُصحَّح فورًا.
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary go" href={order[0].href} data-order={JSON.stringify(order)}>
+          ابدأ بالدرس {first.id}
+        </a>
+        <span class="overall">أكملت <b class="done-count">0</b> من {allLessons.length} درسًا</span>
+      </div>
+    </div>
+    <div class="hero-fig">
+      <EuclidHero />
     </div>
   </section>
 
-  <section class="wrap chapters">
+  <section class="wrap atlas" aria-label="فصول الكتاب">
     {
       chapters.map((c) => (
-        <details class="chapter" open={c.n === 1}>
+        <details class="ch" open data-ch={c.n}>
           <summary>
-            <span class="cn">{c.n}</span>
-            <span class="ct">
-              <span class="ar">{c.ar}</span>
+            <ChapterGlyph n={c.n} size={56} />
+            <span class="ch-t">
+              <span class="ch-n">الفصل {c.n}</span>
+              <span class="ch-ar">{c.ar}</span>
               <span class="en">{c.en}</span>
+            </span>
+            <span class="ch-p" aria-hidden="true">
+              {c.lessons.map((l) => (
+                <i data-id={l.id} />
+              ))}
             </span>
           </summary>
           <ol class="lessons">
             {c.lessons.map((l) => (
               <li>
-                {l.ready ? (
-                  <a class="lesson ready" href={`${base}/lessons/${lessonSlug(l.id)}/`} data-id={l.id}>
-                    <span class="lid">{l.id}</span>
-                    <span class="lt">{l.ar}</span>
-                    <span class="mark" aria-hidden="true" />
-                  </a>
-                ) : (
-                  <span class="lesson soon">
-                    <span class="lid">{l.id}</span>
-                    <span class="lt">{l.ar}</span>
-                    <span class="badge">قريبًا</span>
-                  </span>
-                )}
+                <a class="lesson" href={`${base}/lessons/${lessonSlug(l.id)}/`} data-id={l.id}>
+                  <span class="lid">{l.id}</span>
+                  <span class="lt">{l.ar}</span>
+                </a>
               </li>
             ))}
             <li>
-              <a class="lesson ready review-link" href={`${base}/review/${c.n}/`} data-review={c.n}>
-                <span class="lid">✦</span>
+              <a class="lesson review-link" href={`${base}/review/${c.n}/`} data-review={c.n}>
+                <span class="lid">
+                  <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
+                    <polygon points="8,1.5 14.5,14 1.5,14" />
+                  </svg>
+                </span>
                 <span class="lt">مراجعة الفصل: تمارين مختلطة</span>
-                <span class="rscore" aria-hidden="true" />
+                <span class="rscore" />
               </a>
             </li>
           </ol>
@@ -69,7 +78,7 @@ const readyCount = allLessons.filter((l) => l.ready).length;
   try {
     p = JSON.parse(localStorage.getItem('progress') ?? '{}');
   } catch {}
-  document.querySelectorAll<HTMLElement>('.lesson.ready').forEach((a) => {
+  document.querySelectorAll<HTMLElement>('[data-id]').forEach((a) => {
     if (p[a.dataset.id ?? '']) a.classList.add('done');
   });
   let rv: Record<string, { first: number; total: number }> = {};
@@ -82,174 +91,230 @@ const readyCount = allLessons.filter((l) => l.ready).length;
     if (r && sc) sc.textContent = `${r.first}/${r.total}`;
   });
   const n = Object.values(p).filter(Boolean).length;
-  const el = document.querySelector('.done-count');
-  if (el) el.textContent = String(n);
+  document.querySelector('.done-count')!.textContent = String(n);
+
+  // The main button continues from the first lesson not yet marked complete.
+  const go = document.querySelector<HTMLAnchorElement>('.go')!;
+  const order: { id: string; ar: string; href: string }[] = JSON.parse(go.dataset.order!);
+  const nextUp = order.find((l) => !p[l.id]);
+  if (n > 0 && nextUp) {
+    go.href = nextUp.href;
+    go.textContent = `تابع: ${nextUp.id} ${nextUp.ar}`;
+  }
+
+  // On narrow screens only the chapter you are working on stays open.
+  const narrow = matchMedia('(max-width: 759px)');
+  const current = nextUp ? nextUp.id.split('.')[0] : '1';
+  const chs = document.querySelectorAll<HTMLDetailsElement>('.ch');
+  const layout = () => chs.forEach((d) => (d.open = !narrow.matches || d.dataset.ch === current));
+  layout();
+  narrow.addEventListener('change', layout);
+  chs.forEach((d) =>
+    d.querySelector('summary')!.addEventListener('click', (e) => {
+      if (!narrow.matches) e.preventDefault();
+    }),
+  );
 </script>
 
 <style>
   .hero {
-    padding-top: 2.8rem;
-    padding-bottom: 1.6rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 2rem;
+    padding-top: 2.6rem;
+    padding-bottom: 2.4rem;
   }
   h1 {
-    font-size: clamp(1.9rem, 6vw, 2.8rem);
-    margin-bottom: 0.4rem;
+    font-size: clamp(2.7rem, 7.4vw, 5.2rem);
+    font-weight: 700;
+    line-height: 1.12;
+    margin-bottom: 1.1rem;
   }
-  .hero p {
-    font-size: 1.12rem;
+  .lead {
+    font-size: 1.15rem;
     color: var(--ink-2);
-    max-width: 38rem;
+    max-width: 34rem;
   }
-  .stats {
+  .cta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 0.8rem 1.2rem;
+    margin-top: 1.6rem;
   }
-  .stats span {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 0.15rem 0.85rem;
-    font-size: 0.92rem;
-    color: var(--ink-2);
+  .go {
+    text-decoration: none;
+    padding: 0.65rem 1.3rem;
+    font-size: 1.05rem;
   }
-  .stats b {
-    font-family: var(--font-head);
+  .overall {
+    color: var(--ink-3);
+    font-size: 0.95rem;
+  }
+  .overall b {
     color: var(--ink);
   }
-  .stats .mine {
-    background: var(--accent-soft);
-    border-color: transparent;
+  .hero-fig {
+    max-width: 480px;
+    width: 100%;
+    justify-self: center;
   }
-  .chapters {
+
+  .atlas {
     display: grid;
-    gap: 0.7rem;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 1.25rem;
+    align-items: start;
+    padding-bottom: 1rem;
   }
-  .chapter {
+  .ch {
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
   }
   summary {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 0.9rem;
     align-items: center;
-    gap: 0.9rem;
-    padding: 0.8rem 1rem;
-    cursor: pointer;
+    padding: 1rem 1.1rem 0.85rem;
     list-style: none;
+    cursor: default;
+    border-bottom: 1px solid var(--line);
   }
   summary::-webkit-details-marker {
     display: none;
   }
-  summary::after {
-    content: '‹';
-    margin-inline-start: auto;
-    font-size: 1.4rem;
-    color: var(--ink-3);
-    transition: transform 0.2s;
-  }
-  .chapter[open] summary::after {
-    transform: rotate(-90deg);
-  }
-  .cn {
-    flex: none;
-    width: 2.6rem;
-    height: 2.6rem;
-    display: grid;
-    place-items: center;
-    background: var(--brand);
-    color: var(--paper);
-    border-radius: 10px;
-    font-family: var(--font-head);
-    font-weight: 700;
-    font-size: 1.15rem;
-  }
-  .ct {
+  .ch-t {
     display: flex;
     flex-direction: column;
-    line-height: 1.4;
+    line-height: 1.35;
+    min-width: 0;
   }
-  .ar {
-    font-family: var(--font-head);
+  .ch-n {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+  }
+  .ch-ar {
+    font-family: var(--font-display);
     font-weight: 600;
-    font-size: 1.08rem;
+    font-size: 1.28rem;
+    color: var(--ink);
+  }
+  .ch-t .en {
+    font-size: 0.8rem;
+  }
+  /* one tick per lesson; filled when that lesson is complete */
+  .ch-p {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 3px;
+    margin-top: 0.35rem;
+  }
+  .ch-p i {
+    flex: 1;
+    height: 4px;
+    background: var(--paper-2);
+  }
+  .ch-p i.done {
+    background: var(--good);
   }
   .lessons {
     list-style: none;
     margin: 0;
-    padding: 0 0.6rem 0.6rem;
-    border-top: 1px solid var(--line);
+    padding: 0.4rem 0.5rem 0.6rem;
   }
   .lesson {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.55rem 0.6rem;
-    border-radius: 10px;
+    align-items: baseline;
+    gap: 0.7rem;
+    padding: 0.32rem 0.6rem;
+    border-radius: 3px;
     color: var(--ink);
     text-decoration: none;
+    line-height: 1.55;
   }
-  .lesson.ready:hover {
-    background: var(--paper-2);
-  }
-  .lesson.soon {
-    color: var(--ink-3);
+  .lesson:hover {
+    background: var(--paper);
   }
   .lid {
     flex: none;
-    width: 2.6rem;
-    font-family: var(--font-head);
+    width: 2.3rem;
     font-weight: 600;
+    font-size: 0.92rem;
     direction: ltr;
     text-align: end;
     color: var(--brand);
-  }
-  .soon .lid {
-    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
   }
   .lt {
     flex: 1;
   }
-  .badge {
-    font-size: 0.75rem;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 0 0.55rem;
+  .lesson.done .lt {
+    color: var(--ink-3);
+  }
+  .lesson.done .lid {
+    color: var(--good);
+  }
+  .lesson.done .lid::before {
+    content: '✓ ';
+    font-size: 0.8em;
   }
   .review-link {
-    background: var(--accent-soft);
+    margin-top: 0.3rem;
+    font-weight: 600;
   }
   .review-link .lid {
-    color: var(--accent);
+    display: flex;
+    justify-content: flex-end;
+    align-self: center;
+  }
+  .review-link polygon {
+    fill: var(--yellow);
+    stroke: var(--ink);
+    stroke-width: 1.3;
+    stroke-linejoin: round;
   }
   .rscore {
-    margin-inline-start: auto;
-    font-family: var(--font-head);
     font-size: 0.85rem;
-    color: var(--thm);
+    color: var(--good);
   }
-  .mark {
-    width: 1.4rem;
-    height: 1.4rem;
-    border-radius: 50%;
-    border: 2px solid var(--line);
-    flex: none;
-  }
-  .lesson.done .mark {
-    background: var(--good);
-    border-color: var(--good);
-    position: relative;
-  }
-  .lesson.done .mark::after {
-    content: '✓';
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    color: var(--card);
-    font-size: 0.8rem;
-    font-weight: 700;
+
+  @media (max-width: 759px) {
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+      padding-top: 1.6rem;
+    }
+    .hero-fig {
+      max-width: 320px;
+      margin-top: 0.8rem;
+    }
+    summary {
+      cursor: pointer;
+      grid-template-columns: auto 1fr auto;
+    }
+    summary::after {
+      content: '';
+      width: 9px;
+      height: 9px;
+      border-inline-start: 2px solid var(--ink-3);
+      border-bottom: 2px solid var(--ink-3);
+      transform: rotate(-45deg);
+      transition: transform 0.2s;
+      grid-row: 1;
+      grid-column: 3;
+    }
+    .ch[open] summary::after {
+      transform: rotate(135deg);
+    }
+    .ch:not([open]) summary {
+      border-bottom: 0;
+    }
+    .atlas {
+      grid-template-columns: 1fr;
+      gap: 0.7rem;
+    }
   }
 </style>

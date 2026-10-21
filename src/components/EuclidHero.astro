@@ -1,0 +1,204 @@
+---
+// Home-page hero: Euclid's first construction (Elements I.1), live.
+// Two circles of radius AB around A and B meet at C; triangle ABC is equilateral.
+---
+
+<euclid-hero class="euclid">
+  <svg viewBox="0 0 420 340" class="stage" role="img" aria-label="إنشاء مثلث متساوي الأضلاع بالفرجار: دائرتان حول A وB تتقاطعان في C">
+    <circle class="cc c1" cx="150" cy="220" r="120" pathLength="1"></circle>
+    <circle class="cc c2" cx="270" cy="220" r="120" pathLength="1"></circle>
+    <polygon class="tri" points="150,220 270,220 210,116.08"></polygon>
+    <line class="side ab" x1="150" y1="220" x2="270" y2="220"></line>
+    <line class="side ac" x1="150" y1="220" x2="210" y2="116.08"></line>
+    <line class="side bc" x1="270" y1="220" x2="210" y2="116.08"></line>
+    <circle class="pt pc" cx="210" cy="116.08" r="5"></circle>
+    <text class="lbl la" x="132" y="244">A</text>
+    <text class="lbl lb" x="278" y="244">B</text>
+    <text class="lbl lc" x="203" y="102">C</text>
+    <g class="h ha" data-k="A">
+      <circle class="halo" cx="150" cy="220" r="18"></circle>
+      <circle class="pt" cx="150" cy="220" r="6"></circle>
+    </g>
+    <g class="h hb" data-k="B">
+      <circle class="halo" cx="270" cy="220" r="18"></circle>
+      <circle class="pt" cx="270" cy="220" r="6"></circle>
+    </g>
+  </svg>
+  <p class="cap">
+    اسحب <span class="ltr">A</span> أو <span class="ltr">B</span>. الدائرتان تتقاطعان دائمًا في
+    <span class="ltr">C</span>، فيبقى المثلث متساوي الأضلاع. هذا أول إنشاء في كتاب «العناصر» لإقليدس.
+  </p>
+</euclid-hero>
+
+<script>
+  import { makeDraggable, type P } from '../scripts/svg';
+
+  class EuclidHero extends HTMLElement {
+    A: P = { x: 150, y: 220 };
+    B: P = { x: 270, y: 220 };
+    connectedCallback() {
+      const svg = this.querySelector<SVGSVGElement>('svg')!;
+      const drag = makeDraggable<'A' | 'B'>(svg, (k, p) => {
+        const q = { x: Math.min(370, Math.max(50, p.x)), y: Math.min(290, Math.max(70, p.y)) };
+        const other = k === 'A' ? this.B : this.A;
+        let dx = q.x - other.x;
+        let dy = q.y - other.y;
+        const d = Math.hypot(dx, dy);
+        // keep the triangle a readable size
+        const lim = Math.min(Math.max(d, 50), 135);
+        if (d > 0) {
+          dx = (dx / d) * lim;
+          dy = (dy / d) * lim;
+        }
+        this[k] = { x: other.x + dx, y: other.y + dy };
+        this.render();
+      });
+      this.querySelectorAll<SVGGElement>('.h').forEach((g) =>
+        g.addEventListener('pointerdown', (e) => drag.start(g.dataset.k as 'A' | 'B', e)),
+      );
+    }
+    render() {
+      const { A, B } = this;
+      const set = (s: string, a: Record<string, number | string>) => {
+        const e = this.querySelector(s)!;
+        for (const [k, v] of Object.entries(a)) e.setAttribute(k, String(v));
+      };
+      const d = Math.hypot(B.x - A.x, B.y - A.y);
+      const h = (Math.sqrt(3) / 2) * d;
+      const C = { x: (A.x + B.x) / 2 + ((B.y - A.y) / d) * h, y: (A.y + B.y) / 2 - ((B.x - A.x) / d) * h };
+      set('.c1', { cx: A.x, cy: A.y, r: d });
+      set('.c2', { cx: B.x, cy: B.y, r: d });
+      set('.tri', { points: `${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}` });
+      set('.ab', { x1: A.x, y1: A.y, x2: B.x, y2: B.y });
+      set('.ac', { x1: A.x, y1: A.y, x2: C.x, y2: C.y });
+      set('.bc', { x1: B.x, y1: B.y, x2: C.x, y2: C.y });
+      set('.pc', { cx: C.x, cy: C.y });
+      this.querySelectorAll('.ha circle').forEach((c) => (c.setAttribute('cx', String(A.x)), c.setAttribute('cy', String(A.y))));
+      this.querySelectorAll('.hb circle').forEach((c) => (c.setAttribute('cx', String(B.x)), c.setAttribute('cy', String(B.y))));
+      // labels sit outside the triangle, away from its centre
+      const G = { x: (A.x + B.x + C.x) / 3, y: (A.y + B.y + C.y) / 3 };
+      const out = (p: P, s: string) => {
+        const v = { x: p.x - G.x, y: p.y - G.y };
+        const n = Math.hypot(v.x, v.y) || 1;
+        set(s, { x: p.x + (v.x / n) * 22 - 6, y: p.y + (v.y / n) * 22 + 7 });
+      };
+      out(A, '.la');
+      out(B, '.lb');
+      out(C, '.lc');
+    }
+  }
+  customElements.define('euclid-hero', EuclidHero);
+</script>
+
+<style>
+  .euclid {
+    display: block;
+  }
+  .stage {
+    display: block;
+    width: 100%;
+    touch-action: none;
+  }
+  .cc {
+    fill: none;
+    stroke: var(--blue);
+    stroke-width: 1.4;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 1.1s cubic-bezier(0.6, 0, 0.3, 1) forwards;
+  }
+  .c1 {
+    animation-delay: 0.35s;
+  }
+  .c2 {
+    animation-delay: 1.15s;
+  }
+  .tri {
+    fill: var(--yellow);
+    opacity: 0;
+    animation: appear 0.5s ease-out 2.3s forwards;
+  }
+  .side {
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+  .ab {
+    stroke: var(--ink);
+  }
+  .ac,
+  .bc {
+    opacity: 0;
+    animation: appear 0.35s ease-out 2.05s forwards;
+  }
+  .ac {
+    stroke: var(--red);
+  }
+  .bc {
+    stroke: var(--blue);
+  }
+  .pt {
+    fill: var(--card);
+    stroke: var(--ink);
+    stroke-width: 2.2;
+  }
+  .pc {
+    fill: var(--red);
+    opacity: 0;
+    animation: appear 0.3s ease-out 1.95s forwards;
+  }
+  .lc {
+    opacity: 0;
+    animation: appear 0.3s ease-out 1.95s forwards;
+  }
+  .lbl {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 22px;
+    fill: var(--ink);
+  }
+  .h {
+    cursor: grab;
+  }
+  .h:active {
+    cursor: grabbing;
+  }
+  .halo {
+    fill: var(--blue);
+    fill-opacity: 0.12;
+    stroke: none;
+  }
+  .h:hover .halo {
+    fill-opacity: 0.22;
+  }
+  .cap {
+    margin: 0.4rem auto 0;
+    max-width: 30rem;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+    text-align: center;
+  }
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes appear {
+    to {
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cc {
+      stroke-dashoffset: 0;
+      animation: none;
+    }
+    .tri,
+    .ac,
+    .bc,
+    .pc,
+    .lc {
+      opacity: 1;
+      animation: none;
+    }
+  }
+</style>

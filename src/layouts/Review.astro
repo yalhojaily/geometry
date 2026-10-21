@@ -3,6 +3,8 @@
 // with a live score and a list of lessons worth revisiting.
 import Base from './Base.astro';
 import { chapters, lessonSlug } from '../data/curriculum';
+import ChapterGlyph from '../components/ChapterGlyph.astro';
+import ChapterRail from '../components/ChapterRail.astro';
 
 interface Props {
   frontmatter: {
@@ -19,70 +21,64 @@ const last = ch.lessons[ch.lessons.length - 1];
 ---
 
 <Base title={`مراجعة الفصل ${n}: ${ch.ar} · هندسة`}>
-  <article class="wrap lesson review" data-chapter={n}>
-    <nav class="crumbs">
-      <a href={`${base}/`}>الفهرس</a>
-      <span>›</span>
-      <span>الفصل {n}: {ch.ar}</span>
-    </nav>
-
+  <div class="wrap page review" data-chapter={n}>
     <header class="lesson-head">
-      <div class="num">{n}</div>
-      <div>
-        <h1>مراجعة الفصل: {ch.ar}</h1>
-        <div class="en">Chapter {n} Review · {ch.en}</div>
+      <nav class="crumbs">
+        <a href={`${base}/`}>الفهرس</a>
+        <span aria-hidden="true">/</span>
+        <span>الفصل {n}: {ch.ar}</span>
+      </nav>
+      <div class="head-grid">
+        <ChapterGlyph n={n} size={84} />
+        <div class="titles">
+          <h1>مراجعة الفصل {n}</h1>
+          <div class="sub">{ch.ar} <span class="en">{ch.en}</span></div>
+        </div>
       </div>
+      <p class="why"><b>كيف تستخدم هذه الصفحة؟</b> {intro}</p>
     </header>
 
-    <aside class="why">
-      <span class="why-label">كيف تستخدم هذه الصفحة؟</span>
-      <p>{intro}</p>
-    </aside>
+    <div class="cols">
+      <article class="lesson">
+        <div class="score" aria-live="polite">
+          <div class="score-row">
+            <span>حللت <b class="s-solved">0</b> من <b class="s-total">0</b></span>
+            <span class="s-first-wrap">من المحاولة الأولى: <b class="s-first">0</b></span>
+          </div>
+          <div class="bar"><div class="fill"></div></div>
+        </div>
 
-    <div class="covers">
-      <span class="covers-label">دروس الفصل:</span>
-      {
-        ch.lessons.map((l) => (
-          <a class="chip" href={`${base}/lessons/${lessonSlug(l.id)}/`}>
-            {l.id} {l.ar}
+        <div class="body">
+          <slot />
+        </div>
+
+        <section class="summary panel" hidden>
+          <h2>النتيجة</h2>
+          <p class="sum-text"></p>
+          <div class="sum-lessons"></div>
+        </section>
+
+        <nav class="pager">
+          <a class="pg" href={`${base}/lessons/${lessonSlug(last.id)}/`}>
+            <small>السابق</small>
+            {last.id} {last.ar}
           </a>
-        ))
-      }
+          {
+            next && (
+              <a class="pg pg-next" href={`${base}/lessons/${lessonSlug(next.lessons[0].id)}/`}>
+                <small>الفصل التالي</small>
+                {next.lessons[0].id} {next.lessons[0].ar}
+              </a>
+            )
+          }
+        </nav>
+      </article>
+
+      <aside class="rail">
+        <ChapterRail chapter={n} current="review" />
+      </aside>
     </div>
-
-    <div class="score panel" aria-live="polite">
-      <div class="score-row">
-        <span>حللت <b class="s-solved">0</b> من <b class="s-total">0</b></span>
-        <span class="s-first-wrap">من المحاولة الأولى: <b class="s-first">0</b></span>
-      </div>
-      <div class="bar"><div class="fill"></div></div>
-    </div>
-
-    <div class="body">
-      <slot />
-    </div>
-
-    <section class="summary panel" hidden>
-      <h2>النتيجة</h2>
-      <p class="sum-text"></p>
-      <div class="sum-lessons"></div>
-    </section>
-
-    <nav class="pager">
-      <a class="pg" href={`${base}/lessons/${lessonSlug(last.id)}/`}>
-        <small>السابق</small>
-        {last.id} {last.ar}
-      </a>
-      {
-        next && (
-          <a class="pg pg-next" href={`${base}/lessons/${lessonSlug(next.lessons[0].id)}/`}>
-            <small>الفصل التالي</small>
-            {next.lessons[0].id} {next.lessons[0].ar}
-          </a>
-        )
-      }
-    </nav>
-  </article>
+  </div>
 </Base>
 
 <script>
@@ -145,94 +141,75 @@ const last = ch.lessons[ch.lessons.length - 1];
 </script>
 
 <style>
-  .lesson {
+  .page {
     padding-top: 1.2rem;
-    padding-bottom: 3rem;
+    padding-bottom: 1rem;
   }
   .crumbs {
     font-size: 0.88rem;
     color: var(--ink-3);
     display: flex;
-    gap: 0.4rem;
+    gap: 0.45rem;
     flex-wrap: wrap;
   }
   .crumbs a {
-    color: var(--brand);
+    color: var(--ink-2);
+    text-decoration: none;
   }
   .lesson-head {
-    display: flex;
-    gap: 0.9rem;
-    align-items: center;
-    margin: 1rem 0 0.8rem;
+    max-width: 46rem;
   }
-  .num {
-    flex: none;
-    min-width: 3.2rem;
-    height: 3.2rem;
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    background: var(--accent);
-    color: var(--ink);
-    font-family: var(--font-head);
-    font-weight: 700;
-    font-size: 1.3rem;
+  .head-grid {
+    display: flex;
+    gap: 1.1rem;
+    align-items: center;
+    margin: 1.1rem 0 1.1rem;
+  }
+  .titles {
+    border-inline-start: 1px solid var(--line-2);
+    padding-inline-start: 1.1rem;
   }
   h1 {
     margin: 0;
-    font-size: clamp(1.35rem, 4.6vw, 1.9rem);
+    font-size: clamp(1.7rem, 5vw, 2.6rem);
   }
-  .en {
-    color: var(--ink-3);
-    font-size: 0.9rem;
-    direction: ltr;
-    text-align: right;
+  .sub {
+    color: var(--ink-2);
+  }
+  .sub .en {
+    margin-inline-start: 0.4rem;
   }
   .why {
-    background: var(--paper-2);
-    border-radius: var(--radius);
-    padding: 0.8rem 1rem;
-    margin-bottom: 1rem;
+    font-size: 1.08rem;
+    color: var(--ink-2);
+    margin: 0 0 0.6rem;
   }
-  .why-label {
-    font-family: var(--font-head);
-    font-weight: 600;
-    color: var(--accent);
-    font-size: 0.9rem;
-  }
-  .why p {
-    margin: 0.3rem 0 0;
-  }
-  .covers {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  .covers-label {
-    font-size: 0.9rem;
-    color: var(--ink-3);
-  }
-  .chip,
-  .summary :global(.chip) {
-    font-size: 0.85rem;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 0.15rem 0.7rem;
+  .why b {
     color: var(--ink);
-    background: var(--card);
-    text-decoration: none;
+    font-weight: 600;
   }
-  .chip:hover {
-    border-color: var(--brand);
+  .cols {
+    display: grid;
+    grid-template-columns: minmax(0, 46rem) minmax(0, 1fr);
+    gap: 3.5rem;
+    align-items: start;
+  }
+  .rail {
+    position: sticky;
+    top: 72px;
+    padding-top: 1rem;
+    max-width: 19rem;
   }
   .score {
     position: sticky;
     top: 62px;
     z-index: 5;
     padding: 0.6rem 0.9rem;
-    margin-bottom: 1rem;
+    margin: 0.6rem 0 1rem;
+    background: var(--card);
+    border: 1px solid var(--line-2);
+    border-top: 3px solid var(--ink);
+    border-radius: 2px;
   }
   .score-row {
     display: flex;
@@ -246,7 +223,6 @@ const last = ch.lessons[ch.lessons.length - 1];
   }
   .bar {
     height: 6px;
-    border-radius: 6px;
     background: var(--paper-2);
     margin-top: 0.45rem;
     overflow: hidden;
@@ -254,7 +230,7 @@ const last = ch.lessons[ch.lessons.length - 1];
   .fill {
     height: 100%;
     width: 0;
-    background: var(--thm);
+    background: var(--good);
     transition: width 0.3s ease;
   }
   .summary {
@@ -266,22 +242,32 @@ const last = ch.lessons[ch.lessons.length - 1];
   .summary :global(.chip) {
     display: inline-block;
     margin: 0.2rem 0 0.2rem 0.3rem;
-  }
-  .pager {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.6rem;
-    margin-top: 2rem;
-  }
-  .pg {
-    flex: 1;
-    max-width: 48%;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+    border: 1px solid var(--line-2);
+    border-radius: 999px;
+    padding: 0.15rem 0.7rem;
     color: var(--ink);
     background: var(--card);
     text-decoration: none;
+  }
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-top: 2rem;
+  }
+  .pg {
+    display: block;
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
+    padding: 0.7rem 1rem;
+    color: var(--ink);
+    background: var(--card);
+    text-decoration: none;
+    line-height: 1.5;
+  }
+  .pg:hover {
+    border-color: var(--ink);
   }
   .pg small {
     display: block;
@@ -289,5 +275,19 @@ const last = ch.lessons[ch.lessons.length - 1];
   }
   .pg-next {
     text-align: left;
+    grid-column: 2;
+  }
+  @media (max-width: 1059px) {
+    .cols {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+    .rail {
+      position: static;
+      max-width: none;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--line-2);
+      margin-top: 1.5rem;
+    }
   }
 </style>

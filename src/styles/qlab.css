@@ -14,7 +14,7 @@
   font-family: var(--font-head);
   font-weight: 600;
   font-size: 0.85rem;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 .qlab .hint-small {
   font-size: 0.85rem;

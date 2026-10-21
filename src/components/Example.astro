@@ -48,21 +48,17 @@ const { title } = Astro.props;
   .example {
     display: block;
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 1rem 1.2rem;
-    margin: 1.4rem 0;
+    border: 1px solid var(--line-2);
+    border-top: 3px solid var(--ink);
+    border-radius: 2px;
+    padding: 0.9rem 1.2rem 1rem;
+    margin: 1.6rem 0;
   }
   .label {
-    display: inline-block;
-    font-family: var(--font-head);
+    font-family: var(--font-display);
     font-weight: 600;
-    font-size: 0.85rem;
-    background: var(--paper-2);
-    border-radius: 6px;
-    padding: 0.05rem 0.6rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.08rem;
+    margin-bottom: 0.4rem;
   }
   .content :global(ol) {
     margin: 0.4rem 0 0;
@@ -71,6 +67,10 @@ const { title } = Astro.props;
   .content :global(ol > li) {
     padding: 0.35rem 0.2rem;
     border-top: 1px dashed var(--line);
+  }
+  .content :global(ol > li::marker) {
+    color: var(--red);
+    font-weight: 700;
   }
   .content :global(ol > li.fresh) {
     animation: fadein 0.35s ease;

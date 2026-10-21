@@ -2,6 +2,8 @@
 import Base from './Base.astro';
 import { findLesson, lessonSlug } from '../data/curriculum';
 import { skills } from '../data/skills';
+import ChapterGlyph from '../components/ChapterGlyph.astro';
+import ChapterRail from '../components/ChapterRail.astro';
 
 interface Props {
   frontmatter: {
@@ -20,82 +22,100 @@ const prevHref = href(prev);
 const lastOfChapter = !next || next.chapter.n !== lesson.chapter.n;
 const reviewHref = `${base}/review/${lesson.chapter.n}/`;
 const nextHref = lastOfChapter ? reviewHref : href(next);
+const [cn, ln] = lesson.id.split('.');
 ---
 
 <Base title={`${lesson.id} ${lesson.ar} · هندسة`}>
-  <article class="wrap lesson" data-lesson={lesson.id}>
-    <nav class="crumbs">
-      <a href={`${base}/`}>الفهرس</a>
-      <span>›</span>
-      <span>الفصل {lesson.chapter.n}: {lesson.chapter.ar}</span>
-    </nav>
-
+  <div class="wrap page">
     <header class="lesson-head">
-      <div class="num">{lesson.id}</div>
-      <div>
-        <h1>{lesson.ar}</h1>
-        <div class="en">{lesson.en}</div>
+      <nav class="crumbs">
+        <a href={`${base}/`}>الفهرس</a>
+        <span aria-hidden="true">/</span>
+        <span>الفصل {lesson.chapter.n}: {lesson.chapter.ar}</span>
+      </nav>
+      <div class="head-grid">
+        <div class="num" aria-label={`الدرس ${lesson.id}`}>
+          <span>{cn}</span><i aria-hidden="true"></i><span>{ln}</span>
+        </div>
+        <div class="titles">
+          <h1>{lesson.ar}</h1>
+          <div class="en">{lesson.en}</div>
+        </div>
+        <ChapterGlyph n={lesson.chapter.n} size={96} class="head-glyph" />
       </div>
+      <p class="why"><b>لماذا هذا الدرس؟</b> {why}</p>
+      {
+        lessonSkills.length > 0 && (
+          <div class="skills">
+            <span class="skills-label">جبر تحتاجه:</span>
+            {lessonSkills.map((s) => (
+              <a class="chip" href={`#${s.id}`}>
+                {s.ar}
+              </a>
+            ))}
+          </div>
+        )
+      }
+      <details class="m-toc">
+        <summary>أقسام الدرس</summary>
+        <ol class="toc"></ol>
+      </details>
     </header>
 
-    <aside class="why">
-      <span class="why-label">لماذا هذا الدرس؟</span>
-      <p>{why}</p>
-    </aside>
-
-    {
-      lessonSkills.length > 0 && (
-        <div class="skills">
-          <span class="skills-label">جبر تحتاجه في هذا الدرس:</span>
-          {lessonSkills.map((s) => (
-            <a class="chip" href={`#${s.id}`}>
-              {s.ar}
-            </a>
-          ))}
+    <div class="cols">
+      <article class="lesson" data-lesson={lesson.id}>
+        <div class="body">
+          <slot />
         </div>
-      )
-    }
 
-    <div class="body">
-      <slot />
+        <section class="finish">
+          <div>
+            <strong>انتهيت من الدرس؟</strong>
+            <p>علّمه كمكتمل ليظهر تقدمك في الفهرس.</p>
+          </div>
+          <button class="btn btn-primary done-btn" type="button">علّم كمكتمل</button>
+        </section>
+
+        <nav class="pager">
+          {
+            prevHref ? (
+              <a class="pg" href={prevHref}>
+                <small>السابق</small>
+                {prev!.id} {prev!.ar}
+              </a>
+            ) : (
+              <span />
+            )
+          }
+          {
+            lastOfChapter ? (
+              <a class="pg pg-next pg-review" href={reviewHref}>
+                <small>انتهى الفصل</small>
+                مراجعة الفصل {lesson.chapter.n}: تمارين مختلطة
+              </a>
+            ) : (
+              next && (
+                <a class:list={['pg', 'pg-next', { disabled: !nextHref }]} href={nextHref}>
+                  <small>{nextHref ? 'التالي' : 'التالي (قريبًا)'}</small>
+                  {next.id} {next.ar}
+                </a>
+              )
+            )
+          }
+        </nav>
+      </article>
+
+      <aside class="rail">
+        <div class="rail-in">
+          <section class="r-toc">
+            <h2 class="r-h">أقسام الدرس</h2>
+            <ol class="toc"></ol>
+          </section>
+          <ChapterRail chapter={lesson.chapter.n} current={lesson.id} />
+        </div>
+      </aside>
     </div>
-
-    <section class="finish panel">
-      <div>
-        <strong>انتهيت من الدرس؟</strong>
-        <p>علّمه كمكتمل ليظهر تقدمك في الفهرس.</p>
-      </div>
-      <button class="btn btn-primary done-btn" type="button">علّم كمكتمل ✓</button>
-    </section>
-
-    <nav class="pager">
-      {
-        prevHref ? (
-          <a class="pg" href={prevHref}>
-            <small>السابق</small>
-            {prev!.id} {prev!.ar}
-          </a>
-        ) : (
-          <span />
-        )
-      }
-      {
-        lastOfChapter ? (
-          <a class="pg pg-next pg-review" href={reviewHref}>
-            <small>انتهى الفصل</small>
-            مراجعة الفصل {lesson.chapter.n}: تمارين مختلطة
-          </a>
-        ) : (
-          next && (
-            <a class:list={['pg', 'pg-next', { disabled: !nextHref }]} href={nextHref}>
-              <small>{nextHref ? 'التالي' : 'التالي (قريبًا)'}</small>
-              {next.id} {next.ar}
-            </a>
-          )
-        )
-      }
-    </nav>
-  </article>
+  </div>
 </Base>
 
 <script>
@@ -113,7 +133,7 @@ const nextHref = lastOfChapter ? reviewHref : href(next);
   function render() {
     if (!btn) return;
     const done = read()[id];
-    btn.textContent = done ? 'مكتمل ✓ (إلغاء)' : 'علّم كمكتمل ✓';
+    btn.textContent = done ? 'مكتمل ✓ (إلغاء)' : 'علّم كمكتمل';
     btn.classList.toggle('btn-primary', !done);
   }
   // Jumping to an algebra card opens it.
@@ -136,62 +156,108 @@ const nextHref = lastOfChapter ? reviewHref : href(next);
     try {
       localStorage.setItem('progress', JSON.stringify(p));
     } catch {}
+    dispatchEvent(new Event('progress-changed'));
     render();
   });
   render();
+
+  // Section outline: built from the lesson's h2 headings, highlights the one in view.
+  const heads = Array.from(document.querySelectorAll<HTMLHeadingElement>('.body > h2'));
+  heads.forEach((h, i) => {
+    if (!h.id) h.id = `s${i + 1}`;
+  });
+  document.querySelectorAll('.toc').forEach((ol) => {
+    ol.innerHTML = heads
+      .map((h) => `<li><a href="#${encodeURIComponent(h.id)}" data-for="${h.id}">${h.innerHTML}</a></li>`)
+      .join('');
+  });
+  document.querySelectorAll<HTMLAnchorElement>('.m-toc a').forEach((a) =>
+    a.addEventListener('click', () => a.closest('details')?.removeAttribute('open')),
+  );
+  const links = (id: string) => document.querySelectorAll(`.toc a[data-for="${CSS.escape(id)}"]`);
+  let active = '';
+  const spy = () => {
+    let cur = heads[0]?.id ?? '';
+    for (const h of heads) if (h.getBoundingClientRect().top < 140) cur = h.id;
+    if (cur === active) return;
+    if (active) links(active).forEach((a) => a.classList.remove('on'));
+    links(cur).forEach((a) => a.classList.add('on'));
+    active = cur;
+  };
+  addEventListener('scroll', spy, { passive: true });
+  spy();
 </script>
 
 <style>
-  .lesson {
-    padding-top: 1.5rem;
+  .page {
+    padding-top: 1.2rem;
   }
   .crumbs {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    font-size: 0.9rem;
+    gap: 0.45rem;
+    font-size: 0.88rem;
     color: var(--ink-3);
   }
   .crumbs a {
     color: var(--ink-2);
     text-decoration: none;
   }
-  .lesson-head {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin: 1.2rem 0 1.4rem;
+  .crumbs a:hover {
+    color: var(--brand);
   }
+  .lesson-head {
+    max-width: 46rem;
+    padding-bottom: 0.4rem;
+  }
+  .head-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.4rem 1.2rem;
+    margin: 1.1rem 0 1.2rem;
+  }
+  /* the lesson number, with a geometric point in place of the full stop */
   .num {
-    flex: none;
-    font-family: var(--font-head);
-    font-weight: 700;
-    font-size: 1.6rem;
-    color: var(--paper);
-    background: var(--brand);
-    border-radius: 14px;
-    padding: 0.35rem 0.8rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.04em;
     direction: ltr;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(3rem, 9vw, 4.6rem);
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .num i {
+    width: 0.17em;
+    height: 0.17em;
+    border-radius: 50%;
+    background: var(--red);
+    align-self: flex-end;
+    margin-bottom: 0.1em;
+  }
+  .titles {
+    min-width: 0;
+    border-inline-start: 1px solid var(--line-2);
+    padding-inline-start: 1.1rem;
   }
   h1 {
-    font-size: clamp(1.5rem, 4.5vw, 2.1rem);
-    margin: 0;
+    font-size: clamp(1.55rem, 4.2vw, 2.3rem);
+    margin: 0 0 0.2rem;
+  }
+  .lesson-head :global(.head-glyph) {
+    opacity: 0.95;
   }
   .why {
-    background: var(--accent-soft);
-    border-inline-start: 4px solid var(--accent);
-    border-radius: 0 var(--radius) var(--radius) 0;
-    padding: 0.9rem 1.1rem;
-  }
-  .why-label {
-    font-family: var(--font-head);
-    font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 1.12rem;
     color: var(--ink-2);
+    margin: 0;
   }
-  .why p {
-    margin: 0.2rem 0 0;
-    font-size: 1.1rem;
+  .why b {
+    color: var(--ink);
+    font-weight: 600;
   }
   .skills {
     display: flex;
@@ -202,7 +268,7 @@ const nextHref = lastOfChapter ? reviewHref : href(next);
     font-size: 0.92rem;
   }
   .skills-label {
-    color: var(--ink-2);
+    color: var(--ink-3);
   }
   .chip {
     text-decoration: none;
@@ -212,13 +278,93 @@ const nextHref = lastOfChapter ? reviewHref : href(next);
     border-radius: 999px;
     padding: 0.05rem 0.7rem;
   }
+
+  .cols {
+    display: grid;
+    grid-template-columns: minmax(0, 46rem) minmax(0, 1fr);
+    gap: 3.5rem;
+    align-items: start;
+  }
+  .rail {
+    position: sticky;
+    top: 72px;
+    max-height: calc(100vh - 88px);
+    overflow-y: auto;
+    padding-top: 2.6rem;
+    max-width: 19rem;
+    scrollbar-width: thin;
+  }
+  .rail-in {
+    display: grid;
+    gap: 1.8rem;
+  }
+  .r-h {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-3);
+    margin: 0 0 0.4rem;
+    display: block;
+  }
+  .r-h::before,
+  .r-h::after {
+    display: none;
+  }
+  .toc {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: sec;
+  }
+  .toc :global(li) {
+    counter-increment: sec;
+  }
+  .toc :global(a) {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+    color: var(--ink-2);
+    text-decoration: none;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .toc :global(a::before) {
+    content: '';
+    flex: none;
+    width: 7px;
+    height: 7px;
+    margin-top: 0.55em;
+    border-radius: 50%;
+    border: 1.5px solid var(--line-2);
+  }
+  .toc :global(a:hover) {
+    color: var(--ink);
+  }
+  .toc :global(a.on) {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .toc :global(a.on::before) {
+    background: var(--red);
+    border-color: var(--red);
+  }
+  .toc :global(.katex) {
+    font-size: 1em;
+  }
+  .m-toc {
+    display: none;
+  }
+
   .finish {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-top: 3rem;
+    margin-top: 3.2rem;
+    padding: 1.1rem 0;
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--line-2);
   }
   .finish p {
     margin: 0;
@@ -229,17 +375,21 @@ const nextHref = lastOfChapter ? reviewHref : href(next);
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.8rem;
-    margin-top: 1rem;
+    margin-top: 1.2rem;
+    padding-bottom: 1rem;
   }
   .pg {
     display: block;
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border: 1px solid var(--line-2);
+    border-radius: 2px;
     padding: 0.7rem 1rem;
     text-decoration: none;
     color: var(--ink);
     line-height: 1.5;
+  }
+  .pg:hover {
+    border-color: var(--ink);
   }
   .pg small {
     display: block;
@@ -250,11 +400,59 @@ const nextHref = lastOfChapter ? reviewHref : href(next);
     grid-column: 2;
   }
   .pg-review {
-    border-color: var(--accent);
+    border-color: var(--yellow);
     background: var(--accent-soft);
   }
   .pg.disabled {
     opacity: 0.55;
     pointer-events: none;
+  }
+
+  @media (max-width: 1059px) {
+    .cols {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+    .lesson-head {
+      max-width: none;
+    }
+    .rail {
+      position: static;
+      max-height: none;
+      max-width: none;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--line-2);
+      margin-top: 1rem;
+    }
+    .r-toc {
+      display: none;
+    }
+    .m-toc {
+      display: block;
+      margin-top: 1rem;
+      border: 1px solid var(--line-2);
+      background: var(--card);
+      border-radius: 2px;
+    }
+    .m-toc summary {
+      cursor: pointer;
+      padding: 0.45rem 0.9rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .m-toc .toc {
+      padding: 0 0.9rem 0.6rem;
+    }
+  }
+  @media (max-width: 559px) {
+    .head-grid {
+      grid-template-columns: auto 1fr;
+    }
+    .lesson-head :global(.head-glyph) {
+      display: none;
+    }
+    .titles {
+      padding-inline-start: 0.85rem;
+    }
   }
 </style>

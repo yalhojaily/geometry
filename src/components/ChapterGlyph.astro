@@ -1,0 +1,194 @@
+---
+// One emblem per chapter, drawn in Byrne's red / yellow / blue with ink lines.
+interface Props {
+  n: number;
+  size?: number;
+  class?: string;
+}
+const { n, size = 64, class: cls } = Astro.props;
+---
+
+<svg class:list={['glyph', cls]} viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
+  {
+    n === 1 && (
+      <>
+        <polygon class="gy" points="4,50 40,50 60,22 24,22" />
+        <line class="ln" x1="2" y1="44" x2="62" y2="28" />
+        <line class="sb" x1="16" y1="40.3" x2="46" y2="32.3" />
+        <circle class="pr" cx="16" cy="40.3" r="3.6" />
+        <circle class="pr" cx="46" cy="32.3" r="3.6" />
+      </>
+    )
+  }
+  {
+    n === 2 && (
+      <>
+        <circle class="gr" cx="32" cy="17" r="8" />
+        <circle class="gb" cx="17" cy="44" r="8" />
+        <circle class="gy" cx="47" cy="44" r="8" />
+      </>
+    )
+  }
+  {
+    n === 3 && (
+      <>
+        <line class="sb" x1="3" y1="22" x2="61" y2="22" />
+        <line class="sb" x1="3" y1="42" x2="61" y2="42" />
+        <path class="gy" d="M37.64 22 L51.64 22 A14 14 0 0 0 43.54 9.30 Z" />
+        <path class="gy" d="M28.36 42 L42.36 42 A14 14 0 0 0 34.26 29.30 Z" />
+        <line class="sr" x1="20" y1="60" x2="46" y2="4" />
+      </>
+    )
+  }
+  {
+    n === 4 && (
+      <>
+        <polygon class="gr" points="4,52 28,52 12,14" />
+        <polygon class="gy" points="60,52 36,52 52,14" />
+        <line class="ln" x1="14" y1="49" x2="18" y2="55" />
+        <line class="ln" x1="46" y1="49" x2="50" y2="55" />
+      </>
+    )
+  }
+  {
+    n === 5 && (
+      <>
+        <polygon class="gy" points="6,56 58,56 22,8" />
+        <line class="lb" x1="6" y1="56" x2="40" y2="32" />
+        <line class="lb" x1="58" y1="56" x2="14" y2="32" />
+        <line class="lb" x1="22" y1="8" x2="32" y2="56" />
+        <circle class="pr" cx="28.7" cy="40" r="3.6" />
+      </>
+    )
+  }
+  {
+    n === 6 && (
+      <>
+        <polygon class="gy" points="4,50 42,50 60,14 22,14" />
+        <line class="lb" x1="4" y1="50" x2="60" y2="14" />
+        <line class="lb" x1="42" y1="50" x2="22" y2="14" />
+        <circle class="pr" cx="32" cy="32" r="3.6" />
+      </>
+    )
+  }
+  {
+    n === 7 && (
+      <>
+        <polygon class="gr" points="4,50 26,50 12,14" />
+        <polygon class="gb" points="60,50 38,50 52,14" />
+        <line class="mirror" x1="32" y1="4" x2="32" y2="60" />
+      </>
+    )
+  }
+  {
+    n === 8 && (
+      <>
+        <polygon class="gb" points="6,56 60,56 32,8" />
+        <polygon class="gy" points="6,56 33,56 19,32" />
+        <circle class="pr" cx="6" cy="56" r="3.6" />
+      </>
+    )
+  }
+  {
+    n === 9 && (
+      <>
+        <polygon class="gy" points="24,40 40,40 40,56 24,56" />
+        <polygon class="gb" points="24,28 24,40 12,40 12,28" />
+        <polygon class="gr" points="40,40 24,28 36,12 52,24" />
+        <polygon class="gw" points="24,40 40,40 24,28" />
+      </>
+    )
+  }
+  {
+    n === 10 && (
+      <>
+        <circle class="gw lb" cx="32" cy="38" r="20" />
+        <path class="gy" d="M32 38 L52 38 A20 20 0 0 1 32 58 Z" />
+        <line class="ln" x1="32" y1="38" x2="32" y2="18" />
+        <line class="sr" x1="3" y1="18" x2="61" y2="18" />
+        <circle class="pr" cx="32" cy="18" r="3.4" />
+      </>
+    )
+  }
+  {
+    n === 11 && (
+      <>
+        <polygon class="gy" points="54,33 43,52 21,52 10,33 21,14 43,14" />
+        <polygon class="gr" points="32,33 43,52 21,52" />
+        <line class="lb" x1="32" y1="33" x2="32" y2="52" />
+        <circle class="pr" cx="32" cy="33" r="3" />
+      </>
+    )
+  }
+  {
+    n === 12 && (
+      <>
+        <polygon class="gy" points="32,8 54,20 32,32 10,20" />
+        <polygon class="gb" points="10,20 32,32 32,58 10,46" />
+        <polygon class="gr" points="32,32 54,20 54,46 32,58" />
+      </>
+    )
+  }
+</svg>
+
+<style>
+  .glyph {
+    display: block;
+    flex: none;
+    overflow: visible;
+  }
+  .glyph :global(*) {
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .gr,
+  .gy,
+  .gb,
+  .gw {
+    stroke: var(--ink);
+    stroke-width: 1.6;
+  }
+  .gr {
+    fill: var(--red);
+  }
+  .gy {
+    fill: var(--yellow);
+  }
+  .gb {
+    fill: var(--blue);
+  }
+  .gw {
+    fill: var(--card);
+  }
+  .ln {
+    stroke: var(--ink);
+    stroke-width: 1.6;
+  }
+  .lb {
+    stroke: var(--blue);
+    stroke-width: 2.4;
+    fill-opacity: 1;
+  }
+  .gw.lb {
+    stroke: var(--blue);
+    stroke-width: 2.4;
+  }
+  .sb {
+    stroke: var(--blue);
+    stroke-width: 4;
+  }
+  .sr {
+    stroke: var(--red);
+    stroke-width: 4;
+  }
+  .pr {
+    fill: var(--red);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .mirror {
+    stroke: var(--ink);
+    stroke-width: 1.6;
+    stroke-dasharray: 4 4;
+  }
+</style>
