@@ -1,0 +1,101 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '12.4'
+why: 'المساحة السطحية تقيس الغلاف، والحجم يقيس ما في الداخل: كم ماءً تتسع العلبة؟ للمنشور والأسطوانة صيغة واحدة: مساحة القاعدة مضروبة في الارتفاع. وتصح حتى إذا كان المجسم مائلًا.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Solid3D from '../../components/Solid3D.astro';
+
+## الحجم
+
+<Term id="post-volume" />
+<Term id="formula-prism-volume" />
+
+<Solid3D shapes={['box', 'cylinder']} measure="vol" />
+
+## مبدأ كافاليري
+
+<Term id="thm-cavalieri" />
+
+تخيّل رزمة من الأوراق مرصوصة. ادفعها جانبًا فتصير مائلة، لكن عدد الأوراق وشكل كل ورقة لم يتغيرا، فالحجم لم يتغير.
+
+<Solid3D shapes={['obox']} measure="vol" />
+
+<Callout type="warning" title="المساحة السطحية تتغير، الحجم لا">
+
+حين يميل المنشور يبقى حجمه كما هو، لكن مساحته السطحية تزداد: الأوجه الجانبية صارت متوازيات أضلاع أطول.
+
+</Callout>
+
+<Example title="مثال 1: منشور ثلاثي">
+
+منشور قاعدته مثلث قائم ساقاه $6$ و $8$، وارتفاعه $10$.
+
+1. $B = \tfrac{1}{2}(6)(8) = 24$.
+2. $V = 24 \times 10 = 240$.
+
+</Example>
+
+<Example title="مثال 2: أسطوانة">
+
+أسطوانة نصف قطرها $2$ وارتفاعها $7$.
+
+1. $V = \pi(2)^2(7) = 28\pi \approx 88$.
+
+</Example>
+
+<Example title="مثال 3: بعد مجهول">
+
+علبة على شكل منشور رباعي حجمها $360$، وقاعدتها $8 \times 5$. ما ارتفاعها؟
+
+1. $B = 40$.
+2. $360 = 40h$، إذن $h = 9$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={60}>
+
+منشور قاعدته $3 \times 4$ وارتفاعه $5$. ما حجمه؟
+
+<div slot="explain">$12 \times 5 = 60$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={125}>
+
+مكعب حرفه $5$. ما حجمه؟
+
+<div slot="explain">$5^3 = 125$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={90} hint="V = πr²h = kπ.">
+
+أسطوانة نصف قطرها $3$ وارتفاعها $10$. حجمها $k\pi$. ما $k$؟
+
+<div slot="explain">$9 \times 10 = 90$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={4}>
+
+مكعب حجمه $64$. ما طول حرفه؟
+
+<div slot="explain">$\sqrt[3]{64} = 4$.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={0} options={['لهما الحجم نفسه', 'المائل أكبر', 'المائل أصغر']}>
+
+منشوران، أحدهما قائم والآخر مائل، لهما القاعدة نفسها والارتفاع نفسه. أيهما أكبر حجمًا؟
+
+<div slot="explain">بمبدأ كافاليري: لهما الحجم نفسه.</div>
+</Quiz>
+
+## الخلاصة
+
+- **الحجم** عدد مكعبات الوحدة التي تملأ المجسم.
+- **المنشور والأسطوانة:** $V = Bh$، وللأسطوانة $V = \pi r^2 h$.
+- **مبدأ كافاليري:** المقاطع المتساوية على الارتفاعات نفسها تعطي حجومًا متساوية، فالصيغة تصح للمائل أيضًا.

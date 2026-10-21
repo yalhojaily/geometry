@@ -1,0 +1,198 @@
+---
+// Interactive nets: unfold a solid into flat pieces and add their areas.
+import '../styles/qlab.css';
+interface Props {
+  shapes: ('box' | 'cylinder' | 'sqpyr' | 'cone')[];
+}
+const { shapes } = Astro.props;
+const NAMES = { box: 'منشور رباعي', cylinder: 'أسطوانة', sqpyr: 'هرم رباعي', cone: 'مخروط' };
+---
+
+<net-lab class="panel lab qlab" data-shapes={shapes.join(',')}>
+  <div class="lab-head">
+    <span class="tag">الشبكة: المجسم مفرودًا</span>
+  </div>
+  {
+    shapes.length > 1 && (
+      <div class="modes" role="tablist">
+        {shapes.map((s, i) => (
+          <button type="button" data-s={s} class:list={{ on: i === 0 }}>
+            {NAMES[s]}
+          </button>
+        ))}
+      </div>
+    )
+  }
+  <svg viewBox="0 0 360 270" class="stage" role="img" aria-label="شبكة مجسم"></svg>
+  <div class="sliders"></div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</net-lab>
+
+<script>
+  import { el, text, type P } from '../scripts/svg';
+
+  const SL: Record<string, [string, string, number, number, number][]> = {
+    box: [['l', 'ℓ', 1, 8, 5], ['w', 'w', 1, 6, 3], ['h', 'h', 1, 6, 4]],
+    cylinder: [['r', 'r', 1, 4, 2], ['h', 'h', 1, 8, 5]],
+    sqpyr: [['s', 's', 1, 8, 6], ['h', 'h', 1, 8, 4]],
+    cone: [['r', 'r', 1, 5, 3], ['h', 'h', 1, 8, 4]],
+  };
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+
+  class NetLab extends HTMLElement {
+    shape = 'box';
+    v: Record<string, number> = {};
+    connectedCallback() {
+      this.shape = (this.dataset.shapes ?? 'box').split(',')[0];
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.shape = b.dataset.s!;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.sliders();
+          this.render();
+        }),
+      );
+      this.sliders();
+      this.render();
+    }
+    sliders() {
+      const box = this.querySelector('.sliders')!;
+      box.innerHTML = SL[this.shape]
+        .map(([k, label, min, max, def]) => {
+          const key = `${this.shape}.${k}`;
+          if (this.v[key] === undefined) this.v[key] = def;
+          return `<label><span class="ltr">${label} = <b data-v="${k}">${this.v[key]}</b></span><input type="range" data-k="${k}" min="${min}" max="${max}" value="${this.v[key]}" dir="ltr" aria-label="${label}" /></label>`;
+        })
+        .join('');
+      box.querySelectorAll<HTMLInputElement>('input').forEach((inp) =>
+        inp.addEventListener('input', () => {
+          this.v[`${this.shape}.${inp.dataset.k}`] = Number(inp.value);
+          this.render();
+        }),
+      );
+    }
+    g(k: string) {
+      return this.v[`${this.shape}.${k}`];
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      this.querySelectorAll<HTMLElement>('[data-v]').forEach((e) => (e.textContent = String(this.g(e.dataset.v!))));
+      const s = this.shape;
+      // all pieces are built in units, then fitted into the stage
+      type Piece = { path: (f: (p: P) => P, u: number) => string; cls: string; label: string; at: P };
+      const pieces: Piece[] = [];
+      const rect = (x: number, y: number, w: number, h: number, cls: string, label: string) =>
+        pieces.push({
+          path: (f) => {
+            const a = f({ x, y });
+            const b = f({ x: x + w, y: y + h });
+            return `M ${a.x} ${a.y} H ${b.x} V ${b.y} H ${a.x} Z`;
+          },
+          cls,
+          label,
+          at: { x: x + w / 2, y: y + h / 2 },
+        });
+      const poly = (ps: P[], cls: string, label: string) =>
+        pieces.push({
+          path: (f) => 'M ' + ps.map((p) => `${f(p).x} ${f(p).y}`).join(' L ') + ' Z',
+          cls,
+          label,
+          at: { x: ps.reduce((a, p) => a + p.x, 0) / ps.length, y: ps.reduce((a, p) => a + p.y, 0) / ps.length },
+        });
+      const circ = (c: P, r: number, cls: string, label: string) =>
+        pieces.push({
+          path: (f, u) => {
+            const q = f(c);
+            return `M ${q.x - r * u} ${q.y} a ${r * u} ${r * u} 0 1 0 ${2 * r * u} 0 a ${r * u} ${r * u} 0 1 0 ${-2 * r * u} 0 Z`;
+          },
+          cls,
+          label,
+          at: c,
+        });
+      let W = 0;
+      let H = 0;
+      let rows = '';
+      let note = '';
+      if (s === 'box') {
+        const [l, w, h] = [this.g('l'), this.g('w'), this.g('h')];
+        let x = 0;
+        [l, w, l, w].forEach((d, i) => {
+          rect(x, w, d, h, i % 2 ? 'p1' : 'p0', String(d * h));
+          x += d;
+        });
+        rect(0, 0, l, w, 'p2', String(l * w));
+        rect(0, w + h, l, w, 'p2', String(l * w));
+        W = 2 * (l + w);
+        H = h + 2 * w;
+        rows = `<div>2B = 2 × ${l * w} = ${2 * l * w}</div><div>Ph = ${2 * (l + w)} × ${h} = ${2 * (l + w) * h}</div><div class="big">S = ${2 * l * w + 2 * (l + w) * h}</div>`;
+        note = 'الوجوه الجانبية الأربعة تكوّن معًا مستطيلًا واحدًا طوله محيط القاعدة P وعرضه الارتفاع h، والقاعدتان فوقه وتحته.';
+      } else if (s === 'cylinder') {
+        const [r, h] = [this.g('r'), this.g('h')];
+        const L = 2 * Math.PI * r;
+        rect(0, 2 * r, L, h, 'p0', `2πrh ≈ ${fmt(L * h)}`);
+        circ({ x: L / 2, y: r }, r, 'p2', `πr²`);
+        circ({ x: L / 2, y: 3 * r + h }, r, 'p2', `πr²`);
+        W = L;
+        H = h + 4 * r;
+        rows = `<div>2πr² = ${fmt(2 * r * r)}π , 2πrh = ${fmt(2 * r * h)}π</div><div class="big">S = ${fmt(2 * r * r + 2 * r * h)}π ≈ ${fmt(Math.PI * (2 * r * r + 2 * r * h))}</div>`;
+        note = 'السطح الجانبي ينفرد مستطيلًا: طوله محيط القاعدة 2πr، لأنه يلتف حولها مرة واحدة بالضبط.';
+      } else if (s === 'sqpyr') {
+        const [a, h] = [this.g('s'), this.g('h')];
+        const l = Math.hypot(h, a / 2);
+        const o = l;
+        rect(o, o, a, a, 'p2', String(a * a));
+        poly([{ x: o, y: o }, { x: o + a, y: o }, { x: o + a / 2, y: 0 }], 'p0', fmt(0.5 * a * l));
+        poly([{ x: o, y: o + a }, { x: o + a, y: o + a }, { x: o + a / 2, y: 2 * o + a }], 'p0', fmt(0.5 * a * l));
+        poly([{ x: o, y: o }, { x: o, y: o + a }, { x: 0, y: o + a / 2 }], 'p1', fmt(0.5 * a * l));
+        poly([{ x: o + a, y: o }, { x: o + a, y: o + a }, { x: 2 * o + a, y: o + a / 2 }], 'p1', fmt(0.5 * a * l));
+        W = a + 2 * l;
+        H = a + 2 * l;
+        rows = `<div>ℓ = √(${h}² + ${fmt(a / 2)}²) = ${fmt(l)}</div><div>B = ${a * a} , 4 × ½sℓ = ${fmt(2 * a * l)}</div><div class="big">S = B + ½Pℓ = ${fmt(a * a + 2 * a * l)}</div>`;
+        note = 'الأوجه المثلثة الأربعة متطابقة، قاعدة كل منها s وارتفاعه الارتفاع الجانبي ℓ. مجموع مساحاتها نصف المحيط مضروبًا في ℓ.';
+      } else {
+        const [r, h] = [this.g('r'), this.g('h')];
+        const l = Math.hypot(r, h);
+        const ang = (360 * r) / l; // sector angle
+        const c = { x: l, y: l };
+        const half = (ang / 2) * (Math.PI / 180);
+        pieces.push({
+          path: (f, u) => {
+            const q = f(c);
+            const p1 = { x: q.x + l * u * Math.sin(-half), y: q.y + l * u * Math.cos(half) };
+            const p2 = { x: q.x + l * u * Math.sin(half), y: q.y + l * u * Math.cos(half) };
+            return `M ${q.x} ${q.y} L ${p1.x} ${p1.y} A ${l * u} ${l * u} 0 ${ang > 180 ? 1 : 0} 0 ${p2.x} ${p2.y} Z`;
+          },
+          cls: 'p0',
+          label: `πrℓ ≈ ${fmt(Math.PI * r * l)}`,
+          at: { x: l, y: l + l * 0.55 },
+        });
+        circ({ x: l, y: 2 * l + r + 0.1 }, r, 'p2', 'πr²');
+        W = 2 * l;
+        H = 2 * l + 2 * r + 0.2;
+        rows = `<div>ℓ = √(${r}² + ${h}²) = ${fmt(l)} , ∠ = 360° × r/ℓ = ${fmt(ang)}°</div><div class="big">S = πr² + πrℓ = ${fmt(r * r + r * l)}π ≈ ${fmt(Math.PI * (r * r + r * l))}</div>`;
+        note = 'السطح الجانبي ينفرد قطاعًا من دائرة نصف قطرها ℓ، وقوسه يساوي محيط القاعدة 2πr. مساحة هذا القطاع πrℓ.';
+      }
+      const u = Math.min(330 / W, 250 / H, 30);
+      const ox = 180 - (W * u) / 2;
+      const oy = 135 - (H * u) / 2;
+      const f = (p: P): P => ({ x: ox + p.x * u, y: oy + p.y * u });
+      for (const pc of pieces) {
+        svg.appendChild(el('path', { d: pc.path(f, u) }, `piece ${pc.cls}`));
+        const q = f(pc.at);
+        svg.appendChild(text(q.x, q.y, pc.label, 'val'));
+      }
+      this.querySelector('.calc')!.innerHTML = rows;
+      this.querySelector('.note')!.textContent = note;
+    }
+  }
+  customElements.define('net-lab', NetLab);
+</script>
+
+<style is:global>
+  net-lab .stage .piece { stroke-width: 1.8; stroke-linejoin: round; }
+  net-lab .stage .p0 { fill: var(--def-bg); stroke: var(--def); }
+  net-lab .stage .p1 { fill: var(--thm-bg); stroke: var(--thm); }
+  net-lab .stage .p2 { fill: var(--post-bg); stroke: var(--post); }
+</style>

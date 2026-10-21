@@ -87,7 +87,7 @@ export const skills: Skill[] = [
     review: 'في التناسب $\\tfrac{a}{b} = \\tfrac{c}{d}$ يكون حاصل ضرب الطرفين مساويًا لحاصل ضرب الوسطين: $ad = bc$.',
     example: '$\\tfrac{x}{6} = \\tfrac{10}{15} \\Rightarrow 15x = 60 \\Rightarrow x = 4$',
     check: { q: 'إذا كان $\\tfrac{3}{x} = \\tfrac{9}{12}$، فما قيمة $x$؟', answer: 4 },
-    usedIn: ['8.1', '8.2', '8.3', '8.4', '8.6', '9.1', '9.5', '11.3'],
+    usedIn: ['8.1', '8.2', '8.3', '8.4', '8.6', '9.1', '9.5', '11.3', '12.7'],
   },
   {
     id: 'alg-radicals',
@@ -96,7 +96,7 @@ export const skills: Skill[] = [
     review: 'ابحث عن أكبر مربع كامل يقسم العدد تحت الجذر، وأخرج جذره: $\\sqrt{ab} = \\sqrt{a}\\,\\sqrt{b}$.',
     example: '$\\sqrt{50} = \\sqrt{25 \\cdot 2} = 5\\sqrt{2}$',
     check: { q: 'إذا كان $\\sqrt{72} = k\\sqrt{2}$، فما قيمة $k$؟', answer: 6 },
-    usedIn: ['9.2', '9.3', '9.4', '11.2'],
+    usedIn: ['9.2', '9.3', '9.4', '11.2', '12.3'],
   },
   {
     id: 'alg-simple-quadratic',

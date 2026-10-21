@@ -1,0 +1,81 @@
+---
+// Interactive: a cube scaled by k is built from k³ unit cubes and has k² times the surface area.
+import '../styles/qlab.css';
+---
+
+<simsolid-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">المساحة بالمربع والحجم بالمكعب</span>
+  </div>
+  <svg viewBox="0 0 360 250" class="stage" role="img" aria-label="مكعب صغير ومكعب مكبّر مبني من مكعبات صغيرة"></svg>
+  <div class="sliders">
+    <label><span class="ltr">k = <b class="kv">3</b></span><input type="range" class="k" min="1" max="5" value="3" dir="ltr" aria-label="معامل التشابه" /></label>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</simsolid-lab>
+
+<script>
+  import { el } from '../scripts/svg';
+
+  class SimSolidLab extends HTMLElement {
+    k = 3;
+    connectedCallback() {
+      const k = this.querySelector<HTMLInputElement>('input.k')!;
+      k.addEventListener('input', () => {
+        this.k = Number(k.value);
+        this.render();
+      });
+      this.render();
+    }
+    cube(svg: Element, x: number, y: number, z: number, s: number, ox: number, oy: number, big = false) {
+      // isometric projection of the unit cube at (x, y, z)
+      const iso = (a: number, b: number, c: number) => ({
+        x: ox + (a - b) * s * 0.866,
+        y: oy + (a + b) * s * 0.5 - c * s,
+      });
+      const p = (a: number, b: number, c: number) => {
+        const q = iso(x + a, y + b, z + c);
+        return `${q.x},${q.y}`;
+      };
+      const cls = big ? 'c-b' : 'c-s';
+      svg.appendChild(el('polygon', { points: [p(0, 0, 1), p(1, 0, 1), p(1, 1, 1), p(0, 1, 1)].join(' ') }, `top ${cls}`));
+      svg.appendChild(el('polygon', { points: [p(1, 0, 0), p(1, 1, 0), p(1, 1, 1), p(1, 0, 1)].join(' ') }, `rgt ${cls}`));
+      svg.appendChild(el('polygon', { points: [p(0, 1, 0), p(1, 1, 0), p(1, 1, 1), p(0, 1, 1)].join(' ') }, `lft ${cls}`));
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const k = this.k;
+      const s = Math.min(26, 150 / (k * 1.73));
+      this.cube(svg, 0, 0, 0, s, 40, 170);
+      // big cube: draw back-to-front
+      const ox = 225;
+      const oy = 210 - k * s * 1.0;
+      for (let z = 0; z < k; z++)
+        for (let x = 0; x < k; x++)
+          for (let y = 0; y < k; y++) this.cube(svg, x, y, z, s, ox, oy, true);
+      this.querySelector('.kv')!.textContent = String(k);
+      this.querySelector('.calc')!.innerHTML =
+        `<div>ℓ: 1 → ${k}</div>` +
+        `<div>S: 6 → 6 × ${k}² = ${6 * k * k}</div>` +
+        `<div class="big">V: 1 → ${k}³ = ${k ** 3}</div>`;
+      this.querySelector('.note')!.textContent = `المكعب الكبير طول حرفه ${k} أضعاف الصغير. يحتاج ${k * k} مربعًا لتغطية كل وجه (المساحة × ${k * k})، و ${k ** 3} مكعبًا لملئه (الحجم × ${k ** 3}).`;
+    }
+  }
+  customElements.define('simsolid-lab', SimSolidLab);
+</script>
+
+<style is:global>
+  simsolid-lab .stage polygon {
+    stroke: var(--card);
+    stroke-width: 1;
+    stroke-linejoin: round;
+  }
+  simsolid-lab .stage .top.c-s { fill: var(--accent); fill-opacity: 0.55; }
+  simsolid-lab .stage .rgt.c-s { fill: var(--accent); fill-opacity: 0.8; }
+  simsolid-lab .stage .lft.c-s { fill: var(--accent); }
+  simsolid-lab .stage .top.c-b { fill: var(--brand); fill-opacity: 0.35; }
+  simsolid-lab .stage .rgt.c-b { fill: var(--brand); fill-opacity: 0.6; }
+  simsolid-lab .stage .lft.c-b { fill: var(--brand); fill-opacity: 0.85; }
+</style>

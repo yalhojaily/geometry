@@ -1,0 +1,103 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '12.3'
+why: 'الهرم والمخروط ينتهيان برأس. أوجههما الجانبية مائلة، فيظهر قياس جديد: الارتفاع الجانبي، أي طول الوجه المائل لا ارتفاع المجسم. الخلط بين الاثنين أشهر خطأ في هذا الدرس.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import Solid3D from '../../components/Solid3D.astro';
+import NetLab from '../../components/NetLab.astro';
+
+## الهرم والمخروط
+
+<Term id="def-pyramid-cone" />
+
+<Solid3D shapes={['sqpyr', 'cone']} measure="sa" />
+
+<Callout type="warning" title="h أم ℓ؟">
+
+**الارتفاع** $h$ يقاس عموديًا من الرأس إلى القاعدة، داخل المجسم. **الارتفاع الجانبي** $\ell$ يقاس على سطح الوجه المائل. والاثنان مع نصف الضلع (أو نصف القطر) يكوّنون مثلثًا قائمًا وتره $\ell$. فالارتفاع الجانبي أطول دائمًا.
+
+</Callout>
+
+## المساحة السطحية
+
+<Term id="formula-pyramid-sa" />
+
+<NetLab shapes={['sqpyr', 'cone']} />
+
+<Prereq id="alg-radicals" />
+
+<Example title="مثال 1: هرم رباعي منتظم">
+
+هرم قاعدته مربع ضلعه $6$، وارتفاعه $4$.
+
+1. الارتفاع الجانبي: $\ell = \sqrt{4^2 + 3^2} = 5$.
+2. $B = 36$ و $P = 24$.
+3. $S = 36 + \tfrac{1}{2}(24)(5) = 36 + 60 = 96$.
+
+</Example>
+
+<Example title="مثال 2: مخروط">
+
+مخروط نصف قطر قاعدته $3$ وارتفاعه $4$.
+
+1. $\ell = \sqrt{9 + 16} = 5$.
+2. $S = \pi(3)^2 + \pi(3)(5) = 9\pi + 15\pi = 24\pi \approx 75.4$.
+
+</Example>
+
+<Example title="مثال 3: من ℓ إلى h">
+
+مخروط نصف قطره $5$ وارتفاعه الجانبي $13$. ما ارتفاعه؟
+
+1. $h = \sqrt{13^2 - 5^2} = \sqrt{144} = 12$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={10}>
+
+هرم رباعي منتظم، ضلع قاعدته $12$ وارتفاعه $8$. ما ارتفاعه الجانبي؟
+
+<div slot="explain">$\sqrt{8^2 + 6^2} = 10$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={384}>
+
+في الهرم نفسه، ما المساحة السطحية؟
+
+<div slot="explain">$144 + \tfrac{1}{2}(48)(10) = 144 + 240 = 384$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={65} hint="المساحة الجانبية = πrℓ.">
+
+مخروط $r = 5$ و $\ell = 13$. مساحته الجانبية $k\pi$. ما $k$؟
+
+<div slot="explain">$\pi(5)(13) = 65\pi$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={90}>
+
+في المخروط نفسه، المساحة السطحية الكلية $k\pi$. ما $k$؟
+
+<div slot="explain">$25\pi + 65\pi = 90\pi$.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={0} options={['ℓ أطول من h', 'h أطول من ℓ', 'متساويان دائمًا']}>
+
+في هرم منتظم، أيهما أطول: الارتفاع $h$ أم الارتفاع الجانبي $\ell$؟
+
+<div slot="explain">$\ell$ وتر مثلث قائم أحد ساقيه $h$، فهو أطول.</div>
+</Quiz>
+
+## الخلاصة
+
+- **الهرم المنتظم:** $S = B + \tfrac{1}{2}P\ell$.
+- **المخروط القائم:** $S = \pi r^2 + \pi r\ell$.
+- $\ell$ من نظرية فيثاغورس: $\ell^2 = h^2 + (\text{نصف الضلع})^2$ في الهرم، و $\ell^2 = h^2 + r^2$ في المخروط.

@@ -1,0 +1,329 @@
+---
+// Interactive 3D solids: drag to rotate. `shapes` lists the buttons; `measure`
+// picks what is computed: Euler's formula, surface area or volume.
+import '../styles/qlab.css';
+interface Props {
+  shapes: string[];
+  measure?: 'euler' | 'sa' | 'vol';
+}
+const { shapes, measure = 'euler' } = Astro.props;
+const NAMES: Record<string, string> = {
+  tetra: 'رباعي الوجوه',
+  cube: 'مكعب',
+  octa: 'ثماني الوجوه',
+  dodeca: 'اثنا عشري الوجوه',
+  icosa: 'عشريني الوجوه',
+  prism: 'منشور',
+  pyramid: 'هرم',
+  box: 'منشور رباعي قائم',
+  obox: 'منشور مائل',
+  cylinder: 'أسطوانة',
+  cone: 'مخروط',
+  sphere: 'كرة',
+  sqpyr: 'هرم رباعي منتظم',
+  pyrbox: 'هرم داخل منشور',
+  conecyl: 'مخروط داخل أسطوانة',
+  spherecyl: 'كرة داخل أسطوانة',
+};
+---
+
+<solid-3d class="panel lab qlab s3d" data-shapes={shapes.join(',')} data-measure={measure}>
+  <div class="lab-head">
+    <span class="tag">{measure === 'euler' ? 'المجسمات متعددة الوجوه' : measure === 'sa' ? 'المساحة السطحية' : 'الحجم'}</span>
+    <span class="hint-small">اسحب لتدوير المجسم</span>
+  </div>
+  {
+    shapes.length > 1 && (
+      <div class="modes" role="tablist">
+        {shapes.map((s, i) => (
+          <button type="button" data-s={s} class:list={{ on: i === 0 }}>
+            {NAMES[s]}
+          </button>
+        ))}
+      </div>
+    )
+  }
+  <svg viewBox="0 0 360 270" class="stage" role="img" aria-label="مجسم ثلاثي الأبعاد قابل للتدوير"></svg>
+  <div class="sliders"></div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</solid-3d>
+
+<script>
+  import {
+    hull,
+    platonic,
+    prismVerts,
+    pyramidVerts,
+    boxVerts,
+    lathe,
+    sphere,
+    drawMesh,
+    drawOverlay,
+    rotatable,
+    meshRadius,
+    type Mesh,
+    type Overlay,
+    type View,
+  } from '../scripts/solid3d';
+
+  type Sl = [string, string, number, number, number, number]; // key, label, min, max, step, default
+  const SL: Record<string, Sl[]> = {
+    prism: [['n', 'n', 3, 8, 1, 5], ['h', 'h', 1, 6, 1, 3]],
+    pyramid: [['n', 'n', 3, 8, 1, 4], ['h', 'h', 1, 6, 1, 3]],
+    box: [['l', 'ℓ', 1, 8, 1, 5], ['w', 'w', 1, 6, 1, 3], ['h', 'h', 1, 6, 1, 4]],
+    obox: [['l', 'ℓ', 1, 6, 1, 4], ['w', 'w', 1, 5, 1, 3], ['h', 'h', 1, 6, 1, 4], ['k', 'k', 0, 4, 1, 2]],
+    cylinder: [['r', 'r', 1, 5, 1, 3], ['h', 'h', 1, 8, 1, 5]],
+    cone: [['r', 'r', 1, 5, 1, 3], ['h', 'h', 1, 8, 1, 4]],
+    sqpyr: [['s', 's', 1, 8, 1, 6], ['h', 'h', 1, 8, 1, 4]],
+    sphere: [['r', 'r', 1, 6, 1, 3]],
+    pyrbox: [['s', 's', 1, 6, 1, 4], ['h', 'h', 1, 6, 1, 4]],
+    conecyl: [['r', 'r', 1, 5, 1, 3], ['h', 'h', 1, 8, 1, 5]],
+    spherecyl: [['r', 'r', 1, 5, 1, 3]],
+  };
+  const fmt = (n: number, d = 2) => String(Math.round(n * 10 ** d) / 10 ** d);
+  const pi = (k: number) => `${fmt(k)}π ≈ ${fmt(k * Math.PI)}`;
+
+  class Solid3D extends HTMLElement {
+    shape = 'cube';
+    measure = 'euler';
+    v: Record<string, number> = {};
+    view: View = { yaw: 0.6, pitch: 0.42, scale: 60, cx: 180, cy: 138 };
+
+    connectedCallback() {
+      this.shape = (this.dataset.shapes ?? 'cube').split(',')[0];
+      this.measure = this.dataset.measure ?? 'euler';
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.shape = b.dataset.s!;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.buildSliders();
+          this.render();
+        }),
+      );
+      rotatable(this.querySelector<SVGSVGElement>('svg.stage')!, this.view, () => this.render());
+      this.buildSliders();
+      this.render();
+    }
+
+    buildSliders() {
+      const box = this.querySelector('.sliders')!;
+      const list = SL[this.shape] ?? [];
+      box.innerHTML = list
+        .map(([k, label, min, max, step, def]) => {
+          if (this.v[`${this.shape}.${k}`] === undefined) this.v[`${this.shape}.${k}`] = def;
+          const val = this.v[`${this.shape}.${k}`];
+          return `<label><span class="ltr">${label} = <b data-v="${k}">${val}</b></span><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${val}" dir="ltr" aria-label="${label}" /></label>`;
+        })
+        .join('');
+      box.querySelectorAll<HTMLInputElement>('input').forEach((inp) =>
+        inp.addEventListener('input', () => {
+          this.v[`${this.shape}.${inp.dataset.k}`] = Number(inp.value);
+          this.render();
+        }),
+      );
+    }
+
+    g(k: string) {
+      return this.v[`${this.shape}.${k}`];
+    }
+
+    build(): { mesh: Mesh; inner?: Mesh; ov: Overlay[] } {
+      const s = this.shape;
+      const ov: Overlay[] = [];
+      if (s in platonic) return { mesh: hull(platonic[s as keyof typeof platonic]()), ov };
+      if (s === 'prism') return { mesh: hull(prismVerts(this.g('n'), 1.6, this.g('h') * 0.6)), ov };
+      if (s === 'pyramid') return { mesh: hull(pyramidVerts(this.g('n'), 1.7, this.g('h') * 0.6)), ov };
+      if (s === 'box' || s === 'obox') {
+        const l = this.g('l');
+        const w = this.g('w');
+        const h = this.g('h');
+        const k = s === 'obox' ? this.g('k') : 0;
+        const mesh = hull(boxVerts(l, w, h, k));
+        if (s === 'obox') ov.push({ a: [l / 2 + k, h / 2, w / 2], b: [l / 2 + k, -h / 2, w / 2], cls: 'oh', label: 'h' });
+        return { mesh, ov };
+      }
+      if (s === 'cylinder' || s === 'conecyl') {
+        const r = this.g('r');
+        const h = this.g('h');
+        const mesh = lathe(r, r, h);
+        ov.push({ a: [0, -h / 2, 0], b: [0, h / 2, 0], cls: 'oh', label: 'h' });
+        ov.push({ a: [0, -h / 2, 0], b: [r, -h / 2, 0], cls: 'or', label: 'r' });
+        if (s === 'conecyl') return { mesh, inner: lathe(r, 0, h), ov };
+        return { mesh, ov };
+      }
+      if (s === 'cone') {
+        const r = this.g('r');
+        const h = this.g('h');
+        ov.push({ a: [0, -h / 2, 0], b: [0, h / 2, 0], cls: 'oh', label: 'h' });
+        ov.push({ a: [0, -h / 2, 0], b: [r, -h / 2, 0], cls: 'or', label: 'r' });
+        ov.push({ a: [r, -h / 2, 0], b: [0, h / 2, 0], cls: 'ol', label: 'ℓ' });
+        return { mesh: lathe(r, 0, h), ov };
+      }
+      if (s === 'sqpyr' || s === 'pyrbox') {
+        const a = this.g('s');
+        const h = this.g('h');
+        const R = a / Math.SQRT2;
+        const verts = pyramidVerts(4, R, h);
+        // rotate so the base edges are axis-aligned (pyramidVerts starts at 45°)
+        const mesh = hull(verts);
+        ov.push({ a: [0, -h / 2, 0], b: [0, h / 2, 0], cls: 'oh', label: 'h' });
+        if (s === 'sqpyr') {
+          ov.push({ a: [0, -h / 2, 0], b: [a / 2, -h / 2, 0], cls: 'or', label: '' });
+          ov.push({ a: [a / 2, -h / 2, 0], b: [0, h / 2, 0], cls: 'ol', label: 'ℓ' });
+          return { mesh, ov };
+        }
+        return { mesh: hull(boxVerts(a, a, h)), inner: mesh, ov };
+      }
+      if (s === 'sphere' || s === 'spherecyl') {
+        const r = this.g('r');
+        ov.push({ a: [0, 0, 0], b: [r, 0, 0], cls: 'or', label: 'r' });
+        if (s === 'spherecyl') return { mesh: lathe(r, r, 2 * r), inner: sphere(r), ov };
+        return { mesh: sphere(r), ov };
+      }
+      return { mesh: hull(platonic.cube()), ov };
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      this.querySelectorAll<HTMLElement>('[data-v]').forEach((e) => (e.textContent = String(this.g(e.dataset.v!))));
+      const { mesh, inner, ov } = this.build();
+      // fit: use the largest size the sliders allow for this shape so sizes stay comparable
+      const R = meshRadius(mesh);
+      const fixed = this.measure === 'euler' ? R : Math.max(R, 4.5);
+      this.view.scale = 112 / fixed;
+      if (inner) {
+        drawMesh(svg, mesh, this.view, 'm0', true);
+        drawMesh(svg, inner, this.view, 'm1');
+      } else drawMesh(svg, mesh, this.view, 'm0');
+      drawOverlay(svg, ov, this.view);
+      this.calc(mesh);
+    }
+
+    calc(mesh: Mesh) {
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      const s = this.shape;
+      if (this.measure === 'euler') {
+        const F = mesh.faces.length;
+        const V = mesh.verts.length;
+        const E = new Set(mesh.faces.flatMap((f) => f.v.map((a, k) => { const b = f.v[(k + 1) % f.v.length]; return a < b ? `${a}-${b}` : `${b}-${a}`; }))).size;
+        calc.innerHTML = `<div>F = ${F} , V = ${V} , E = ${E}</div><div class="big">F + V = ${F + V} = E + 2 = ${E + 2}</div>`;
+        const plat = ['tetra', 'cube', 'octa', 'dodeca', 'icosa'].includes(s);
+        note.textContent = plat
+          ? 'مجسم منتظم (أفلاطوني): كل وجوهه مضلعات منتظمة متطابقة، ويلتقي العدد نفسه منها عند كل رأس. لا يوجد إلا خمسة منها.'
+          : 'غيّر n: تتغير أعداد الوجوه والرؤوس والأحرف، لكن صيغة أويلر تبقى صحيحة دائمًا.';
+        return;
+      }
+      const g = (k: string) => this.g(k);
+      let rows = '';
+      let txt = '';
+      if (this.measure === 'sa') {
+        if (s === 'box') {
+          const [l, w, h] = [g('l'), g('w'), g('h')];
+          rows = `<div>B = ${l} × ${w} = ${l * w} , P = ${2 * (l + w)}</div><div class="big">S = 2B + Ph = ${2 * l * w} + ${2 * (l + w) * h} = ${2 * l * w + 2 * (l + w) * h}</div>`;
+          txt = 'المساحة السطحية مجموع مساحات الوجوه الستة: القاعدتان (2B)، والوجوه الجانبية التي تكوّن معًا مستطيلًا عرضه محيط القاعدة P وارتفاعه h.';
+        } else if (s === 'cylinder') {
+          const [r, h] = [g('r'), g('h')];
+          rows = `<div>2πr² = ${pi(2 * r * r)}</div><div>2πrh = ${pi(2 * r * h)}</div><div class="big">S = ${pi(2 * r * r + 2 * r * h)}</div>`;
+          txt = 'دائرتان للقاعدتين، والسطح الجانبي إذا فُرد صار مستطيلًا طوله محيط القاعدة 2πr وعرضه h.';
+        } else if (s === 'sqpyr') {
+          const [a, h] = [g('s'), g('h')];
+          const l = Math.hypot(h, a / 2);
+          rows = `<div>ℓ = √(h² + (s/2)²) = ${fmt(l)}</div><div class="big">S = B + ½Pℓ = ${a * a} + ½ × ${4 * a} × ${fmt(l)} = ${fmt(a * a + 2 * a * l)}</div>`;
+          txt = 'الارتفاع الجانبي ℓ ارتفاع كل وجه مثلث، ويُحسب من مثلث قائم ساقاه h ونصف الضلع. لا تخلط بين h و ℓ.';
+        } else if (s === 'cone') {
+          const [r, h] = [g('r'), g('h')];
+          const l = Math.hypot(r, h);
+          rows = `<div>ℓ = √(r² + h²) = ${fmt(l)}</div><div class="big">S = πr² + πrℓ = ${pi(r * r + r * l)}</div>`;
+          txt = 'القاعدة دائرة πr². والسطح الجانبي إذا فُرد صار قطاعًا دائريًا مساحته πrℓ، حيث ℓ الارتفاع الجانبي.';
+        } else if (s === 'sphere') {
+          const r = g('r');
+          rows = `<div class="big">S = 4πr² = ${pi(4 * r * r)}</div>`;
+          txt = 'مساحة سطح الكرة أربعة أضعاف مساحة دائرتها العظمى πr².';
+        }
+      } else {
+        if (s === 'box' || s === 'obox') {
+          const [l, w, h] = [g('l'), g('w'), g('h')];
+          rows = `<div>B = ${l} × ${w} = ${l * w}</div><div class="big">V = Bh = ${l * w} × ${h} = ${l * w * h}</div>`;
+          txt =
+            s === 'obox'
+              ? 'غيّر الميل: الحجم لا يتغير، لأن كل شريحة أفقية لها مساحة القاعدة نفسها (مبدأ كافاليري). الارتفاع h يقاس عموديًا.'
+              : 'الحجم عدد مكعبات الوحدة التي تملأ المجسم: B مكعبًا في كل طبقة، و h طبقات.';
+        } else if (s === 'cylinder') {
+          const [r, h] = [g('r'), g('h')];
+          rows = `<div>B = πr² = ${pi(r * r)}</div><div class="big">V = Bh = ${pi(r * r * h)}</div>`;
+          txt = 'الأسطوانة كالمنشور: الحجم = مساحة القاعدة × الارتفاع.';
+        } else if (s === 'pyrbox') {
+          const [a, h] = [g('s'), g('h')];
+          rows = `<div>Bh = ${a * a} × ${h} = ${a * a * h}</div><div class="big">⅓Bh = ${fmt((a * a * h) / 3)}</div>`;
+          txt = 'للهرم وللمنشور القاعدة نفسها والارتفاع نفسه، لكن حجم الهرم ثلث حجم المنشور بالضبط.';
+        } else if (s === 'conecyl') {
+          const [r, h] = [g('r'), g('h')];
+          rows = `<div>πr²h = ${pi(r * r * h)}</div><div class="big">⅓πr²h = ${pi((r * r * h) / 3)}</div>`;
+          txt = 'المخروط ثلث الأسطوانة التي لها القاعدة والارتفاع نفساهما، كما الهرم ثلث المنشور.';
+        } else if (s === 'cone') {
+          const [r, h] = [g('r'), g('h')];
+          rows = `<div class="big">V = ⅓πr²h = ${pi((r * r * h) / 3)}</div>`;
+          txt = 'الارتفاع h عمودي من الرأس إلى القاعدة، لا الارتفاع الجانبي ℓ.';
+        } else if (s === 'sphere') {
+          const r = g('r');
+          rows = `<div class="big">V = ⁴⁄₃πr³ = ${pi((4 * r ** 3) / 3)}</div>`;
+          txt = 'حجم الكرة يعتمد على مكعب نصف القطر: ضاعف r يتضاعف الحجم ثماني مرات.';
+        } else if (s === 'spherecyl') {
+          const r = g('r');
+          rows = `<div>πr² × 2r = ${pi(2 * r ** 3)}</div><div class="big">⁴⁄₃πr³ = ${pi((4 * r ** 3) / 3)}</div>`;
+          txt = 'اكتشاف أرخميدس: الكرة تملأ ثلثي الأسطوانة التي تحيط بها تمامًا.';
+        }
+      }
+      calc.innerHTML = rows;
+      note.textContent = txt;
+    }
+  }
+  customElements.define('solid-3d', Solid3D);
+</script>
+
+<style is:global>
+  .s3d .stage {
+    cursor: grab;
+  }
+  .s3d .stage .face {
+    stroke: none;
+  }
+  .s3d .stage .face.m0 { fill: var(--brand); }
+  .s3d .stage .face.m1 { fill: var(--accent); }
+  .s3d .stage .edge {
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+  .s3d .stage .edge.m0 { stroke: var(--brand); }
+  .s3d .stage .edge.m1 { stroke: var(--accent); }
+  .s3d .stage .edge.hidden {
+    stroke-dasharray: 4 4;
+    stroke-opacity: 0.55;
+    stroke-width: 1.4;
+  }
+  .s3d .stage .edge.ghost {
+    stroke-opacity: 0.45;
+    stroke-width: 1.4;
+  }
+  .s3d .stage .ov {
+    stroke-width: 2;
+    stroke-dasharray: 5 3;
+  }
+  .s3d .stage .oh { stroke: var(--post); fill: var(--post); }
+  .s3d .stage .or { stroke: var(--thm); fill: var(--thm); }
+  .s3d .stage .ol { stroke: var(--warn); fill: var(--warn); }
+  .s3d .stage .ovl {
+    stroke: none;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 14px;
+    font-style: italic;
+    paint-order: stroke;
+  }
+  .s3d.qlab .modes {
+    grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+  }
+</style>

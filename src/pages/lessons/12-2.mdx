@@ -1,0 +1,99 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '12.2'
+why: 'كم ورقًا يلزم لتغليف هدية؟ وكم معدنًا لصنع علبة؟ هذا سؤال عن المساحة السطحية: مجموع مساحات كل الوجوه. والحيلة أن تفرد المجسم شبكةً مسطحة، فتحسب مساحات أشكال تعرفها.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Solid3D from '../../components/Solid3D.astro';
+import NetLab from '../../components/NetLab.astro';
+
+## المنشور والأسطوانة
+
+<Term id="def-prism-cylinder" />
+
+<Solid3D shapes={['box', 'cylinder']} measure="sa" />
+
+## المساحة السطحية
+
+<Term id="formula-prism-sa" />
+
+<NetLab shapes={['box', 'cylinder']} />
+
+<Callout type="tip" title="لا تحفظ الصيغة، افرد المجسم">
+
+إذا نسيت الصيغة، ارسم الشبكة: قاعدتان، ومستطيل جانبي طوله محيط القاعدة وعرضه الارتفاع. هذا كل شيء، لكل منشور قائم وكل أسطوانة قائمة.
+
+</Callout>
+
+<Example title="مثال 1: منشور رباعي">
+
+منشور قائم قاعدته مستطيل $5 \times 3$ وارتفاعه $4$.
+
+1. $B = 15$ و $P = 16$.
+2. $S = 2(15) + 16(4) = 30 + 64 = 94$.
+
+</Example>
+
+<Example title="مثال 2: منشور ثلاثي">
+
+منشور قائم قاعدته مثلث قائم ساقاه $3$ و $4$، وارتفاعه $10$.
+
+1. وتر القاعدة $5$، فالمحيط $P = 12$، والمساحة $B = \tfrac{1}{2}(3)(4) = 6$.
+2. $S = 2(6) + 12(10) = 12 + 120 = 132$.
+
+</Example>
+
+<Example title="مثال 3: أسطوانة">
+
+أسطوانة نصف قطرها $3$ وارتفاعها $5$.
+
+1. $S = 2\pi(3)^2 + 2\pi(3)(5) = 18\pi + 30\pi = 48\pi \approx 150.8$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={54}>
+
+مكعب طول حرفه $3$. ما مساحته السطحية؟
+
+<div slot="explain">ستة وجوه مساحة كل منها $9$: $54$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={52}>
+
+منشور قائم قاعدته $2 \times 3$ وارتفاعه $4$. ما مساحته السطحية؟
+
+<div slot="explain">$2(6) + 10(4) = 12 + 40 = 52$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={20} hint="المساحة الجانبية = 2πrh = kπ.">
+
+أسطوانة نصف قطرها $2$ وارتفاعها $5$. مساحتها الجانبية $k\pi$. ما $k$؟
+
+<div slot="explain">$2\pi(2)(5) = 20\pi$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={28}>
+
+أسطوانة نصف قطرها $2$ وارتفاعها $5$. مساحتها السطحية الكلية $k\pi$. ما $k$؟
+
+<div slot="explain">$2\pi(4) + 20\pi = 8\pi + 20\pi = 28\pi$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={6} hint="S = 6s².">
+
+مكعب مساحته السطحية $216$. ما طول حرفه؟
+
+<div slot="explain">$6s^2 = 216$، إذن $s^2 = 36$ و $s = 6$.</div>
+</Quiz>
+
+## الخلاصة
+
+- **المنشور القائم:** $S = 2B + Ph$.
+- **الأسطوانة القائمة:** $S = 2\pi r^2 + 2\pi rh$.
+- المساحة الجانبية بلا القاعدتين: $Ph$ أو $2\pi rh$.

@@ -147,13 +147,13 @@ export const chapters: Chapter[] = [
   {
     n: 12, en: 'Surface Area and Volume', ar: 'المساحة السطحية والحجم',
     lessons: [
-      { id: '12.1', en: 'Exploring Solids', ar: 'استكشاف المجسمات' },
-      { id: '12.2', en: 'Surface Area of Prisms and Cylinders', ar: 'المساحة السطحية للمنشورات والأسطوانات' },
-      { id: '12.3', en: 'Surface Area of Pyramids and Cones', ar: 'المساحة السطحية للأهرام والمخاريط' },
-      { id: '12.4', en: 'Volume of Prisms and Cylinders', ar: 'حجوم المنشورات والأسطوانات' },
-      { id: '12.5', en: 'Volume of Pyramids and Cones', ar: 'حجوم الأهرام والمخاريط' },
-      { id: '12.6', en: 'Surface Area and Volume of Spheres', ar: 'المساحة السطحية والحجم للكرة' },
-      { id: '12.7', en: 'Similar Solids', ar: 'المجسمات المتشابهة' },
+      { id: '12.1', en: 'Exploring Solids', ar: 'استكشاف المجسمات', ready: true },
+      { id: '12.2', en: 'Surface Area of Prisms and Cylinders', ar: 'المساحة السطحية للمنشورات والأسطوانات', ready: true },
+      { id: '12.3', en: 'Surface Area of Pyramids and Cones', ar: 'المساحة السطحية للأهرام والمخاريط', ready: true },
+      { id: '12.4', en: 'Volume of Prisms and Cylinders', ar: 'حجوم المنشورات والأسطوانات', ready: true },
+      { id: '12.5', en: 'Volume of Pyramids and Cones', ar: 'حجوم الأهرام والمخاريط', ready: true },
+      { id: '12.6', en: 'Surface Area and Volume of Spheres', ar: 'المساحة السطحية والحجم للكرة', ready: true },
+      { id: '12.7', en: 'Similar Solids', ar: 'المجسمات المتشابهة', ready: true },
     ],
   },
 ];
