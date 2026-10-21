@@ -124,13 +124,13 @@ export const chapters: Chapter[] = [
   {
     n: 10, en: 'Circles', ar: 'الدوائر',
     lessons: [
-      { id: '10.1', en: 'Tangents to Circles', ar: 'مماسات الدائرة' },
-      { id: '10.2', en: 'Arcs and Chords', ar: 'الأقواس والأوتار' },
-      { id: '10.3', en: 'Inscribed Angles', ar: 'الزوايا المحيطية' },
-      { id: '10.4', en: 'Other Angle Relationships in Circles', ar: 'علاقات زوايا أخرى في الدائرة' },
-      { id: '10.5', en: 'Segment Lengths in Circles', ar: 'أطوال القطع في الدائرة' },
-      { id: '10.6', en: 'Equations of Circles', ar: 'معادلات الدوائر' },
-      { id: '10.7', en: 'Locus', ar: 'المحل الهندسي' },
+      { id: '10.1', en: 'Tangents to Circles', ar: 'مماسات الدائرة', ready: true },
+      { id: '10.2', en: 'Arcs and Chords', ar: 'الأقواس والأوتار', ready: true },
+      { id: '10.3', en: 'Inscribed Angles', ar: 'الزوايا المحيطية', ready: true },
+      { id: '10.4', en: 'Other Angle Relationships in Circles', ar: 'علاقات زوايا أخرى في الدائرة', ready: true },
+      { id: '10.5', en: 'Segment Lengths in Circles', ar: 'أطوال القطع في الدائرة', ready: true },
+      { id: '10.6', en: 'Equations of Circles', ar: 'معادلات الدوائر', ready: true },
+      { id: '10.7', en: 'Locus', ar: 'المحل الهندسي', ready: true },
     ],
   },
   {

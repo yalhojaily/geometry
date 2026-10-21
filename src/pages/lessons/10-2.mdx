@@ -1,0 +1,105 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '10.2'
+why: 'نقيس الأقواس بالدرجات كما نقيس الزوايا، فالقوس جزء من دورة كاملة. وبين الأقواس والأوتار والمركز علاقات تسمح لك، مثلًا، بإيجاد مركز دائرة مرسومة إذا لم تعرف أين هو.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import CircleLab from '../../components/CircleLab.astro';
+
+## الأقواس
+
+<Term id="def-arcs" />
+<Term id="post-arc-addition" />
+
+<CircleLab mode="chord" />
+
+<Callout type="warning" title="قياس القوس ليس طوله">
+
+قياس القوس بالدرجات يخبرك بنسبته من الدائرة، لا بطوله. قوس $60^\circ$ في دائرة صغيرة أقصر من قوس $60^\circ$ في دائرة كبيرة، مع أن قياسهما واحد. طول القوس نحسبه في الفصل الحادي عشر.
+
+</Callout>
+
+<Prereq id="alg-linear-eq" />
+
+<Example title="مثال 1: أقواس من زوايا مركزية">
+
+$\overline{AC}$ قطر في دائرة مركزها $O$، و $m\angle AOB = 70^\circ$ و $B$ على أحد نصفي الدائرة. أوجد $m\overset{\frown}{AB}$ و $m\overset{\frown}{BC}$ و $m\overset{\frown}{BAC}$.
+
+1. $m\overset{\frown}{AB} = 70^\circ$ (الزاوية المركزية نفسها).
+2. $\overset{\frown}{ABC}$ نصف دائرة، فـ $m\overset{\frown}{BC} = 180 - 70 = 110^\circ$.
+3. $\overset{\frown}{BAC}$ القوس الأكبر من $B$ إلى $C$: $360 - 110 = 250^\circ$.
+
+</Example>
+
+## الأوتار
+
+<Term id="thm-chords-arcs" />
+<Term id="thm-diameter-chord" />
+
+<Example title="مثال 2: إيجاد مركز الدائرة">
+
+معك دائرة مرسومة على ورقة ولا تعرف مركزها.
+
+1. ارسم أي وترين غير متوازيين.
+2. ارسم العمود المنصف لكل منهما (الدرس 1.5).
+3. كل عمود منصف قطر، فيمر بالمركز. نقطة تقاطعهما هي المركز.
+
+</Example>
+
+<Example title="مثال 3: طول وتر">
+
+دائرة نصف قطرها $10$، والوتر $\overline{AB}$ يبعد $6$ عن المركز. أوجد $AB$.
+
+1. العمود من المركز $O$ إلى الوتر ينصفه في $M$، و $OM = 6$ و $OA = 10$.
+2. $\triangle OMA$ قائم: $AM = \sqrt{100 - 36} = 8$.
+3. $AB = 2 \times 8 = 16$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={235}>
+
+قوس أصغر قياسه $125^\circ$. ما قياس القوس الأكبر المكمّل له؟
+
+<div slot="explain">$360 - 125 = 235$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={180}>
+
+ما قياس نصف الدائرة؟
+
+<div slot="explain">$180^\circ$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={24} hint="ارسم نصف القطر إلى طرف الوتر.">
+
+دائرة نصف قطرها $13$، ووتر يبعد $5$ عن المركز. ما طول الوتر؟
+
+<div slot="explain">نصف الوتر $\sqrt{169 - 25} = 12$، والوتر $24$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={80}>
+
+في دائرة، الوتران $\overline{AB}$ و $\overline{CD}$ متطابقان، و $m\overset{\frown}{AB} = 80^\circ$. ما $m\overset{\frown}{CD}$؟
+
+<div slot="explain">الأوتار المتطابقة تقابلها أقواس متطابقة: $80^\circ$.</div>
+</Quiz>
+
+<Quiz n={5} type="number" answer={7}>
+
+القطر $\overline{CD}$ عمودي على الوتر $\overline{AB}$ في $M$، و $AM = 3x - 2$ و $MB = x + 12$. ما قيمة $x$؟
+
+<div slot="explain">القطر العمودي ينصف الوتر: $3x - 2 = x + 12$، إذن $x = 7$.</div>
+</Quiz>
+
+## الخلاصة
+
+- قياس **القوس الأصغر** يساوي زاويته المركزية، و**الأكبر** $360^\circ$ ناقص الأصغر، و**نصف الدائرة** $180^\circ$.
+- الأوتار المتطابقة تقابلها أقواس متطابقة، وتبعد المسافة نفسها عن المركز.
+- القطر العمودي على وتر ينصفه وينصف قوسه، والعمود المنصف لأي وتر يمر بالمركز.

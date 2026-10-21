@@ -48,6 +48,8 @@
 }
 .qlab .stage {
   display: block;
+  user-select: none;
+  -webkit-user-select: none;
   width: 100%;
   max-width: 460px;
   margin: 0.4rem auto;

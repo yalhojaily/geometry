@@ -1,0 +1,412 @@
+---
+// Interactive circle theorems. Points on the circle are dragged along it.
+//  tangent   – two tangents from an external point P
+//  chord     – central angle, arcs, and the diameter perpendicular to a chord
+//  inscribed – inscribed angle vs central angle on the same arc
+//  cyclic    – inscribed quadrilateral: opposite angles supplementary
+//  tanchord  – angle between a tangent and a chord
+//  angles    – two lines AC, BD meeting inside or outside the circle
+//  segments  – the same lines: EA·EC = EB·ED (inside or outside)
+import '../styles/qlab.css';
+interface Props {
+  mode: 'tangent' | 'chord' | 'inscribed' | 'cyclic' | 'tanchord' | 'angles' | 'segments';
+}
+const { mode } = Astro.props;
+const TAGS: Record<string, string> = {
+  tangent: 'المماسان من نقطة خارجية',
+  chord: 'الأقواس والأوتار',
+  inscribed: 'الزاوية المحيطية والمركزية',
+  cyclic: 'الشكل الرباعي الدائري',
+  tanchord: 'المماس والوتر',
+  angles: 'زاوية بين مستقيمين يقطعان الدائرة',
+  segments: 'حاصل ضرب الأجزاء',
+};
+---
+
+<circle-lab class="panel lab qlab clab" data-mode={mode}>
+  <div class="lab-head">
+    <span class="tag">{TAGS[mode]}</span>
+    <span class="hint-small">اسحب النقاط</span>
+  </div>
+  <svg viewBox="0 0 360 300" class="stage" role="img" aria-label={TAGS[mode]}></svg>
+  <div class="calc"></div>
+  <p class="note"></p>
+</circle-lab>
+
+<script>
+  import { el, text, makeDraggable, screenAngle, polar, arcPath, type P } from '../scripts/svg';
+  import { len, rightMark, ticks } from '../scripts/quad';
+
+  const fmt = (n: number, d = 1) => String(Math.round(n * 10 ** d) / 10 ** d);
+  const norm = (a: number) => ((a % 360) + 360) % 360;
+  /** Counter-clockwise sweep from a to b. */
+  const ccw = (a: number, b: number) => norm(b - a);
+  /** The arc from p to q that avoids every angle in `avoid`: returns [start, sweep]. */
+  function arcAvoiding(p: number, q: number, avoid: number[]): [number, number] {
+    const m = ccw(p, q);
+    const inside = avoid.some((x) => ccw(p, x) > 0 && ccw(p, x) < m);
+    return inside ? [q, 360 - m] : [p, m];
+  }
+  const lineHit = (a: P, b: P, c: P, d: P): P | null => {
+    const den = (a.x - b.x) * (c.y - d.y) - (a.y - b.y) * (c.x - d.x);
+    if (Math.abs(den) < 1e-6) return null;
+    const t = ((a.x - c.x) * (c.y - d.y) - (a.y - c.y) * (c.x - d.x)) / den;
+    return { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
+  };
+  const angleAt = (v: P, p: P, q: P) => {
+    const u = { x: p.x - v.x, y: p.y - v.y };
+    const w = { x: q.x - v.x, y: q.y - v.y };
+    return (Math.acos(Math.max(-1, Math.min(1, (u.x * w.x + u.y * w.y) / (Math.hypot(u.x, u.y) * Math.hypot(w.x, w.y))))) * 180) / Math.PI;
+  };
+
+  const INIT: Record<string, number[]> = {
+    chord: [30, 130],
+    inscribed: [200, 340, 100],
+    cyclic: [15, 95, 215, 300],
+    tanchord: [250, 40],
+    angles: [210, 120, 10, 320],
+    segments: [210, 120, 10, 320],
+  };
+
+  class CircleLab extends HTMLElement {
+    mode = 'chord';
+    O: P = { x: 180, y: 150 };
+    R = 105;
+    a: number[] = [];
+    P: P = { x: 320, y: 90 };
+    drag!: { start: (k: string, e: PointerEvent) => void };
+
+    connectedCallback() {
+      this.mode = this.dataset.mode ?? 'chord';
+      if (this.mode === 'tangent') {
+        this.O = { x: 120, y: 150 };
+        this.R = 80;
+      }
+      if (this.mode === 'angles' || this.mode === 'segments') {
+        this.O = { x: 150, y: 150 };
+        this.R = 95;
+      }
+      this.a = (INIT[this.mode] ?? []).slice();
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<string>(svg, (k, p) => {
+        if (k === 'P') {
+          const q = { x: Math.max(10, Math.min(350, p.x)), y: Math.max(10, Math.min(290, p.y)) };
+          if (len(q, this.O) < this.R + 18) return;
+          this.P = q;
+        } else {
+          const i = Number(k);
+          const ang = screenAngle(this.O, p);
+          const others = this.a.filter((_, j) => j !== i);
+          if (others.some((x) => Math.min(ccw(x, ang), ccw(ang, x)) < 7)) return;
+          if (this.mode === 'cyclic') {
+            // keep the cyclic order A, B, C, D
+            const prev = this.a[(i + 3) % 4];
+            const next = this.a[(i + 1) % 4];
+            if (!(ccw(prev, ang) < ccw(prev, next))) return;
+          }
+          this.a[i] = ang;
+        }
+        this.render();
+      });
+      this.render();
+    }
+
+    pt(deg: number) {
+      return polar(this.O, this.R, deg);
+    }
+
+    handle(svg: Element, p: P, name: string, key: string, out = true) {
+      const g = el('g', {}, 'pt');
+      g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 15 }, 'hit'));
+      g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 6 }, 'dot'));
+      const d = len(p, this.O) || 1;
+      const k = out ? 18 : -18;
+      g.appendChild(text(p.x + ((p.x - this.O.x) / d) * k, p.y + ((p.y - this.O.y) / d) * k, name, 'lbl'));
+      g.addEventListener('pointerdown', (e) => this.drag.start(key, e as PointerEvent));
+      svg.appendChild(g);
+    }
+
+    arc(svg: Element, start: number, sweep: number, cls: string) {
+      if (sweep <= 0.01) return;
+      svg.appendChild(el('path', { d: arcPath(this.O, this.R, start, start + sweep) }, cls));
+    }
+
+    wedge(svg: Element, v: P, p: P, q: P, r: number, cls: string) {
+      // minor wedge at v between rays to p and q
+      const a1 = screenAngle(v, p);
+      const a2 = screenAngle(v, q);
+      const [s, e] = ccw(a1, a2) <= 180 ? [a1, a2] : [a2, a1];
+      svg.appendChild(el('path', { d: arcPath(v, r, s, e, true) }, cls));
+      return polar(v, r + 14, s + ccw(s, e) / 2);
+    }
+
+    seg(svg: Element, p: P, q: P, cls = 'chord') {
+      svg.appendChild(el('line', { x1: p.x, y1: p.y, x2: q.x, y2: q.y }, cls));
+    }
+
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const O = this.O;
+      svg.appendChild(el('circle', { cx: O.x, cy: O.y, r: this.R }, 'circ'));
+      svg.appendChild(el('circle', { cx: O.x, cy: O.y, r: 3.5 }, 'mk'));
+      svg.appendChild(text(O.x - 10, O.y + 14, 'O', 'lbl small'));
+      const calc = this.querySelector('.calc')!;
+      const note = this.querySelector('.note')!;
+      const U = this.R / 5; // the radius is 5 units
+
+      if (this.mode === 'tangent') {
+        const d = len(O, this.P);
+        const phi = screenAngle(O, this.P);
+        const alpha = (Math.acos(this.R / d) * 180) / Math.PI;
+        const T1 = this.pt(phi + alpha);
+        const T2 = this.pt(phi - alpha);
+        this.seg(svg, O, this.P, 'aux');
+        for (const T of [T1, T2]) {
+          this.seg(svg, this.P, T, 'tan');
+          this.seg(svg, O, T, 'rad');
+          rightMark(svg, T, O, this.P, 9);
+        }
+        ticks(svg, this.P, T1, 1);
+        ticks(svg, this.P, T2, 1);
+        svg.appendChild(text(T1.x + (T1.x - O.x) * 0.18, T1.y + (T1.y - O.y) * 0.18, 'A', 'lbl'));
+        svg.appendChild(text(T2.x + (T2.x - O.x) * 0.18, T2.y + (T2.y - O.y) * 0.18, 'B', 'lbl'));
+        const g = el('g', {}, 'pt');
+        g.appendChild(el('circle', { cx: this.P.x, cy: this.P.y, r: 15 }, 'hit'));
+        g.appendChild(el('circle', { cx: this.P.x, cy: this.P.y, r: 6 }, 'dot'));
+        g.appendChild(text(this.P.x + 14, this.P.y - 12, 'P', 'lbl'));
+        g.addEventListener('pointerdown', (e) => this.drag.start('P', e as PointerEvent));
+        svg.appendChild(g);
+        const t = Math.sqrt(d * d - this.R * this.R) / (this.R / 4);
+        calc.innerHTML =
+          `<div>OA = OB = 4 , OP = ${fmt(d / (this.R / 4), 2)}</div>` +
+          `<div class="big">PA = PB = √(OP² − 4²) = ${fmt(t, 2)}</div>`;
+        note.textContent =
+          'نصف القطر عمودي على المماس عند نقطة التماس، فالمثلثان OAP و OBP قائمان ويشتركان في الوتر OP. لذلك PA = PB دائمًا.';
+        return;
+      }
+
+      const pts = this.a.map((x) => this.pt(x));
+      const names = ['A', 'B', 'C', 'D'];
+
+      if (this.mode === 'chord') {
+        const [A, B] = pts;
+        const m = ccw(this.a[0], this.a[1]);
+        const [minS, minM] = m <= 180 ? [this.a[0], m] : [this.a[1], 360 - m];
+        this.arc(svg, minS + minM, 360 - minM, 'arcB');
+        this.arc(svg, minS, minM, 'arcA');
+        this.seg(svg, O, A, 'rad');
+        this.seg(svg, O, B, 'rad');
+        this.seg(svg, A, B, 'chord2');
+        // diameter perpendicular to AB through O
+        const M = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
+        const mid = minS + minM / 2;
+        const D1 = this.pt(mid);
+        const D2 = this.pt(mid + 180);
+        this.seg(svg, D1, D2, 'aux');
+        rightMark(svg, M, A, D1, 8);
+        ticks(svg, A, M, 1);
+        ticks(svg, M, B, 1);
+        svg.appendChild(el('circle', { cx: D1.x, cy: D1.y, r: 3.5 }, 'mk'));
+        svg.appendChild(text(D1.x + ((D1.x - O.x) / this.R) * 14, D1.y + ((D1.y - O.y) / this.R) * 14, 'E', 'mlbl'));
+        const wl = this.wedge(svg, O, A, B, 22, 'wedge w0');
+        svg.appendChild(text(wl.x, wl.y, `${Math.round(minM)}°`, 'val'));
+        pts.forEach((p, i) => this.handle(svg, p, names[i], String(i)));
+        calc.innerHTML =
+          `<div>m∠AOB = ${Math.round(minM)}°</div>` +
+          `<div dir="rtl" class="big">القوس الأصغر <span class="ltr">AB = ${Math.round(minM)}°</span>، والقوس الأكبر <span class="ltr">${Math.round(360 - minM)}°</span></div>` +
+          `<div>AB = ${fmt(len(A, B) / U, 2)} , AM = MB = ${fmt(len(A, M) / U, 2)}</div>`;
+        note.textContent =
+          'قياس القوس الأصغر (الملوّن) يساوي الزاوية المركزية. والقطر المتقطع العمودي على الوتر ينصف الوتر، وينصف قوسه أيضًا عند E.';
+        return;
+      }
+
+      if (this.mode === 'inscribed') {
+        const [A, B, C] = pts;
+        const [s, m] = arcAvoiding(this.a[0], this.a[1], [this.a[2]]);
+        this.arc(svg, s, m, 'arcA');
+        this.seg(svg, C, A);
+        this.seg(svg, C, B);
+        this.seg(svg, O, A, 'rad');
+        this.seg(svg, O, B, 'rad');
+        // central wedge spanning the intercepted arc (may be reflex)
+        svg.appendChild(el('path', { d: arcPath(O, 20, s, s + m, true) }, 'wedge w1'));
+        const ins = angleAt(C, A, B);
+        const wl = this.wedge(svg, C, A, B, 22, 'wedge w0');
+        svg.appendChild(text(wl.x, wl.y, `${fmt(ins)}°`, 'val'));
+        const cl = polar(O, 34, s + m / 2);
+        svg.appendChild(text(cl.x, cl.y, `${fmt(m)}°`, 'val'));
+        pts.forEach((p, i) => this.handle(svg, p, names[i], String(i)));
+        calc.innerHTML =
+          `<div dir="rtl">القوس المقابل <span class="ltr">AB = ${fmt(m)}°</span></div>` + `<div class="big">m∠ACB = ${fmt(ins)}° = ½ × ${fmt(m)}°</div>`;
+        note.textContent =
+          Math.abs(m - 180) < 1.5
+            ? 'القوس نصف دائرة (AB قطر)، فالزاوية المحيطية قائمة.'
+            : 'حرّك C على الدائرة: الزاوية المحيطية لا تتغير ما دام C خارج القوس الملوّن، وقياسها دائمًا نصف القوس.';
+        return;
+      }
+
+      if (this.mode === 'cyclic') {
+        for (let i = 0; i < 4; i++) this.seg(svg, pts[i], pts[(i + 1) % 4], 'chord2');
+        const ang = pts.map((p, i) => angleAt(p, pts[(i + 3) % 4], pts[(i + 1) % 4]));
+        pts.forEach((p, i) => {
+          const wl = this.wedge(svg, p, pts[(i + 3) % 4], pts[(i + 1) % 4], 18, `wedge w${i % 2}`);
+          svg.appendChild(text(wl.x, wl.y, `${Math.round(ang[i])}°`, 'val'));
+        });
+        pts.forEach((p, i) => this.handle(svg, p, names[i], String(i)));
+        calc.innerHTML =
+          `<div class="big">m∠A + m∠C = ${Math.round(ang[0])}° + ${Math.round(ang[2])}° = ${Math.round(ang[0] + ang[2])}°</div>` +
+          `<div class="big">m∠B + m∠D = ${Math.round(ang[1])}° + ${Math.round(ang[3])}° = ${Math.round(ang[1] + ang[3])}°</div>`;
+        note.textContent =
+          'كل زاوية محيطية نصف القوس المقابل لها. والزاويتان المتقابلتان تقابلان قوسين يكوّنان الدائرة كلها (°360)، فمجموعهما نصف ذلك: °180.';
+        return;
+      }
+
+      if (this.mode === 'tanchord') {
+        const [A, B] = pts;
+        const t = this.a[0];
+        // tangent line at A
+        const T1 = polar(A, 150, t + 90);
+        const T2 = polar(A, 150, t - 90);
+        this.seg(svg, T1, T2, 'tan');
+        this.seg(svg, O, A, 'rad');
+        rightMark(svg, A, O, T1, 8);
+        this.seg(svg, A, B, 'chord2');
+        // the arc from A to B on the side of tangent ray T (choose minor arc)
+        const m = ccw(this.a[0], this.a[1]);
+        const minor = m <= 180;
+        const arcM = minor ? m : 360 - m;
+        if (minor) this.arc(svg, this.a[0], m, 'arcA');
+        else this.arc(svg, this.a[1], 360 - m, 'arcA');
+        // the tangent ray on the minor-arc side: rotating from tangent towards the arc
+        const ray = minor ? polar(A, 60, t + 90) : polar(A, 60, t - 90);
+        const ang = angleAt(A, ray, B);
+        const wl = this.wedge(svg, A, ray, B, 24, 'wedge w0');
+        svg.appendChild(text(wl.x, wl.y, `${fmt(ang)}°`, 'val'));
+        pts.forEach((p, i) => this.handle(svg, p, names[i], String(i)));
+        calc.innerHTML = `<div dir="rtl">القوس <span class="ltr">AB = ${fmt(arcM)}°</span></div><div class="big">${fmt(ang)}° = ½ × ${fmt(arcM)}°</div>`;
+        note.textContent =
+          'المماس عند A عمودي على نصف القطر OA. الزاوية بين المماس والوتر AB نصف القوس الواقع داخلها، كأنها زاوية محيطية رأسها على الدائرة.';
+        return;
+      }
+
+      // angles / segments: lines AC and BD
+      const [A, B, C, D] = pts;
+      const E = lineHit(A, C, B, D);
+      const handles = () => pts.forEach((p, i) => this.handle(svg, p, names[i], String(i)));
+      if (!E || len(E, O) > 6 * this.R || E.x < -400 || E.x > 760 || E.y < -400 || E.y > 700) {
+        this.seg(svg, A, C, 'chord2');
+        this.seg(svg, B, D, 'chord2');
+        calc.innerHTML = '<div>AC ∥ BD</div>';
+        note.textContent = 'المستقيمان AC و BD متوازيان تقريبًا، فلا يلتقيان. حرّك نقطة.';
+        handles();
+        return;
+      }
+      const inside = len(E, O) < this.R;
+      if (inside) {
+        this.seg(svg, A, C, 'chord2');
+        this.seg(svg, B, D, 'chord2');
+      } else {
+        // draw each secant from E to its farther point
+        const far = (p: P, q: P) => (len(E, p) > len(E, q) ? p : q);
+        this.seg(svg, E, far(A, C), 'chord2');
+        this.seg(svg, E, far(B, D), 'chord2');
+      }
+      svg.appendChild(el('circle', { cx: E.x, cy: E.y, r: 4.5 }, 'mk'));
+      const el2 = { x: E.x + (E.x - O.x) / (len(E, O) || 1) * 14, y: E.y + (E.y - O.y) / (len(E, O) || 1) * 14 };
+      svg.appendChild(text(inside ? E.x + 12 : el2.x, inside ? E.y - 10 : el2.y, 'E', 'mlbl'));
+      const u = U;
+      if (this.mode === 'angles') {
+        if (inside) {
+          const [sAB, mAB] = arcAvoiding(this.a[0], this.a[1], [this.a[2], this.a[3]]);
+          const [sCD, mCD] = arcAvoiding(this.a[2], this.a[3], [this.a[0], this.a[1]]);
+          this.arc(svg, sAB, mAB, 'arcA');
+          this.arc(svg, sCD, mCD, 'arcC');
+          const ang = angleAt(E, A, B);
+          const wl = this.wedge(svg, E, A, B, 16, 'wedge w0');
+          svg.appendChild(text(wl.x, wl.y, `${fmt(ang)}°`, 'val'));
+          calc.innerHTML =
+            `<div dir="rtl">القوسان <span class="ltr">AB = ${fmt(mAB)}°</span> و <span class="ltr">CD = ${fmt(mCD)}°</span></div>` +
+            `<div class="big">m∠AEB = ${fmt(ang)}° = ½(${fmt(mAB)}° + ${fmt(mCD)}°)</div>`;
+          note.textContent = 'E داخل الدائرة: الزاوية نصف مجموع القوسين المقابلين لها ولمقابلتها بالرأس. اسحب نقطة حتى يخرج E من الدائرة.';
+        } else {
+          const nearOf = (p: P, q: P, ip: number, iq: number) => (len(E, p) < len(E, q) ? [ip, iq] : [iq, ip]);
+          const [n1, f1] = nearOf(A, C, 0, 2);
+          const [n2, f2] = nearOf(B, D, 1, 3);
+          const [sF, mF] = arcAvoiding(this.a[f1], this.a[f2], [this.a[n1], this.a[n2]]);
+          const [sN, mN] = arcAvoiding(this.a[n1], this.a[n2], [this.a[f1], this.a[f2]]);
+          this.arc(svg, sF, mF, 'arcA');
+          this.arc(svg, sN, mN, 'arcC');
+          const ang = angleAt(E, pts[f1], pts[f2]);
+          const wl = this.wedge(svg, E, pts[f1], pts[f2], 16, 'wedge w0');
+          svg.appendChild(text(wl.x, wl.y, `${fmt(ang)}°`, 'val'));
+          calc.innerHTML =
+            `<div dir="rtl">القوس البعيد <span class="ltr">${fmt(mF)}°</span>، والقريب <span class="ltr">${fmt(mN)}°</span></div>` +
+            `<div class="big">m∠E = ${fmt(ang)}° = ½(${fmt(mF)}° − ${fmt(mN)}°)</div>`;
+          note.textContent = 'E خارج الدائرة: الزاوية نصف الفرق بين القوس البعيد (البرتقالي) والقوس القريب (الأخضر).';
+        }
+      } else {
+        const ea = len(E, A) / u;
+        const ec = len(E, C) / u;
+        const eb = len(E, B) / u;
+        const ed = len(E, D) / u;
+        calc.innerHTML =
+          `<div>EA = ${fmt(ea, 2)} , EC = ${fmt(ec, 2)} , EB = ${fmt(eb, 2)} , ED = ${fmt(ed, 2)}</div>` +
+          `<div class="big">EA × EC = ${fmt(ea * ec, 2)} , EB × ED = ${fmt(eb * ed, 2)}</div>`;
+        note.textContent = inside
+          ? 'وتران يتقاطعان داخل الدائرة: حاصل ضرب جزأي الأول يساوي حاصل ضرب جزأي الثاني.'
+          : 'قاطعان من نقطة خارجية: الجزء الخارجي × القاطع كله متساويان للقاطعين. والعلاقة نفسها تمامًا كالوترين!';
+      }
+      handles();
+    }
+  }
+  customElements.define('circle-lab', CircleLab);
+</script>
+
+<style is:global>
+  .clab .stage .circ {
+    fill: var(--brand);
+    fill-opacity: 0.05;
+    stroke: var(--brand);
+    stroke-width: 2.4;
+  }
+  .clab .stage .chord,
+  .clab .stage .chord2 {
+    stroke: var(--brand);
+    stroke-width: 2.4;
+  }
+  .clab .stage .rad {
+    stroke: var(--ink-2);
+    stroke-width: 1.8;
+  }
+  .clab .stage .aux {
+    stroke: var(--ink-3);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+  }
+  .clab .stage .tan {
+    stroke: var(--post);
+    stroke-width: 2.6;
+  }
+  .clab .stage .arcA {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .clab .stage .arcB {
+    fill: none;
+    stroke: var(--ink-3);
+    stroke-width: 2;
+    stroke-dasharray: 4 4;
+  }
+  .clab .stage .arcC {
+    fill: none;
+    stroke: var(--thm);
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .clab .stage .lbl.small {
+    font-size: 12px;
+  }
+</style>

@@ -1,0 +1,103 @@
+---
+// Interactive: the standard equation of a circle on a coordinate grid,
+// and testing whether a point lies on, inside or outside it.
+import '../styles/qlab.css';
+---
+
+<circleeq-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">معادلة الدائرة</span>
+    <span class="hint-small">اسحب المركز والنقطة P</span>
+  </div>
+  <svg viewBox="0 0 360 360" class="stage" role="img" aria-label="دائرة على مستوى إحداثي ونقطة P"></svg>
+  <div class="sliders">
+    <label><span class="ltr">r = <b class="rv">3</b></span><input type="range" class="r" min="1" max="6" value="3" dir="ltr" aria-label="نصف القطر" /></label>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</circleeq-lab>
+
+<script>
+  import { el, text, makeDraggable, type P } from '../scripts/svg';
+
+  const G = 24;
+  const px = (p: P): P => ({ x: 180 + p.x * G, y: 180 - p.y * G });
+  const sgn = (v: string, n: number) => (n === 0 ? v : n > 0 ? `(${v} − ${n})` : `(${v} + ${-n})`);
+  const num = (n: number) => String(n).replace('-', '−');
+  const par = (n: number) => (n < 0 ? `(${num(n)})` : num(n));
+
+  class CircleEqLab extends HTMLElement {
+    c: P = { x: 1, y: -1 };
+    p: P = { x: 4, y: 3 };
+    r = 3;
+    drag!: { start: (k: string, e: PointerEvent) => void };
+    connectedCallback() {
+      const r = this.querySelector<HTMLInputElement>('input.r')!;
+      r.addEventListener('input', () => {
+        this.r = Number(r.value);
+        this.render();
+      });
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<string>(svg, (k, q) => {
+        const g = { x: Math.max(-7, Math.min(7, Math.round((q.x - 180) / G))), y: Math.max(-7, Math.min(7, Math.round((180 - q.y) / G))) };
+        if (k === 'c') this.c = g;
+        else this.p = g;
+        this.render();
+      });
+      this.render();
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      for (let i = -7; i <= 7; i++) {
+        const a = px({ x: i, y: -7.5 });
+        const b = px({ x: i, y: 7.5 });
+        svg.appendChild(el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y }, i === 0 ? 'axis' : 'grid'));
+        const c = px({ x: -7.5, y: i });
+        const d = px({ x: 7.5, y: i });
+        svg.appendChild(el('line', { x1: c.x, y1: c.y, x2: d.x, y2: d.y }, i === 0 ? 'axis' : 'grid'));
+      }
+      const { c, p, r } = this;
+      const C = px(c);
+      const Pp = px(p);
+      svg.appendChild(el('circle', { cx: C.x, cy: C.y, r: r * G }, 'ring'));
+      svg.appendChild(el('line', { x1: C.x, y1: C.y, x2: Pp.x, y2: Pp.y }, 'dist'));
+      const h = (k: string, q: P, label: string, cls: string) => {
+        const g = el('g', {}, 'pt');
+        g.appendChild(el('circle', { cx: q.x, cy: q.y, r: 14 }, 'hit'));
+        g.appendChild(el('circle', { cx: q.x, cy: q.y, r: 5.5 }, cls));
+        g.appendChild(text(q.x + 12, q.y - 12, label, 'mlbl'));
+        g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
+        svg.appendChild(g);
+      };
+      h('c', C, `(${num(c.x)}, ${num(c.y)})`, 'dot');
+      h('p', Pp, `P(${num(p.x)}, ${num(p.y)})`, 'pdot');
+      this.querySelector('.rv')!.textContent = String(r);
+      const d2 = (p.x - c.x) ** 2 + (p.y - c.y) ** 2;
+      const rel = d2 === r * r ? '=' : d2 < r * r ? '<' : '>';
+      this.querySelector('.calc')!.innerHTML =
+        `<div class="big">${sgn('x', c.x)}² + ${sgn('y', c.y)}² = ${r * r}</div>` +
+        `<div>(${num(p.x)} − ${par(c.x)})² + (${num(p.y)} − ${par(c.y)})² = ${d2} ${rel} ${r * r}</div>`;
+      this.querySelector('.note')!.textContent =
+        rel === '='
+          ? 'P على الدائرة: إحداثياه يحققان المعادلة، لأن بعده عن المركز يساوي r بالضبط.'
+          : rel === '<'
+            ? 'P داخل الدائرة: الطرف الأيسر أصغر من r²، أي أن بعده عن المركز أقل من r.'
+            : 'P خارج الدائرة: الطرف الأيسر أكبر من r². حرّك P حتى يقع على الدائرة.';
+    }
+  }
+  customElements.define('circleeq-lab', CircleEqLab);
+</script>
+
+<style is:global>
+  circleeq-lab .stage .grid { stroke: var(--line); stroke-width: 1; }
+  circleeq-lab .stage .axis { stroke: var(--ink-3); stroke-width: 1.6; }
+  circleeq-lab .stage .ring {
+    fill: var(--brand);
+    fill-opacity: 0.07;
+    stroke: var(--brand);
+    stroke-width: 2.6;
+  }
+  circleeq-lab .stage .dist { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 4; }
+  circleeq-lab .stage .pdot { fill: var(--accent); stroke: var(--card); stroke-width: 2; }
+</style>

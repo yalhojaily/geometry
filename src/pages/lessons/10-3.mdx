@@ -1,0 +1,101 @@
+---
+layout: ../../layouts/Lesson.astro
+lesson: '10.3'
+why: 'ضع رأس زاوية على الدائرة بدل المركز، فيصير قياسها نصف القوس. هذه النظرية الواحدة تفسر لماذا كل زاوية مرسومة في نصف دائرة قائمة، ولماذا الزوايا المتقابلة في شكل رباعي دائري متكاملة.'
+---
+
+import Term from '../../components/Term.astro';
+import Callout from '../../components/Callout.astro';
+import Example from '../../components/Example.astro';
+import Quiz from '../../components/Quiz.astro';
+import Prereq from '../../components/Prereq.astro';
+import CircleLab from '../../components/CircleLab.astro';
+
+## الزاوية المحيطية
+
+<Term id="def-inscribed-angle" />
+<Term id="thm-inscribed-angle" />
+
+<CircleLab mode="inscribed" />
+
+<Callout type="tip" title="لماذا النصف؟">
+
+في الحالة البسيطة يمر أحد ضلعي الزاوية المحيطية بالمركز. المثلث المكوّن من نصفي قطرين متطابق الضلعين، فزاويتا قاعدته متساويتان. والزاوية المركزية زاوية خارجية لهذا المثلث، فتساوي مجموعهما، أي ضعف الزاوية المحيطية. والحالات الأخرى تُرد إلى هذه بجمع زاويتين أو طرحهما.
+
+</Callout>
+
+<Prereq id="alg-linear-eq" />
+
+<Example title="مثال 1: الزاوية والقوس">
+
+1. زاوية محيطية تقابل قوسًا $84^\circ$: قياسها $42^\circ$.
+2. زاوية محيطية قياسها $35^\circ$: قوسها $70^\circ$.
+3. زاويتان محيطيتان تقابلان القوس نفسه، إحداهما $(3x + 5)^\circ$ والأخرى $(5x - 15)^\circ$: متطابقتان، فـ $3x + 5 = 5x - 15$، و $x = 10$، وكل منهما $35^\circ$.
+
+</Example>
+
+## الزاوية في نصف دائرة
+
+<Term id="thm-inscribed-right" />
+
+حرّك $A$ و $B$ في المختبر حتى يصير القوس $180^\circ$، ثم حرّك $C$: الزاوية تبقى $90^\circ$.
+
+## الشكل الرباعي الدائري
+
+<Term id="thm-cyclic-quad" />
+
+<CircleLab mode="cyclic" />
+
+<Example title="مثال 2: زوايا شكل رباعي دائري">
+
+$ABCD$ مرسوم داخل دائرة، و $m\angle A = 2x$ و $m\angle C = 3x - 20$ و $m\angle B = 75^\circ$. أوجد كل الزوايا.
+
+1. $\angle A$ و $\angle C$ متقابلتان: $2x + 3x - 20 = 180$، فـ $x = 40$.
+2. $m\angle A = 80^\circ$ و $m\angle C = 100^\circ$.
+3. $m\angle D = 180 - 75 = 105^\circ$.
+
+</Example>
+
+## تمارين
+
+<Quiz n={1} type="number" answer={55}>
+
+زاوية محيطية تقابل قوسًا قياسه $110^\circ$. ما قياسها؟
+
+<div slot="explain">نصف القوس: $55^\circ$.</div>
+</Quiz>
+
+<Quiz n={2} type="number" answer={96}>
+
+زاوية محيطية قياسها $48^\circ$. ما قياس قوسها؟
+
+<div slot="explain">ضعف الزاوية: $96^\circ$.</div>
+</Quiz>
+
+<Quiz n={3} type="number" answer={90}>
+
+$\triangle ABC$ مرسوم داخل دائرة، و $\overline{AB}$ قطر. ما $m\angle C$؟
+
+<div slot="explain">الزاوية المقابلة للقطر قائمة: $90^\circ$.</div>
+</Quiz>
+
+<Quiz n={4} type="number" answer={68}>
+
+في شكل رباعي دائري، إحدى الزوايا $112^\circ$. ما قياس الزاوية المقابلة لها؟
+
+<div slot="explain">$180 - 112 = 68$.</div>
+</Quiz>
+
+<Quiz n={5} type="choice" answer={1} options={['نعم', 'لا']}>
+
+هل يمكن رسم متوازي أضلاع غير مستطيل داخل دائرة؟
+
+<div slot="explain">لا: زاويتاه المتقابلتان متطابقتان، ولا تتكاملان إلا إذا كانت كل منهما $90^\circ$، أي إذا كان مستطيلًا.</div>
+</Quiz>
+
+## الخلاصة
+
+- **الزاوية المحيطية** نصف قوسها المقابل.
+- الزوايا المحيطية المقابلة للقوس نفسه **متطابقة**.
+- الزاوية المحيطية المقابلة لقطر **قائمة**.
+- في **الشكل الرباعي الدائري** كل زاويتين متقابلتين **متكاملتان**.

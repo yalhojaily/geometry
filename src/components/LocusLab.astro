@@ -1,0 +1,177 @@
+---
+// Interactive locus hunt: drag P around; every position that satisfies the
+// condition leaves a dot, so the locus appears gradually.
+import '../styles/qlab.css';
+---
+
+<locus-lab class="panel lab qlab">
+  <div class="lab-head">
+    <span class="tag">ابحث عن المحل الهندسي</span>
+    <span class="hint-small">اسحب P</span>
+  </div>
+  <div class="modes" role="tablist">
+    <button type="button" data-m="circle" class="on">بعد ثابت عن نقطة</button>
+    <button type="button" data-m="bis">بعدان متساويان عن نقطتين</button>
+    <button type="button" data-m="par">بعد ثابت عن مستقيم</button>
+    <button type="button" data-m="ang">بعدان متساويان عن مستقيمين</button>
+  </div>
+  <svg viewBox="0 0 360 280" class="stage" role="img" aria-label="نقطة P تبحث عن المحل الهندسي"></svg>
+  <div class="presets">
+    <button type="button" class="show">أظهر المحل</button>
+    <button type="button" class="clear">امسح النقاط</button>
+  </div>
+  <div class="calc"></div>
+  <p class="note"></p>
+</locus-lab>
+
+<script>
+  import { el, text, makeDraggable, type P } from '../scripts/svg';
+  import { len } from '../scripts/quad';
+
+  const U = 30;
+  const TOL = 0.15; // units
+  const fmt = (n: number) => String(Math.round(n * 100) / 100);
+  /** Distance from p to the infinite line through a and b. */
+  const distLine = (p: P, a: P, b: P) =>
+    Math.abs((b.x - a.x) * (a.y - p.y) - (a.x - p.x) * (b.y - a.y)) / len(a, b);
+
+  const C: P = { x: 180, y: 140 };
+  const A: P = { x: 130, y: 140 };
+  const B: P = { x: 230, y: 140 };
+  const L1: [P, P] = [{ x: 0, y: 140 }, { x: 360, y: 140 }];
+  const M1: [P, P] = [{ x: 40, y: 250 }, { x: 320, y: 30 }];
+  const M2: [P, P] = [{ x: 40, y: 30 }, { x: 320, y: 250 }];
+
+  class LocusLab extends HTMLElement {
+    m = 'circle';
+    p: P = { x: 300, y: 60 };
+    dots: P[] = [];
+    reveal = false;
+    drag!: { start: (k: string, e: PointerEvent) => void };
+    connectedCallback() {
+      this.querySelectorAll<HTMLButtonElement>('.modes button').forEach((b) =>
+        b.addEventListener('click', () => {
+          this.m = b.dataset.m!;
+          this.querySelectorAll('.modes button').forEach((x) => x.classList.toggle('on', x === b));
+          this.dots = [];
+          this.reveal = false;
+          this.render();
+        }),
+      );
+      this.querySelector('.show')!.addEventListener('click', () => {
+        this.reveal = !this.reveal;
+        this.render();
+      });
+      this.querySelector('.clear')!.addEventListener('click', () => {
+        this.dots = [];
+        this.render();
+      });
+      const svg = this.querySelector<SVGSVGElement>('svg.stage')!;
+      this.drag = makeDraggable<string>(svg, (_k, q) => {
+        this.p = { x: Math.max(8, Math.min(352, q.x)), y: Math.max(8, Math.min(272, q.y)) };
+        const [d1, d2] = this.measure();
+        if (Math.abs(d1 - d2) < TOL && !this.dots.some((d) => len(d, this.p) < 5)) this.dots.push({ ...this.p });
+        this.render();
+      });
+      this.render();
+    }
+    /** Two quantities that must be equal on the locus (in units). */
+    measure(): [number, number] {
+      const p = this.p;
+      if (this.m === 'circle') return [len(p, C) / U, 3];
+      if (this.m === 'bis') return [len(p, A) / U, len(p, B) / U];
+      if (this.m === 'par') return [distLine(p, L1[0], L1[1]) / U, 2];
+      return [distLine(p, M1[0], M1[1]) / U, distLine(p, M2[0], M2[1]) / U];
+    }
+    line(svg: Element, a: P, b: P, cls: string) {
+      svg.appendChild(el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y }, cls));
+    }
+    render() {
+      const svg = this.querySelector('svg.stage')!;
+      svg.replaceChildren();
+      const m = this.m;
+      // the locus itself (hidden until revealed)
+      if (this.reveal) {
+        if (m === 'circle') svg.appendChild(el('circle', { cx: C.x, cy: C.y, r: 3 * U }, 'loc'));
+        if (m === 'bis') this.line(svg, { x: 180, y: 0 }, { x: 180, y: 280 }, 'loc');
+        if (m === 'par') {
+          this.line(svg, { x: 0, y: 140 - 2 * U }, { x: 360, y: 140 - 2 * U }, 'loc');
+          this.line(svg, { x: 0, y: 140 + 2 * U }, { x: 360, y: 140 + 2 * U }, 'loc');
+        }
+        if (m === 'ang') {
+          this.line(svg, { x: 0, y: 140 }, { x: 360, y: 140 }, 'loc');
+          this.line(svg, { x: 180, y: 0 }, { x: 180, y: 280 }, 'loc');
+        }
+      }
+      // the givens
+      if (m === 'circle') {
+        svg.appendChild(el('circle', { cx: C.x, cy: C.y, r: 4.5 }, 'given'));
+        svg.appendChild(text(C.x + 10, C.y + 16, 'C', 'lbl'));
+      } else if (m === 'bis') {
+        for (const [q, n] of [[A, 'A'], [B, 'B']] as [P, string][]) {
+          svg.appendChild(el('circle', { cx: q.x, cy: q.y, r: 4.5 }, 'given'));
+          svg.appendChild(text(q.x, q.y + 18, n, 'lbl'));
+        }
+      } else if (m === 'par') {
+        this.line(svg, L1[0], L1[1], 'gline');
+        svg.appendChild(text(20, 132, 'ℓ', 'lbl'));
+      } else {
+        this.line(svg, M1[0], M1[1], 'gline');
+        this.line(svg, M2[0], M2[1], 'gline');
+        svg.appendChild(text(326, 40, 'k', 'lbl'));
+        svg.appendChild(text(326, 246, 'm', 'lbl'));
+      }
+      for (const d of this.dots) svg.appendChild(el('circle', { cx: d.x, cy: d.y, r: 3.2 }, 'stamp'));
+      const [d1, d2] = this.measure();
+      const ok = Math.abs(d1 - d2) < TOL;
+      const p = this.p;
+      // helper segments from P to the givens
+      if (m === 'circle') this.line(svg, p, C, 'meas');
+      if (m === 'bis') {
+        this.line(svg, p, A, 'meas');
+        this.line(svg, p, B, 'meas');
+      }
+      if (m === 'par') this.line(svg, p, { x: p.x, y: 140 }, 'meas');
+      const g = el('g', {}, 'pt');
+      g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 15 }, 'hit'));
+      g.appendChild(el('circle', { cx: p.x, cy: p.y, r: 6.5 }, ok ? 'pok' : 'dot'));
+      g.appendChild(text(p.x + 12, p.y - 12, 'P', 'lbl'));
+      g.addEventListener('pointerdown', (e) => this.drag.start('P', e as PointerEvent));
+      svg.appendChild(g);
+      const lab: Record<string, string> = {
+        circle: `PC = ${fmt(d1)} , r = 3`,
+        bis: `PA = ${fmt(d1)} , PB = ${fmt(d2)}`,
+        par: `d(P, ℓ) = ${fmt(d1)} , d = 2`,
+        ang: `d(P, k) = ${fmt(d1)} , d(P, m) = ${fmt(d2)}`,
+      };
+      this.querySelector('.calc')!.innerHTML = `<div class="${ok ? 'big' : ''}">${lab[m]} ${ok ? '✓' : ''}</div>`;
+      const ans: Record<string, string> = {
+        circle: 'المحل: دائرة مركزها C ونصف قطرها 3.',
+        bis: 'المحل: العمود المنصف للقطعة AB.',
+        par: 'المحل: مستقيمان يوازيان ℓ، واحد على كل جانب، على بعد 2 منه.',
+        ang: 'المحل: مستقيمان متعامدان ينصفان الزوايا الأربع بين k و m.',
+      };
+      this.querySelector('.note')!.textContent = this.reveal
+        ? ans[m]
+        : `حرّك P. كلما حقق الشرط تحوّل إلى الأخضر وترك نقطة. اجمع نقاطًا كثيرة: ما الشكل الذي تكوّنه؟ (عندك ${this.dots.length} نقطة)`;
+    }
+  }
+  customElements.define('locus-lab', LocusLab);
+</script>
+
+<style is:global>
+  locus-lab.qlab .modes {
+    grid-template-columns: 1fr 1fr;
+  }
+  locus-lab .stage .given { fill: var(--ink); }
+  locus-lab .stage .gline { stroke: var(--ink); stroke-width: 2.4; }
+  locus-lab .stage .loc {
+    fill: none;
+    stroke: var(--thm);
+    stroke-width: 3;
+    stroke-opacity: 0.55;
+  }
+  locus-lab .stage .stamp { fill: var(--thm); }
+  locus-lab .stage .meas { stroke: var(--ink-3); stroke-width: 1.4; stroke-dasharray: 4 3; }
+  locus-lab .stage .pok { fill: var(--thm); stroke: var(--card); stroke-width: 2.5; }
+</style>

@@ -285,3 +285,9 @@ svg text {
 .body .tscroll td:not(:first-child) {
   text-align: center;
 }
+
+/* Dragging inside a lab should never select its labels */
+svg.stage {
+  user-select: none;
+  -webkit-user-select: none;
+}
