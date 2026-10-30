@@ -24,7 +24,7 @@ if (!s) throw new Error(`Unknown skill id: ${Astro.props.id}`);
       <span class="q-label">تأكد بسرعة:</span>{" "}
       <span set:html={renderMath(s.check.q)} />
       <span class="row">
-        <input type="text" inputmode="decimal" dir="ltr" aria-label="إجابتك" placeholder="؟" />
+        <input type="text" dir="ltr" aria-label="إجابتك" placeholder="؟" />
         <button type="button" class="btn">تحقّق</button>
         <span class="fb" aria-live="polite"></span>
       </span>
@@ -33,19 +33,22 @@ if (!s) throw new Error(`Unknown skill id: ${Astro.props.id}`);
 </details>
 
 <script>
+  import { parseAnswer } from '../scripts/num';
+
   class PrereqCheck extends HTMLElement {
     connectedCallback() {
       const answer = Number(this.dataset.answer);
       const input = this.querySelector('input')!;
       const fb = this.querySelector<HTMLElement>('.fb')!;
       const check = () => {
-        const raw = input.value
-          .trim()
-          .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
-          .replace(/[−–]/g, '-')
-          .replace('٫', '.');
-        if (raw === '') return;
-        const ok = Math.abs(Number(raw) - answer) < 1e-9;
+        if (input.value.trim() === '') return;
+        const v = parseAnswer(input.value);
+        if (Number.isNaN(v)) {
+          fb.textContent = 'اكتب عددًا، مثل 2.5 أو 5/2';
+          fb.className = 'fb wrong';
+          return;
+        }
+        const ok = Math.abs(v - answer) < 1e-9;
         fb.textContent = ok ? 'صحيح ✓' : 'حاول مرة أخرى';
         fb.className = `fb ${ok ? 'right' : 'wrong'}`;
         input.className = ok ? 'right' : 'wrong';

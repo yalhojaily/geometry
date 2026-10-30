@@ -42,7 +42,7 @@ const from = lesson ? findLesson(lesson).lesson : undefined;
       </div>
     ) : (
       <div class="num-row">
-        <input class="num" type="text" inputmode="decimal" dir="ltr" aria-label="إجابتك" placeholder="؟" />
+        <input class="num" type="text" dir="ltr" aria-label="إجابتك" placeholder="؟" />
         <button type="button" class="btn btn-primary check">تحقّق</button>
       </div>
     )
@@ -55,6 +55,7 @@ const from = lesson ? findLesson(lesson).lesson : undefined;
 </quiz-q>
 
 <script>
+  import { parseAnswer } from '../scripts/num';
   class QuizQ extends HTMLElement {
     connectedCallback() {
       const type = this.dataset.type;
@@ -73,15 +74,14 @@ const from = lesson ? findLesson(lesson).lesson : undefined;
       } else {
         const input = this.querySelector<HTMLInputElement>('.num')!;
         const check = () => {
-          const v = Number(
-            input.value
-              .trim()
-              .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
-              .replace(/[−–]/g, '-')
-              .replace('٫', '.')
-              .replace(/[,٬\s]/g, ''),
-          );
-          if (input.value.trim() === '' || Number.isNaN(v)) return;
+          const v = parseAnswer(input.value);
+          if (input.value.trim() === '') return;
+          if (Number.isNaN(v)) {
+            const fb = this.querySelector<HTMLElement>('.feedback')!;
+            fb.textContent = 'اكتب عددًا، مثل 2.5 أو 5/2';
+            fb.className = 'feedback wrong';
+            return;
+          }
           const ok = Math.abs(v - answer) < 1e-9;
           input.classList.toggle('wrong', !ok);
           input.classList.toggle('right', ok);
