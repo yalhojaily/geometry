@@ -62,15 +62,16 @@ import '../styles/qlab.css';
       const Pp = px(p);
       svg.appendChild(el('circle', { cx: C.x, cy: C.y, r: r * G }, 'ring'));
       svg.appendChild(el('line', { x1: C.x, y1: C.y, x2: Pp.x, y2: Pp.y }, 'dist'));
-      const h = (k: string, q: P, label: string, cls: string) => {
+      const h = (k: string, q: P, label: string, cls: string, dx = 12, dy = -12) => {
         const g = el('g', {}, 'pt');
         g.appendChild(el('circle', { cx: q.x, cy: q.y, r: 14 }, 'hit'));
         g.appendChild(el('circle', { cx: q.x, cy: q.y, r: 5.5 }, cls));
-        g.appendChild(text(q.x + 12, q.y - 12, label, 'mlbl'));
+        g.appendChild(text(q.x + dx, q.y + dy, label, 'mlbl'));
         g.addEventListener('pointerdown', (e) => this.drag.start(k, e as PointerEvent));
         svg.appendChild(g);
       };
-      h('c', C, `(${num(c.x)}, ${num(c.y)})`, 'dot');
+      // centre label below the point, away from the radius drawn towards P
+      h('c', C, `(${num(c.x)}, ${num(c.y)})`, 'dot', 0, Pp.y < C.y ? 22 : -14);
       h('p', Pp, `P(${num(p.x)}, ${num(p.y)})`, 'pdot');
       this.querySelector('.rv')!.textContent = String(r);
       const d2 = (p.x - c.x) ** 2 + (p.y - c.y) ** 2;

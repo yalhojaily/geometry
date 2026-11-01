@@ -235,6 +235,10 @@ const rows = steps.map((st, i) => ({
   .st {
     width: 48%;
   }
+  /* long statements may break after = or + instead of overflowing */
+  .st :global(.katex) {
+    white-space: normal;
+  }
   .rs a {
     color: var(--brand);
     text-decoration: underline dotted;

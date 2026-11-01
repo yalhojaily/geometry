@@ -165,7 +165,9 @@
         const g = el('g', {}, `pt pt-${k}`);
         g.appendChild(el('circle', { cx: px(q.x), cy: py(q.y), r: 14 }, 'hit'));
         g.appendChild(el('circle', { cx: px(q.x), cy: py(q.y), r: 5.5 }, 'dot'));
-        const t = el('text', { x: px(q.x) + 8, y: py(q.y) - 8 }, 'lbl');
+        // labels near the right edge are drawn to the left of the point
+        const right = q.x >= XMAX - 2;
+        const t = el('text', { x: px(q.x) + (right ? -8 : 8), y: py(q.y) - 8, 'text-anchor': right ? 'end' : 'start' }, 'lbl');
         t.textContent = `${k}(${q.x}, ${q.y})`;
         g.appendChild(t);
         g.addEventListener('pointerdown', (e) => {

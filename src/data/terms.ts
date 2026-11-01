@@ -1865,7 +1865,7 @@ export const terms: Term[] = [
     lesson: '9.7',
     en: 'Sum of vectors',
     ar: 'جمع المتجهات',
-    statement: 'لجمع متجهين: ضع بداية الثاني عند نهاية الأول، فالمجموع من بداية الأول إلى نهاية الثاني. وبالمركّبات: $\\langle a_1, b_1 \\rangle + \\langle a_2, b_2 \\rangle = \\langle a_1 + a_2, b_1 + b_2 \\rangle$.',
+    statement: 'لجمع متجهين: ضع بداية الثاني عند نهاية الأول، فالمجموع من بداية الأول إلى نهاية الثاني. وبالمركّبات: المجموع $\\langle a_1, b_1 \\rangle + \\langle a_2, b_2 \\rangle$ يساوي $\\langle a_1 + a_2, b_1 + b_2 \\rangle$.',
     dependsOn: ['def-vector'],
   },
   {
