@@ -1,0 +1,245 @@
+---
+// Static proof figures for lesson 10.4: each case is reduced to inscribed angles
+// by one auxiliary chord (dashed).
+interface Props {
+  kind: 'tanchord' | 'chords' | 'secants';
+}
+const { kind } = Astro.props;
+
+type P = { x: number; y: number };
+const R = 80;
+const O: P = kind === 'secants' ? { x: 218, y: 120 } : { x: 160, y: 120 };
+const on = (deg: number): P => ({
+  x: O.x + R * Math.cos((deg * Math.PI) / 180),
+  y: O.y - R * Math.sin((deg * Math.PI) / 180),
+});
+const f = (n: number) => Math.round(n * 10) / 10;
+// arc on the circle from angle a to angle b, counter-clockwise (screen: sweep 0)
+const arc = (a: number, b: number, r = R) => {
+  const p = { x: O.x + r * Math.cos((a * Math.PI) / 180), y: O.y - r * Math.sin((a * Math.PI) / 180) };
+  const q = { x: O.x + r * Math.cos((b * Math.PI) / 180), y: O.y - r * Math.sin((b * Math.PI) / 180) };
+  const m = (((b - a) % 360) + 360) % 360;
+  return `M ${f(p.x)} ${f(p.y)} A ${r} ${r} 0 ${m > 180 ? 1 : 0} 0 ${f(q.x)} ${f(q.y)}`;
+};
+const hit = (a: P, b: P, c: P, d: P): P => {
+  const t = ((c.x - a.x) * (d.y - c.y) - (c.y - a.y) * (d.x - c.x)) / ((b.x - a.x) * (d.y - c.y) - (b.y - a.y) * (d.x - c.x));
+  return { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) };
+};
+// small angle mark at V between directions to P and Q
+const wedge = (V: P, Pp: P, Q: P, r: number) => {
+  const a1 = Math.atan2(Pp.y - V.y, Pp.x - V.x);
+  let a2 = Math.atan2(Q.y - V.y, Q.x - V.x);
+  let d = a2 - a1;
+  while (d > Math.PI) d -= 2 * Math.PI;
+  while (d < -Math.PI) d += 2 * Math.PI;
+  a2 = a1 + d;
+  const s = { x: V.x + r * Math.cos(a1), y: V.y + r * Math.sin(a1) };
+  const e = { x: V.x + r * Math.cos(a2), y: V.y + r * Math.sin(a2) };
+  return `M ${f(V.x)} ${f(V.y)} L ${f(s.x)} ${f(s.y)} A ${r} ${r} 0 0 ${d > 0 ? 1 : 0} ${f(e.x)} ${f(e.y)} Z`;
+};
+const away = (p: P, k = 16): P => {
+  const dx = p.x - O.x;
+  const dy = p.y - O.y;
+  const l = Math.hypot(dx, dy) || 1;
+  return { x: p.x + (dx / l) * k, y: p.y + (dy / l) * k + 5 };
+};
+
+// --- tangent & chord: A at the bottom, tangent horizontal, diameter AD
+const tA = on(270);
+const tD = on(90);
+const tB = on(20);
+const tT = { x: tA.x + 120, y: tA.y };
+const tT2 = { x: tA.x - 120, y: tA.y };
+
+// --- two chords: AC and BD cross at E, auxiliary chord AD
+const cA = on(150);
+const cB = on(40);
+const cC = on(300);
+const cD = on(220);
+const cE = hit(cA, cC, cB, cD);
+
+// --- two secants from E: E-A-C and E-B-D (A, B near), auxiliary chord AD
+const sA = on(160);
+const sC = on(70);
+const sB = on(200);
+const sD = on(290);
+const sE = hit(sA, sC, sB, sD);
+
+const labels: Record<string, string> = {
+  tanchord: 'المماس عند A والقطر AD، والوتر AB',
+  chords: 'وتران يتقاطعان في E، والوتر المساعد AD متقطع',
+  secants: 'قاطعان من E، والوتر المساعد AD متقطع',
+};
+---
+
+<figure class="fig">
+  <svg viewBox="0 0 340 240" role="img" aria-label={labels[kind]}>
+    <circle class="circ" cx={O.x} cy={O.y} r={R}></circle>
+    {
+      kind === 'tanchord' && (
+        <>
+          <path class="arcY" d={arc(270, 20)} />
+          <path class="arcG" d={arc(20, 90)} />
+          <path class="wY" d={wedge(tA, tT, tB, 34)} />
+          <path class="wG" d={wedge(tA, tB, tD, 48)} />
+          <line class="tan" x1={tT2.x} y1={tT2.y} x2={tT.x} y2={tT.y} />
+          <line class="aux" x1={tA.x} y1={tA.y} x2={tD.x} y2={tD.y} />
+          <line class="ch" x1={tA.x} y1={tA.y} x2={tB.x} y2={tB.y} />
+          <path class="rt" d={`M ${tA.x + 10} ${tA.y} L ${tA.x + 10} ${tA.y - 10} L ${tA.x} ${tA.y - 10}`} />
+          <circle class="pt" cx={O.x} cy={O.y} r="3" />
+          <text x={O.x - 16} y={O.y + 5}>O</text>
+          {[
+            [tA, 'A'],
+            [tB, 'B'],
+            [tD, 'D'],
+          ].map(([p, n]) => (
+            <>
+              <circle class="pt" cx={(p as P).x} cy={(p as P).y} r="4" />
+              <text x={away(p as P).x - 5} y={away(p as P).y}>
+                {n}
+              </text>
+            </>
+          ))}
+          <text x={tT.x - 6} y={tT.y + 20}>T</text>
+        </>
+      )
+    }
+    {
+      kind === 'chords' && (
+        <>
+          <path class="arcY" d={arc(40, 150)} />
+          <path class="arcG" d={arc(220, 300)} />
+          <path class="wR" d={wedge(cE, cA, cB, 24)} />
+          <path class="wY" d={wedge(cD, cA, cB, 34)} />
+          <path class="wG" d={wedge(cA, cD, cC, 36)} />
+          <line class="ch" x1={cA.x} y1={cA.y} x2={cC.x} y2={cC.y} />
+          <line class="ch" x1={cB.x} y1={cB.y} x2={cD.x} y2={cD.y} />
+          <line class="aux" x1={cA.x} y1={cA.y} x2={cD.x} y2={cD.y} />
+          {[
+            [cA, 'A'],
+            [cB, 'B'],
+            [cC, 'C'],
+            [cD, 'D'],
+          ].map(([p, n]) => (
+            <>
+              <circle class="pt" cx={(p as P).x} cy={(p as P).y} r="4" />
+              <text x={away(p as P).x - 5} y={away(p as P).y}>
+                {n}
+              </text>
+            </>
+          ))}
+          <circle class="pt" cx={cE.x} cy={cE.y} r="4" />
+          <text x={cE.x - 5} y={cE.y + 24}>E</text>
+        </>
+      )
+    }
+    {
+      kind === 'secants' && (
+        <>
+          <path class="arcY" d={arc(290, 70)} />
+          <path class="arcG" d={arc(160, 200)} />
+          <path class="wR" d={wedge(sE, sC, sD, 30)} />
+          <path class="wY" d={wedge(sA, sD, sC, 28)} />
+          <path class="wG" d={wedge(sD, sA, sB, 44)} />
+          <line class="ch" x1={sE.x} y1={sE.y} x2={sC.x} y2={sC.y} />
+          <line class="ch" x1={sE.x} y1={sE.y} x2={sD.x} y2={sD.y} />
+          <line class="aux" x1={sA.x} y1={sA.y} x2={sD.x} y2={sD.y} />
+          {[
+            [sA, 'A'],
+            [sB, 'B'],
+            [sC, 'C'],
+            [sD, 'D'],
+          ].map(([p, n]) => (
+            <>
+              <circle class="pt" cx={(p as P).x} cy={(p as P).y} r="4" />
+              <text x={away(p as P).x - 5} y={away(p as P).y}>
+                {n}
+              </text>
+            </>
+          ))}
+          <circle class="pt" cx={sE.x} cy={sE.y} r="4" />
+          <text x={sE.x - 20} y={sE.y + 5}>E</text>
+        </>
+      )
+    }
+  </svg>
+  <figcaption><slot /></figcaption>
+</figure>
+
+<style>
+  .fig {
+    margin: 1.2rem 0;
+    text-align: center;
+  }
+  svg {
+    width: 100%;
+    max-width: 380px;
+    display: block;
+    margin: 0 auto;
+  }
+  .circ {
+    fill: var(--brand);
+    fill-opacity: 0.05;
+    stroke: var(--brand);
+    stroke-width: 2.2;
+  }
+  .ch {
+    stroke: var(--brand);
+    stroke-width: 2.4;
+  }
+  .tan {
+    stroke: var(--ink);
+    stroke-width: 2.6;
+  }
+  .aux {
+    stroke: var(--ink-2);
+    stroke-width: 1.8;
+    stroke-dasharray: 6 5;
+  }
+  .rt {
+    fill: none;
+    stroke: var(--ink-2);
+    stroke-width: 1.5;
+  }
+  .arcY,
+  .arcG {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .arcY {
+    stroke: var(--accent);
+  }
+  .arcG {
+    stroke: var(--thm);
+  }
+  .wY,
+  .wG,
+  .wR {
+    stroke: none;
+    fill-opacity: 0.55;
+  }
+  .wY {
+    fill: var(--accent);
+  }
+  .wG {
+    fill: var(--thm);
+  }
+  .wR {
+    fill: var(--red);
+  }
+  .pt {
+    fill: var(--ink);
+  }
+  text {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 16px;
+    fill: var(--ink);
+  }
+  figcaption {
+    font-size: 0.92rem;
+    color: var(--ink-3);
+    margin-top: 0.4rem;
+  }
+</style>
